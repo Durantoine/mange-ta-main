@@ -1,0 +1,8 @@
+{
+  "venvPath": "/app",
+  "venv": ".venv",
+  "include": [
+    "service",
+    "tests"
+  ]
+}
