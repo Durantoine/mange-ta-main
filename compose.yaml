@@ -1,44 +1,3 @@
-# version: "3.8"
-
-# services:
-#   mange_ta_main:
-#     build:
-#       context: ./backend
-#       target: dev
-#     image: mange_ta_main:dev
-#     ports:
-#       - "8000:8000"
-#     volumes:
-#       - .:/app
-#       - /app/.venv
-#     networks:
-#       - app_network
-#     environment:
-#       - UV_HOST=0.0.0.0
-#       - UV_PORT=8000
-#       - UV_RELOAD=True
-    
-
-#   mange_ta_main_front:
-#     build:
-#       context: ./frontend
-#       target: dev
-#     image: mange_ta_main_front:dev
-#     ports:
-#       - "8501:8501"
-#     volumes:
-#       - .:/app
-#       - /app/.venv
-#     networks:
-#       - app_network
-#     environment:
-#       - BASE_URL=http://mange_ta_main:8000/mange_ta_main
-   
-
-# networks:
-#   app_network:
-#     driver: bridge
-
 version: "3.8"
 
 services:
@@ -58,6 +17,15 @@ services:
       - UV_HOST=0.0.0.0
       - UV_PORT=8000
       - UV_RELOAD=True
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: ./uv.lock
 
   mange_ta_main_front:
     build:
@@ -75,6 +43,15 @@ services:
       - mange_ta_main
     environment:
       - BACKEND_URL=http://mange_ta_main:8000
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: ./uv.lock
    
 networks:
   app_network:

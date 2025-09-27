@@ -1,0 +1,20 @@
+services:
+  mange-ta-main-front:
+    build:
+      context: .
+      target: dev
+    image: mange-ta-main-front:dev
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+      - /app/.venv
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: ./uv.lock
