@@ -1,0 +1,20 @@
+services:
+  mange_ta_main:
+    build:
+      context: .
+      target: dev
+    image: mange_ta_main:dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/.venv
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: ./uv.lock

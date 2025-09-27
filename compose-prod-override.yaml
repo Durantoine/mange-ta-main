@@ -1,0 +1,16 @@
+services:
+  mange_ta_main:
+    # Build the image from the Dockerfile in the current directory
+    build:
+      context: ./backend
+      target: prod
+    image: mange_ta_main:prod
+
+  mange-ta-main-front:
+    # Build the image from the Dockerfile in the current directory
+    build:
+      context: .
+      target: prod
+    image: mange-ta-main-front:prod
+
+  

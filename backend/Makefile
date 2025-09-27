@@ -1,6 +1,6 @@
 SERVICE_NAME = mange_ta_main
-COMPOSE_FILE = compose.yaml
-PROD_COMPOSE_FILE = compose-prod-override.yaml
+COMPOSE_FILE = compose-backend.yaml
+PROD_COMPOSE_FILE = compose-backend-prod-override.yaml
 
 lint:
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) ruff check --fix /app/service /app/tests

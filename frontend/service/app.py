@@ -1,6 +1,5 @@
-import streamlit as st
 import requests
-
+import streamlit as st
 
 st.title("Mange ta main ma gueule")
 
@@ -9,13 +8,15 @@ BASE_URL = "http://mange_ta_main:8000/mange_ta_main/"
 
 st.image("images/mouette.jpg", caption="")
 
+
 def appeler_api():
     try:
         response = requests.get(BASE_URL)
-        response.raise_for_status() 
-        return response.text.strip()  
+        response.raise_for_status()
+        return response.text.strip()
     except requests.exceptions.RequestException as e:
         return f"Erreur : {str(e)}"
+
 
 if st.button("Comment tu t'appelles ?"):
     with st.spinner("Chargement..."):
