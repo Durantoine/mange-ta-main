@@ -1,11 +1,14 @@
+from os import name
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
-from service.layers.domain.mange_ta_main import SERVICE_PREFIX
+from service.layers.domain.mange_ta_main import SERVICE_PREFIX, DataPacket, PacketTypes
 
 router = APIRouter(prefix="/" + SERVICE_PREFIX)
 
+demo_data_packet = DataPacket(type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!"
+)
 
-@router.get("/", response_class=PlainTextResponse)
-async def root() -> str:
-    return "My name is mange_ta_main!"
+@router.get("/")
+async def root() -> DataPacket:
+    return demo_data_packet.to_json()
