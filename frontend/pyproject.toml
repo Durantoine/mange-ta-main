@@ -44,3 +44,9 @@ backgroundColor = "black"
 secondaryBackgroundColor = "#3E3E3E"
 textColor = "white"
 font = "sans serif"
+
+[tool.isort]
+profile = "black"   # matches black formatting
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true

@@ -38,3 +38,9 @@ ignore_missing_imports = true
 strict = true
 show_error_codes = true
 follow_imports = "silent"
+
+[tool.isort]
+profile = "black"   # matches black formatting
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
