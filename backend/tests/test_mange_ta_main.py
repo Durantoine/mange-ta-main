@@ -9,5 +9,7 @@ def test_root_endpoint(test_client):
     assert response.status_code == 200
     assert (
         response.json()
-        == DataPacket(type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!").to_json()
+        == DataPacket(
+            type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!"
+        ).to_json()
     )

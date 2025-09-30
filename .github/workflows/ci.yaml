@@ -29,3 +29,39 @@ jobs:
           git add pyproject.toml
           git diff --cached --quiet || git commit -m "chore(deps): upgrade dependencies via uv"
           git push
+
+
+name: Backend CI
+
+on:
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Docker Compose and Make
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose make
+
+      - name: Build service
+        run: make build-dev
+
+      - name: Run linters
+        run: make lint-all
+
+      - name: Run tests
+        run: make test
