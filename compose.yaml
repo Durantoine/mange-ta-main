@@ -1,30 +1,56 @@
 services:
   mange_ta_main:
-    # Build the image from the Dockerfile in the current directory
     build:
-      context: .
+      context: ./backend
       target: dev
     image: mange_ta_main:dev
-
-    # Host the FastAPI application on port 8000
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./backend:/app
       - /app/.venv
-
+    networks:
+      - app_network
+    environment:
+      - UV_HOST=0.0.0.0
+      - UV_PORT=8000
+      - UV_RELOAD=True
     develop:
-      # Create a `watch` configuration to update the app
       watch:
-        # Sync the working directory with the `/app` directory in the container
         - action: sync
-          path: .
+          path: ./backend
           target: /app
-          # Exclude the project virtual environment — it could be for a
-          # different platform in the container
           ignore:
             - .venv/
-
-        # Rebuild the image if dependencies change by checking uv.lock
         - action: rebuild
           path: ./uv.lock
+
+  mange_ta_main_front:
+    build:
+      context: ./frontend
+      target: dev
+    image: mange_ta_main_front:dev
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend:/app
+      - /app/.venv
+    networks:
+      - app_network
+    depends_on:
+      - mange_ta_main
+    environment:
+      - BACKEND_URL=http://mange_ta_main:8000
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - .venv/
+        - action: rebuild
+          path: ./uv.lock
+   
+networks:
+  app_network:
+    driver: bridge

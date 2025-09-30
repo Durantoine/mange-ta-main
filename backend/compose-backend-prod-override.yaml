@@ -1,0 +1,6 @@
+services:
+  mange_ta_main:
+    build:
+      context: .
+      target: prod
+    image: mange_ta_main:prod

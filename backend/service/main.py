@@ -3,6 +3,7 @@ import logging
 import structlog
 from fastapi import FastAPI
 from structlog.dev import ConsoleRenderer
+
 from service.layers.api import mange_ta_main
 
 app = FastAPI()

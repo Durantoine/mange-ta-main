@@ -2,10 +2,15 @@ services:
   mange_ta_main:
     # Build the image from the Dockerfile in the current directory
     build:
-      context: .
+      context: ./backend
       target: prod
     image: mange_ta_main:prod
 
-    # Host the FastAPI application on port 8000
-    ports:
-      - "8000:8000"
+  mange-ta-main-front:
+    # Build the image from the Dockerfile in the current directory
+    build:
+      context: .
+      target: prod
+    image: mange-ta-main-front:prod
+
+  
