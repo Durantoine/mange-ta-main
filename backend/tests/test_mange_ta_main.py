@@ -7,4 +7,7 @@ def test_root_endpoint(test_client):
     struct_logger.info(f"Testing route: {url}")
     response = test_client.get(url)
     assert response.status_code == 200
-    assert response.json() == DataPacket(type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!").to_json()
+    assert (
+        response.json()
+        == DataPacket(type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!").to_json()
+    )

@@ -9,7 +9,7 @@ services:
   mange-ta-main-front:
     # Build the image from the Dockerfile in the current directory
     build:
-      context: .
+      context: ./frontend
       target: prod
     image: mange-ta-main-front:prod
 

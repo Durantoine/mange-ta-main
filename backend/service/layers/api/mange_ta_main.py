@@ -5,8 +5,7 @@ from service.layers.domain.mange_ta_main import (SERVICE_PREFIX, DataPacket,
 
 router = APIRouter(prefix="/" + SERVICE_PREFIX)
 
-demo_data_packet = DataPacket(
-    type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!")
+demo_data_packet = DataPacket(type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!")
 
 
 @router.get("/")
