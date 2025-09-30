@@ -3,3 +3,4 @@
 **/*.pyc
 .DS_Store
 frontend/.DS_Store
+EDA/Data/
