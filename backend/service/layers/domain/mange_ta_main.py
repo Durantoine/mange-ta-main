@@ -1,9 +1,10 @@
 from enum import StrEnum
 from typing import Annotated, Any, Union
+
 from pydantic import BaseModel, Field
-import pandas as pd
 
 SERVICE_PREFIX = "mange_ta_main"
+
 
 class PayloadTypes(StrEnum):
     TABLE = "table"
@@ -12,11 +13,13 @@ class PayloadTypes(StrEnum):
     SCATTER = "scatter"
     PIE = "pie"
 
+
 class PacketTypes(StrEnum):
     UPDATE = "update"
     EVENT = "event"
     RESPONSE = "response"
     COMMAND = "command"
+
 
 class DataFramePayload(BaseModel):
     name: str
@@ -31,7 +34,7 @@ class DataPacket(BaseModel):
     type: PacketTypes
     payload: Annotated[
         Union[DataFramePayload, dict, str, None],
-        Field(default=None, description="The actual data payload to send.")
+        Field(default=None, description="The actual data payload to send."),
     ]
 
     def to_json(self) -> dict:
