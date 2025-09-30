@@ -24,11 +24,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose make
 
-      - name: Build service
-        run: make build-dev
+      
 
       - name: Run linters
+        working-directory: backend
         run: make lint-all
 
       - name: Run tests
+        working-directory: backend
         run: make test
