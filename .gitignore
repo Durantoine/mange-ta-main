@@ -3,6 +3,4 @@
 **/*.pyc
 .DS_Store
 frontend/.DS_Store
-EDA/Data/RAW_recipes.csv
-EDA/Data/RAW_interactions.csv
-EDA/Data/cleaned_recipes*.csv
+EDA/Data/
