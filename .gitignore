@@ -3,6 +3,9 @@
 **/*.pyc
 .DS_Store
 frontend/.DS_Store
+EDA/data/RAW_interactions.csv
+EDA/data/RAW_recipes.csvData/
+
 >>>>>>> 179082a (Deleted PP files)
 
 EDA/Data/RAW_interactions.csv
