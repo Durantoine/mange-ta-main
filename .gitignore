@@ -2,6 +2,10 @@
 **/__pycache__
 **/*.pyc
 .DS_Store
+<<<<<<< HEAD
 frontend/.DS_Store
 EDA/data/RAW_interactions.csv
 EDA/data/RAW_recipes.csv
+=======
+frontend/.DS_Store
+>>>>>>> 179082a (Deleted PP files)
