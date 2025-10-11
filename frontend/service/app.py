@@ -19,7 +19,7 @@ with st.sidebar:
     st.header('Navigation')
     st.page_link('/app/service/app.py', label='🏠 Accueil')
     st.page_link('/app/service/pages/01_Overview.py', label='🧭 Données (Overview)')
-    st.page_link('/app/service/pages/00_API_Test.py', label='🔌 API Test')
+    st.page_link('/app/service/pages/00_Raw_Data.py', label='🔌 Raw data')
 
     st.divider()
     st.subheader('Paramètres')

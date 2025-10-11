@@ -1,6 +1,10 @@
-from fastapi import APIRouter
+from service.layers.application.data_cleaning import RawDataTypes, clean_data
+from service.layers.infrastructure.data_loader import CSVDataLoader
+from fastapi import APIRouter, Query
+from service.layers.logger import struct_logger
+import numpy as np
 
-# from service.main import struct_logger
+
 from service.layers.domain.mange_ta_main import SERVICE_PREFIX, DataPacket, PacketTypes
 
 router = APIRouter(prefix="/" + SERVICE_PREFIX)
@@ -11,8 +15,13 @@ demo_data_packet = DataPacket(
 
 @router.get("/")
 async def root() -> dict:
-    # struct_logger.info("Hello")
     return demo_data_packet.to_json()
 
-def add(a, b):
-    return a + b
+
+@router.get("/raw-data")
+def get_raw_data(data_type: RawDataTypes = Query(RawDataTypes.RECIPES)):
+    loader = CSVDataLoader()
+    df = clean_data(loader, data_type)
+    #struct_logger.info("DataFrame preview", data=df.head().to_dict())
+    df = df.replace({np.nan: None})
+    return df.to_dict(orient="records")
