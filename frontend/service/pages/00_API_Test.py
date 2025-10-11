@@ -1,5 +1,3 @@
-from pathlib import Path
-import os
 import requests
 import streamlit as st
 
@@ -26,3 +24,4 @@ if st.button("Comment tu t'appelles ?"):
             st.error(reponse)
         else:
             st.write(f"{reponse}")
+

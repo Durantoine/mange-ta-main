@@ -1,8 +1,7 @@
 {
   "venvPath": "/app",
   "venv": ".venv",
-  "include": [
-    "service",
-    "tests"
-  ]
+  "include": ["service", "tests"],
+  "exclude": ["**/__pycache__", ".venv", "node_modules"],
+  "typeCheckingMode": "strict"
 }

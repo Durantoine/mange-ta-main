@@ -1,4 +1,4 @@
-name: Backend CI
+name: Full CI
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: ["*"]
 
 jobs:
-  test:
+  backend:
+    name: Backend CI
     runs-on: ubuntu-latest
 
     services:
@@ -24,12 +25,48 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose make
 
-      
-
-      - name: Run linters
+      - name: Run linters (Backend)
         working-directory: backend
-        run: make lint-all
+        run: |
+          set -e
+          echo "Running Ruff and Pyright checks for backend..."
+          make lint-all
 
-      - name: Run tests
+      - name: Run tests (Backend)
         working-directory: backend
-        run: make test
+        run: |
+          set -e
+          echo "Running backend tests..."
+          make test
+
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Docker Compose and Make
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose make
+
+      - name: Run linters (Frontend)
+        working-directory: frontend
+        run: |
+          set -e
+          echo "Running Ruff and Pyright checks for frontend..."
+          make lint-all
+
+      - name: Run tests (Frontend)
+        working-directory: frontend
+        run: |
+          set -e
+          echo "Running frontend tests..."
+          make test
