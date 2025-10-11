@@ -3,7 +3,8 @@ COMPOSE_FILE = compose.yaml
 PROD_COMPOSE_FILE = compose-prod-override.yaml
 
 service-dev-up:
-	docker compose -f $(COMPOSE_FILE) up --build
+	docker compose -f $(COMPOSE_FILE) build --no-cache
+	docker compose -f $(COMPOSE_FILE) up
 
 service-prod-up:
 	DOCKER_BUILDKIT=0 docker compose -f $(COMPOSE_FILE) -f $(PROD_COMPOSE_FILE) up -d --build

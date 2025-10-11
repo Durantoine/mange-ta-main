@@ -1,5 +1,7 @@
 import streamlit as st
 
+BASE_URL = "http://mange_ta_main:8000/mange_ta_main"
+
 st.set_page_config(page_title="Mangetamain Dashboard", layout="wide")
 
 st.title("🍽️ Mange ta Main — Analyse des contributeurs")
@@ -19,7 +21,8 @@ with st.sidebar:
     st.header('Navigation')
     st.page_link('/app/service/app.py', label='🏠 Accueil')
     st.page_link('/app/service/pages/01_Overview.py', label='🧭 Données (Overview)')
-    st.page_link('/app/service/pages/00_Raw_Data.py', label='🔌 Raw data')
+    st.page_link('/app/service/pages/02_Top_Contributors.py')
+    st.page_link('/app/service/pages/03_Raw_Data.py', label='🔌 Raw data')
 
     st.divider()
     st.subheader('Paramètres')
