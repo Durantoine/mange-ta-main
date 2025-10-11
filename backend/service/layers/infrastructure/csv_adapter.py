@@ -1,14 +1,18 @@
 from enum import StrEnum
 from pathlib import Path
+
 import pandas as pd
+
 from service.layers.logger import struct_logger
+
 
 class DataType(StrEnum):
     INTERACTIONS = "interactions"
     RECIPES = "recipes"
 
+
 class CSVAdapter:
-    
+
     FILE_MAP = {
         DataType.INTERACTIONS: "interactions.csv",
         DataType.RECIPES: "recipes.csv",
@@ -24,12 +28,12 @@ class CSVAdapter:
 
     def load(self, data_type: DataType, raw: bool = False) -> pd.DataFrame:
         file_map = self.RAW_FILE_MAP if raw else self.FILE_MAP
-        path = self.data_dir / file_map[data_type] 
+        path = self.data_dir / file_map[data_type]
         try:
             df = pd.read_csv(path)
             df = df.astype(object).where(pd.notna(df), None)
             return df
-        
+
         except FileNotFoundError:
             struct_logger.info(f"[WARN] File {path} does not exist yet.")
             return pd.DataFrame()

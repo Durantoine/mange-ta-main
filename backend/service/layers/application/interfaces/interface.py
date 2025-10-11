@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
+
 import pandas as pd
-from enum import Enum
 
 from service.layers.infrastructure.csv_adapter import DataType
 

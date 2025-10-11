@@ -1,5 +1,6 @@
 # service/layers/logger.py
 import logging
+
 import structlog
 from structlog.dev import ConsoleRenderer
 
