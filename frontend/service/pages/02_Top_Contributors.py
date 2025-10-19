@@ -46,7 +46,7 @@ with tab1:
             st.bar_chart(top10.set_index('Rank')['Nombre de Recettes'])
             
             # Table top 20
-            st.dataframe(df.head(20), use_container_width=True, hide_index=True)
+            st.dataframe(df.head(20), width="stretch", hide_index=True)
             
             # Download
             csv = df.to_csv(index=False)
@@ -97,7 +97,7 @@ with tab2:
             st.caption("Relation entre nombre de recettes et note moyenne")
             
             # Table
-            st.dataframe(df_filtered.head(20), use_container_width=True, hide_index=True)
+            st.dataframe(df_filtered.head(20), width="stretch", hide_index=True)
             
             # Download
             csv = df_filtered.to_csv(index=False)

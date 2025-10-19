@@ -23,6 +23,7 @@ dev = [
     "pytest>=8.2.0",
     "pyright>=1.1.300",
     "uvicorn>=0.23.2",
+    "pandas-stubs>=2.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -41,7 +42,30 @@ show_error_codes = true
 follow_imports = "silent"
 
 [tool.isort]
-profile = "black"   # matches black formatting
+profile = "black"
 line_length = 88
 multi_line_output = 3
 include_trailing_comma = true
+
+[tool.pyright]
+venvPath = "/app"
+venv = ".venv"
+include = ["service", "tests"]
+exclude = ["**/__pycache__", ".venv", "node_modules"]
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "warning"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownParameterType = "none"
+strictParameterNoneValue = true
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+reportUnnecessaryIsInstance = "warning"
+reportUnnecessaryComparison = "warning"
+reportUnnecessaryCast = "warning"
+reportUnusedImport = "warning"
+reportUnusedVariable = "warning"
+reportDuplicateImport = "warning"

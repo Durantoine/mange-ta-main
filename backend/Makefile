@@ -24,10 +24,10 @@ test:
 lint-all: lint format check-types
 
 build-dev:
-	docker compose -f $(COMPOSE_FILE) build $(SERVICE_NAME)
+	docker compose -f $(COMPOSE_FILE) build $(SERVICE_NAME) --no-cache
 
 build-prod:
-	docker compose -f $(COMPOSE_FILE) -f $(PROD_COMPOSE_FILE) build $(SERVICE_NAME)
+	docker compose -f $(COMPOSE_FILE) -f $(PROD_COMPOSE_FILE) build $(SERVICE_NAME) --no-cache
 
 dev-up:
 	docker compose -f $(COMPOSE_FILE) up --build
