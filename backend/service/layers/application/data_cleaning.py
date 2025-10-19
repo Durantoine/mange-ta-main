@@ -1,11 +1,11 @@
 import ast
 from enum import StrEnum
-
+from typing import Any, Hashable
 import numpy as np
 import pandas as pd
 
 from service.layers.application.interfaces.interface import IDataAdapter
-from service.layers.infrastructure.csv_adapter import DataType
+from service.layers.infrastructure.types import DataType
 
 
 class DataTypes(StrEnum):
@@ -47,7 +47,7 @@ def normalize_ids(df: pd.DataFrame, data_type: DataType) -> pd.DataFrame:
     return df
 
 
-def clean_data(csv_adapter: IDataAdapter, data_type: DataType) -> pd.DataFrame:
+def clean_data(csv_adapter: IDataAdapter, data_type: DataType) -> list[dict[Hashable, Any]]:
     match data_type:
         case DataType.RECIPES:
             df = csv_adapter.load(DataType.RECIPES, raw=True)

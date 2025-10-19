@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-
-from service.layers.application.data_cleaning import DataType, clean_data
+from service.layers.infrastructure.types import DataType
+from service.layers.application.data_cleaning import clean_data
 from service.layers.application.mange_ta_main import AnalysisType, DataAnylizer
 from service.layers.domain.mange_ta_main import SERVICE_PREFIX, DataPacket, PacketTypes
 from service.layers.infrastructure.csv_adapter import CSVAdapter

@@ -1,17 +1,12 @@
-from enum import StrEnum
 from pathlib import Path
 
 import pandas as pd
-
+from service.layers.infrastructure.types import DataType
+from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.logger import struct_logger
 
 
-class DataType(StrEnum):
-    INTERACTIONS = "interactions"
-    RECIPES = "recipes"
-
-
-class CSVAdapter:
+class CSVAdapter(IDataAdapter):
 
     FILE_MAP = {
         DataType.INTERACTIONS: "interactions.csv",
@@ -22,7 +17,7 @@ class CSVAdapter:
         DataType.RECIPES: "RAW_recipes.csv",
     }
 
-    def __init__(self, data_dir: Path = None):
+    def __init__(self, data_dir: Path | None = None):
         self.data_dir = data_dir or (Path(__file__).parent / "data")
         self.data_dir.mkdir(exist_ok=True, parents=True)
 

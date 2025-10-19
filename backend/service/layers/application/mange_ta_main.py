@@ -3,7 +3,7 @@ from enum import StrEnum
 import pandas as pd
 
 from service.layers.application.interfaces.interface import IDataAdapter
-from service.layers.infrastructure.csv_adapter import DataType
+from service.layers.infrastructure.types import DataType
 
 
 class AnalysisType(StrEnum):
