@@ -22,9 +22,9 @@ st.caption('Interface de base — ajoute tes pages et modules au fur et à mesur
 with st.sidebar:
     st.header('Navigation')
     st.page_link('/app/service/app.py', label='🏠 Accueil')
-    st.page_link('/app/service/pages/01_Overview.py', label='🧭 Données (Overview)')
-    st.page_link('/app/service/pages/02_Top_Contributors.py')
-    st.page_link('/app/service/pages/03_Raw_Data.py', label='🔌 Raw data')
+    st.page_link('/app/service/pages/tab01_overview.py', label='🧭 Données (Overview)')
+    st.page_link('/app/service/pages/tab02_top_contributors.py', label='🏆 Top Contributeurs')
+    st.page_link('/app/service/pages/tab03_raw_data.py', label='🔌 Raw data')
 
     st.divider()
     st.subheader('Paramètres')
@@ -46,7 +46,7 @@ tab1, tab2 = st.tabs(['📊 Présentation', '🧱 À venir'])
 with tab1:
     st.write(
         '- Cette interface affiche une image, un header, un menu latéral.\n'
-        '- Ajoute tes graphiques dans ⁠ pages/01_Overview.py ⁠ et ⁠ pages/02_Top_Contributors.py ⁠.\n'
+        '- Ajoute tes graphiques dans ⁠ pages/tab01_overview.py ⁠ et ⁠ pages/tab02_top_contributors.py ⁠.\n'
         '- Les appels API se font via un petit helper dans ⁠ service/src/api.py ⁠.'
     )
 with tab2:
