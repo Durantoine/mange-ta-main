@@ -6,8 +6,9 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "streamlit",
-    "requests", 
+    "requests",
     "structlog>=24.4.0",
+    "pandas>=2.3.2",          # ajouter pandas ici
 ]
 
 [build-system]
@@ -22,8 +23,37 @@ line-length = 100
 target-version = ["py311"]
 skip-string-normalization = true
 
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+
+[tool.pyright]
+venvPath = "/app"
+venv = ".venv"
+include = ["service", "tests"]
+exclude = ["**/__pycache__", ".venv", "node_modules"]
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "warning"
+reportUnknownMemberType = "none"
+reportUnknownVariableType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownParameterType = "none"
+strictParameterNoneValue = true
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+reportUnnecessaryIsInstance = "warning"
+reportUnnecessaryComparison = "warning"
+reportUnnecessaryCast = "warning"
+reportUnusedImport = "warning"
+reportUnusedVariable = "warning"
+reportDuplicateImport = "warning"
+
 [tool.mypy]
-python_version = 3.12
+python_version = "3.12"
 ignore_missing_imports = true
 strict = true
 show_error_codes = true
@@ -32,22 +62,8 @@ follow_imports = "silent"
 [tool.uv]
 dev-dependencies = [
     "ruff>=0.6.2",
-    "fastapi-cli>=0.0.5",
     "pytest>=8.2.0",
     "pyright>=1.1.300",
+    "pandas-stubs>=2.0.0",   # installer les stubs ici
     "uvicorn>=0.23.2",
 ]
-
-[tool.streamlit]
-base = "light"
-primaryColor = "#F63366"
-backgroundColor = "black"
-secondaryBackgroundColor = "#3E3E3E"
-textColor = "white"
-font = "sans serif"
-
-[tool.isort]
-profile = "black"   # matches black formatting
-line_length = 88
-multi_line_output = 3
-include_trailing_comma = true

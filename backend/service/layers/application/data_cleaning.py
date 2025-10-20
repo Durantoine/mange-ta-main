@@ -1,6 +1,7 @@
 import ast
 from enum import StrEnum
 from typing import Any, Hashable
+
 import numpy as np
 import pandas as pd
 
@@ -58,11 +59,9 @@ def clean_data(csv_adapter: IDataAdapter, data_type: DataType) -> list[dict[Hash
             raise ValueError(f"Unknown data type: {data_type}")
 
     for col in df.columns:
-        sample_val = df[col].dropna(
-        ).iloc[0] if not df[col].dropna().empty else None
+        sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else None
         if isinstance(sample_val, str) and sample_val.startswith('[') and sample_val.endswith(']'):
-            df[col] = df[col].apply(lambda x: ast.literal_eval(
-                x) if isinstance(x, str) else x)
+            df[col] = df[col].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
 
     df = remove_outliers(df)
 

@@ -4,6 +4,8 @@ WORKDIR /app
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH=/app/frontend
 
+RUN apt-get update && apt-get install -y libatomic1 && rm -rf /var/lib/apt/lists/*
+
 FROM base AS dev
 COPY . /app
 RUN uv sync

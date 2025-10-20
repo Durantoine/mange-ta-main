@@ -9,10 +9,12 @@ st.title("🍽️ Mange ta Main — Analyse des contributeurs")
 
 st.image("images/mouette.jpg", caption="La mouette surveille le projet 🐦")
 
-st.markdown("""
+st.markdown(
+    """
 Bienvenue sur le tableau de bord interactif de l’équipe **Mange ta Main**.
 Utilisez les pages dans la barre latérale pour explorer les données.
-""")
+"""
+)
 
 st.caption('Interface de base — ajoute tes pages et modules au fur et à mesure.')
 

@@ -9,14 +9,12 @@ from service.layers.logger import struct_logger
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     container = Container()
     app.state.container = container
     struct_logger.info("Preloading data at startup...")
     container.data_analyzer()
     struct_logger.info("Data preloaded successfully")
     yield
-    # Shutdown
     struct_logger.info("Shutting down...")
 
 

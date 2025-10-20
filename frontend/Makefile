@@ -9,9 +9,8 @@ lint-fix:
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) ruff check --fix /app/service /app/tests
 
 format:
-	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uvx black /app/service /app/tests
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uvx isort /app/service /app/tests
-	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uvx autopep8 --in-place --recursive /app/service /app/tests
+	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uvx black /app/service /app/tests
 
 check-types:
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) pyright /app/service /app/tests
