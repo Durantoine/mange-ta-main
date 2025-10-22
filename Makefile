@@ -1,4 +1,4 @@
-SERVICE_NAME = mange-ta-main
+SERVICE_NAME = mange_ta_main
 COMPOSE_FILE = compose.yaml
 PROD_COMPOSE_FILE = compose-prod-override.yaml
 
