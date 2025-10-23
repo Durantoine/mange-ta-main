@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mange-ta-main-back
+  namespace: default 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mange-ta-main-back
+  template:
+    metadata:
+      labels:
+        app: mange-ta-main-back
+    spec:
+      containers:
+      - name: backend
+        image: docker.io/durantoine/mange-ta-main:3
+        ports:
+        - containerPort: 8000
+        readinessProbe:
+          httpGet:
+            path: /mange_ta_main/health   
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /mange_ta_main/health
+            port: 8000
+          initialDelaySeconds: 90
+          periodSeconds: 30
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "3Gi"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mange-ta-main-back
+spec:
+  selector:
+    app: mange-ta-main-back
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+
+---
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mange-ta-main-back-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mange-ta-main-back
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

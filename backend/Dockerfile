@@ -16,4 +16,4 @@ FROM base AS prod
 COPY . /app
 RUN uv sync --no-dev
 ENTRYPOINT []
-CMD ["/app/.venv/bin/uvicorn", "service.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["/app/.venv/bin/uvicorn", "service.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

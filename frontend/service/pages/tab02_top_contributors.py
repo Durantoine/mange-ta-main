@@ -17,7 +17,7 @@ with tab1:
     st.subheader("Contributeurs avec le plus de recettes")
 
     try:
-        response = requests.get(f"{BASE_URL}/most-recipes-contributors")
+        response = requests.get(f"{BASE_URL}/mange_ta_main/most-recipes-contributors")
         response.raise_for_status()
         data = response.json()
         struct_logger.info("Most active contributors fetched", count=len(data))
@@ -60,7 +60,7 @@ with tab2:
     st.caption("(minimum 5 recettes)")
 
     try:
-        response = requests.get(f"{BASE_URL}/best-ratings-contributors")
+        response = requests.get(f"{BASE_URL}/mange_ta_main/best-ratings-contributors")
         response.raise_for_status()
         data = response.json()
         struct_logger.info("Best rated contributors fetched", count=len(data))
