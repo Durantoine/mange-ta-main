@@ -24,6 +24,7 @@ dev = [
     "pyright>=1.1.300",
     "uvicorn>=0.23.2",
     "pandas-stubs>=2.0.0",
+    "coverage>=7.5.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -69,3 +70,18 @@ reportUnnecessaryCast = "warning"
 reportUnusedImport = "warning"
 reportUnusedVariable = "warning"
 reportDuplicateImport = "warning"
+
+[tool.coverage.run]
+branch = true
+source = ["service"]
+omit = [
+    "tests/*",
+    "*/__init__.py",
+    "*/site-packages/*",
+    "/app/src/*", 
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 80
