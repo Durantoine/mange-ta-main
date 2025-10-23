@@ -3,4 +3,4 @@
 **/*.pyc
 .DS_Store
 frontend/.DS_Store
-
+.spyproject
