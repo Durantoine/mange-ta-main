@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mange-ta-main-front
+  namespace: default 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mange-ta-main-front
+  template:
+    metadata:
+      labels:
+        app: mange-ta-main-front
+    spec:
+      containers:
+      - name: frontend
+        image: docker.io/durantoine/mange-ta-main-front:3
+        ports:
+        - containerPort: 8501
+        env:
+        - name: BASE_URL
+          value: "http://mange-ta-main-back:8000"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "400m"
+            memory: "1Gi"
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mange-ta-main-front
+spec:
+  selector:
+    app: mange-ta-main-front
+  ports:
+    - protocol: TCP
+      port: 8501
+      targetPort: 8501
+  type: LoadBalancer

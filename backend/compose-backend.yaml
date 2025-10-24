@@ -1,5 +1,5 @@
 services:
-  mange_ta_main:
+  mange-ta-main-back:
     build:
       context: .
       target: dev
@@ -8,7 +8,6 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      - /app/.venv
     develop:
       watch:
         - action: sync

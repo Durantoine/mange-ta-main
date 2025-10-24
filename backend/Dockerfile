@@ -10,10 +10,10 @@ FROM base AS dev
 COPY . /app
 RUN uv sync
 ENTRYPOINT []
-CMD ["python", "-m", "uvicorn", "service.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uv", "run", "uvicorn", "service.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 FROM base AS prod
 COPY . /app
 RUN uv sync --no-dev
 ENTRYPOINT []
-CMD ["/app/.venv/bin/uvicorn", "service.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["/app/.venv/bin/uvicorn", "service.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
