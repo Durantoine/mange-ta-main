@@ -3,24 +3,22 @@ COMPOSE_FILE = compose-backend.yaml
 PROD_COMPOSE_FILE = compose-backend-prod-override.yaml
 
 lint:
-	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) ruff check /app/service /app/tests
+	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run ruff check /app/service /app/tests
 
 lint-fix:
-	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) ruff check --fix /app/service /app/tests
+	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run ruff check --fix /app/service /app/tests
 
 format:
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uvx isort /app/service /app/tests
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uvx black /app/service /app/tests
-	
-check-types:
-	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) pyright /app/service /app/tests
 
-lint-all: lint check-types
+check-types:
+	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run pyright /app/service /app/tests
 
 test:
-	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) coverage run -m pytest /app/tests && \
-	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) coverage report -m
-	
+	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run coverage run -m pytest /app/tests
+	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run coverage report -m
+
 lint-all: lint format check-types
 
 build-dev:
