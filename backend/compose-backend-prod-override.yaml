@@ -1,8 +1,8 @@
 services:
-  mange_ta_main:
+  mange-ta-main-back:
     build:
       context: .
       target: prod
       platforms:
         - linux/amd64
-    image: durantoine/mange-ta-main:3
+    image: durantoine/mange-ta-main-back:3

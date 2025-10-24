@@ -1,5 +1,3 @@
-from typing import Dict
-
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
@@ -20,6 +18,7 @@ def get_data_analyzer(request: Request) -> DataAnylizer:
 @router.get("/health")
 async def health():
     return {"status": "ok"}
+
 
 @router.get("/load-data")
 def get_data(

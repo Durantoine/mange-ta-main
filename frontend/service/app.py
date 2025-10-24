@@ -2,8 +2,11 @@ import os
 
 import streamlit as st
 
-# BASE_URL = os.getenv("BASE_URL", "http://mange-ta-main-back:8000/mange_ta_main")
 BASE_URL = os.getenv("BASE_URL", "http://mange-ta-main-back:8000")
+
+st.cache_data.clear()
+st.cache_resource.clear()
+
 st.set_page_config(page_title="Mangetamain Dashboard", layout="wide")
 
 st.title("🍽️ Mange ta Main — Analyse des contributeurs")
