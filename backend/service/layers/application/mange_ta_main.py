@@ -1,6 +1,7 @@
 from enum import StrEnum
-
+from typing import Iterable, Optional, List, Union
 import pandas as pd
+import numpy as np
 
 from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.infrastructure.types import DataType
@@ -11,6 +12,8 @@ class AnalysisType(StrEnum):
     NUMBER_RECIPES = "number_recipes"
     BEST_RECIPES = "best_recipes"
     NUMBER_COMMENTS = "number_comments"
+    DURATION_DISTRIBUTION = "duration_distribution" 
+    DURATION_VS_RECIPE_COUNT = "duration_vs_recipe_count"
 
 
 def most_recipes_contributors(df_recipes: pd.DataFrame) -> pd.DataFrame:
@@ -48,6 +51,104 @@ def best_ratings_contributors(
 
     return contributor_stats
 
+def average_duration_distribution(
+    df_recipes: pd.DataFrame,
+    duration_col: str = "minutes",
+    bins: Optional[Union[int, Iterable[float]]] = None,
+    labels: Optional[List[str]] = None,
+    group_cols: Optional[List[str]] = None,
+) -> pd.DataFrame:
+
+    df = df_recipes.copy()
+    df[duration_col] = pd.to_numeric(df[duration_col], errors="coerce")
+    df = df.dropna(subset=[duration_col])
+
+    # Définition des classes (bins)
+    if bins is None:
+        bins = [0, 15, 30, 45, 60, 90, 120, np.inf]
+        if labels is None:
+            labels = ["0–15", "15–30", "30–45", "45–60", "60–90", "90–120", "120+"]
+
+    # Si bins est un entier --> classes d’amplitude égale
+    if isinstance(bins, int):
+        vmin, vmax = df[duration_col].min(), df[duration_col].max()
+        bins = np.linspace(vmin, vmax, bins + 1).tolist()
+
+    # Découpage des durées en classes
+    df["duration_bin"] = pd.cut(
+        df[duration_col],
+        bins=bins,
+        labels=labels,
+        include_lowest=True,
+        right=False
+    )
+
+    # Comptage et moyenne par classe
+    group_cols = group_cols or []
+    group_keys = group_cols + ["duration_bin"]
+
+    agg = (
+        df.groupby(group_keys)
+          .agg(
+              count=(duration_col, "size"),
+              avg_duration_in_bin=(duration_col, "mean")
+          )
+          .reset_index()
+    )
+
+    # Calcul des parts par groupe
+    if group_cols:
+        totals = agg.groupby(group_cols)["count"].sum().reset_index(name="total_count")
+        out = agg.merge(totals, on=group_cols, how="left")
+    else:
+        total_count = agg["count"].sum()
+        out = agg.assign(total_count=total_count)
+
+    out["share"] = (out["count"] / out["total_count"] * 100).round(2)
+
+    # Part cumulée (%)
+    out = out.sort_values(group_cols + ["duration_bin"]).reset_index(drop=True)
+    out["cum_share"] = (
+        out.groupby(group_cols)["share"].cumsum().round(2)
+        if group_cols else out["share"].cumsum().round(2)
+    )
+
+    # Finition
+    out = out.drop(columns=["total_count"])
+    out["avg_duration_in_bin"] = pd.to_numeric(
+        out["avg_duration_in_bin"], errors="coerce"
+    ).round(1)
+
+    return out
+
+def duration_vs_recipe_count(
+    df_recipes: pd.DataFrame,
+    duration_col: str = "minutes",
+) -> pd.DataFrame:
+    """Aggregate contributor activity and recipe duration metrics for correlation plots."""
+    df = df_recipes.copy()
+    df = df.dropna(subset=["contributor_id"])
+    df[duration_col] = pd.to_numeric(df[duration_col], errors="coerce")
+    df = df.dropna(subset=[duration_col])
+
+    agg = (
+        df.groupby("contributor_id")
+        .agg(
+            recipe_count=("id", "size"),
+            avg_duration=(duration_col, "mean"),
+            median_duration=(duration_col, "median"),
+        )
+        .reset_index()
+    )
+
+    if agg.empty:
+        return agg
+
+    agg["avg_duration"] = agg["avg_duration"].round(2)
+    agg["median_duration"] = agg["median_duration"].round(2)
+
+    return agg
+
 
 class DataAnylizer:
 
@@ -66,6 +167,18 @@ class DataAnylizer:
 
             case AnalysisType.BEST_RECIPES:
                 return best_ratings_contributors(self.df_recipes, self.df_interactions)
+            
+            case AnalysisType.DURATION_DISTRIBUTION: 
+                return average_duration_distribution(
+                    self.df_recipes,
+                    duration_col="minutes",         
+                )
+
+            case AnalysisType.DURATION_VS_RECIPE_COUNT:
+                return duration_vs_recipe_count(
+                    self.df_recipes,
+                    duration_col="minutes",
+                )
 
             case _:
                 raise ValueError(f"Analyse non supportée : {analysis_type}")

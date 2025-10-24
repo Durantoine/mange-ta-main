@@ -69,3 +69,21 @@ def clean_raw_data_endpoint(data_type: DataType) -> dict[str, str | int]:
     csv_adapter = CSVAdapter()
     df_cleaned = clean_data(csv_adapter, data_type)
     return {"status": "success", "rows": len(df_cleaned)}
+
+
+@router.get("/duration-distribution")
+def get_duration_distribution(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.DURATION_DISTRIBUTION)
+    struct_logger.info(df_result)
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/duration-vs-recipe-count")
+def get_duration_vs_recipe_count(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.DURATION_VS_RECIPE_COUNT)
+    struct_logger.info(df_result)
+    return df_result.to_dict(orient="records")

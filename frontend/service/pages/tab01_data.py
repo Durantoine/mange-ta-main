@@ -10,7 +10,17 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 from service.app import BASE_URL
 from service.logger import struct_logger
 
-st.header("🔌 Raw data")
+components_dir = Path(__file__).resolve().parents[1] / "components"
+if str(components_dir) not in sys.path:
+    sys.path.append(str(components_dir))
+
+try:
+    from frontend.service.components.sidebar import render_sidebar
+except ModuleNotFoundError:
+    from sidebar import render_sidebar
+
+render_sidebar()
+st.header("🔌 Données")
 
 data_type = st.selectbox("Choisir le dataset", ["recipes", "interactions"])
 
