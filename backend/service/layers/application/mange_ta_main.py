@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Iterable, Optional, List, Union
+from typing import List, Optional, Sequence, Union
 import pandas as pd
 import numpy as np
 
@@ -54,9 +54,9 @@ def best_ratings_contributors(
 def average_duration_distribution(
     df_recipes: pd.DataFrame,
     duration_col: str = "minutes",
-    bins: Optional[Union[int, Iterable[float]]] = None,
-    labels: Optional[List[str]] = None,
-    group_cols: Optional[List[str]] = None,
+    bins: Optional[Union[int, Sequence[float]]] = None,
+    labels: Optional[Sequence[str]] = None,
+    group_cols: Optional[Sequence[str]] = None,
 ) -> pd.DataFrame:
 
     df = df_recipes.copy()
@@ -84,8 +84,8 @@ def average_duration_distribution(
     )
 
     # Comptage et moyenne par classe
-    group_cols = group_cols or []
-    group_keys = group_cols + ["duration_bin"]
+    group_cols_list = list(group_cols) if group_cols else []
+    group_keys = group_cols_list + ["duration_bin"]
 
     agg = (
         df.groupby(group_keys)
@@ -97,9 +97,9 @@ def average_duration_distribution(
     )
 
     # Calcul des parts par groupe
-    if group_cols:
-        totals = agg.groupby(group_cols)["count"].sum().reset_index(name="total_count")
-        out = agg.merge(totals, on=group_cols, how="left")
+    if group_cols_list:
+        totals = agg.groupby(group_cols_list)["count"].sum().reset_index(name="total_count")
+        out = agg.merge(totals, on=group_cols_list, how="left")
     else:
         total_count = agg["count"].sum()
         out = agg.assign(total_count=total_count)
@@ -107,11 +107,11 @@ def average_duration_distribution(
     out["share"] = (out["count"] / out["total_count"] * 100).round(2)
 
     # Part cumulée (%)
-    out = out.sort_values(group_cols + ["duration_bin"]).reset_index(drop=True)
-    out["cum_share"] = (
-        out.groupby(group_cols)["share"].cumsum().round(2)
-        if group_cols else out["share"].cumsum().round(2)
-    )
+    out = out.sort_values(group_cols_list + ["duration_bin"]).reset_index(drop=True)
+    if group_cols_list:
+        out["cum_share"] = out.groupby(group_cols_list)["share"].cumsum().round(2)
+    else:
+        out["cum_share"] = out["share"].cumsum().round(2)
 
     # Finition
     out = out.drop(columns=["total_count"])
