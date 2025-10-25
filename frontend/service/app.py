@@ -64,20 +64,16 @@ st.markdown(
 
 st.title("💬 Édito")
 st.write(
-    "Dans l’univers foisonnant des applications de partage de recettes, certains utilisateurs se "
-    "distinguent par leur régularité et leur influence."
+    "Dans l’univers foisonnant des applications de partage de recettes, certains utilisateurs se distinguent par leur régularité et leur influence."
 )
 st.write(
-    "Notre étude décrypte le profil de ces contributeurs les plus actifs, véritables catalyseurs de "
-    "la communauté culinaire en ligne."
+    "Notre étude décrypte le profil de ces contributeurs les plus actifs, véritables catalyseurs de la communauté culinaire en ligne."
 )
 st.write(
-    "Entre passion du partage, recherche d’efficacité et goût de la transmission, ils façonnent les "
-    "tendances du “fait maison connecté”."
+    "Entre passion du partage, recherche d’efficacité et goût de la transmission, ils façonnent les tendances du “fait maison connecté”."
 )
 st.write(
-    "Identifier ces profils, c’est comprendre ce qui fait vibrer la créativité culinaire d’aujourd’hui — "
-    "entre inspiration, engagement et simplicité du quotidien."
+    "Identifier ces profils, c’est comprendre ce qui fait vibrer la créativité culinaire d’aujourd’hui — entre inspiration, engagement et simplicité du quotidien."
 )
 
 st.divider()
