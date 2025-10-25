@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 
 import altair as alt
@@ -8,8 +7,10 @@ import requests
 import streamlit as st
 
 try:
-    from frontend.service.logger import struct_logger  # type: ignore
-except ModuleNotFoundError:
+    from ..logger import struct_logger
+except ImportError:  # pragma: no cover
+    import sys
+
     COMPONENT_PARENT = Path(__file__).resolve().parent.parent
     if str(COMPONENT_PARENT) not in sys.path:
         sys.path.append(str(COMPONENT_PARENT))
@@ -153,10 +154,11 @@ def render_duration_recipe(
                         .encode(
                             x="recipe_count",
                             y="predicted_avg_duration",
+                        )
                     )
-                )
 
-                st.altair_chart((chart + regression).interactive(), use_container_width=True)
+                    combined_chart = alt.layer(chart, regression).interactive()
+                    st.altair_chart(combined_chart, use_container_width=True)
 
                 st.caption(
                     f"Régression linéaire : durée moyenne ≈ {slope:.2f} × recettes + {intercept:.2f} "

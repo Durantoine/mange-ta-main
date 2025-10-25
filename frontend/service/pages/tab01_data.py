@@ -1,23 +1,27 @@
-import sys
 from pathlib import Path
 
 import pandas as pd
 import requests
 import streamlit as st
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-
-from service.app import BASE_URL
-from service.logger import struct_logger
-
-components_dir = Path(__file__).resolve().parents[1] / "components"
-if str(components_dir) not in sys.path:
-    sys.path.append(str(components_dir))
-
 try:
-    from frontend.service.components.sidebar import render_sidebar
-except ModuleNotFoundError:
-    from sidebar import render_sidebar
+    from ..app import BASE_URL
+    from ..logger import struct_logger
+    from ..components.sidebar import render_sidebar
+except ImportError:  # pragma: no cover
+    import sys
+
+    ROOT_PATH = Path(__file__).resolve().parents[2]
+    if str(ROOT_PATH) not in sys.path:
+        sys.path.append(str(ROOT_PATH))
+
+    COMPONENTS_DIR = Path(__file__).resolve().parents[1] / "components"
+    if str(COMPONENTS_DIR) not in sys.path:
+        sys.path.append(str(COMPONENTS_DIR))
+
+    from app import BASE_URL  # type: ignore
+    from logger import struct_logger  # type: ignore
+    from sidebar import render_sidebar  # type: ignore
 
 render_sidebar()
 st.header("🔌 Données")

@@ -1,32 +1,27 @@
-import sys
 from pathlib import Path
 
 import streamlit as st
 
-ROOT_PATH = Path(__file__).resolve().parents[2]
-if str(ROOT_PATH) not in sys.path:
-    sys.path.append(str(ROOT_PATH))
-
-COMPONENTS_DIR = Path(__file__).resolve().parent / "components"
-if COMPONENTS_DIR.exists() and str(COMPONENTS_DIR) not in sys.path:
-    sys.path.append(str(COMPONENTS_DIR))
-
-from service.logger import struct_logger  # noqa: E402
-
 try:
-    from frontend.service.components.tab02_top_contributors import render_top_contributors  # noqa: E402
-except ModuleNotFoundError:
-    from tab01_top_contributors import render_top_contributors
+    from .logger import struct_logger
+    from .components.tab01_top_contributors import render_top_contributors
+    from .components.tab02_duration_recipe import render_duration_recipe
+    from .components.sidebar import render_sidebar
+except ImportError:  # pragma: no cover
+    import sys
 
-try:
-    from frontend.service.components.tab02_duration_recipe import render_duration_recipe  # noqa: E402
-except ModuleNotFoundError:
-    from tab02_duration_recipe import render_duration_recipe
+    ROOT_PATH = Path(__file__).resolve().parents[2]
+    if str(ROOT_PATH) not in sys.path:
+        sys.path.append(str(ROOT_PATH))
 
-try:
-    from frontend.service.components.sidebar import render_sidebar  # noqa: E402
-except ModuleNotFoundError:
-    from sidebar import render_sidebar
+    COMPONENTS_DIR = Path(__file__).resolve().parent / "components"
+    if COMPONENTS_DIR.exists() and str(COMPONENTS_DIR) not in sys.path:
+        sys.path.append(str(COMPONENTS_DIR))
+
+    from logger import struct_logger  # type: ignore
+    from tab01_top_contributors import render_top_contributors  # type: ignore
+    from tab02_duration_recipe import render_duration_recipe  # type: ignore
+    from sidebar import render_sidebar  # type: ignore
 
 BASE_URL = "http://mange_ta_main:8000/mange_ta_main"
 

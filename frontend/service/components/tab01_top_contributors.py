@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 
 import pandas as pd
@@ -6,8 +5,10 @@ import requests
 import streamlit as st
 
 try:
-    from frontend.service.logger import struct_logger  # type: ignore
-except ModuleNotFoundError:
+    from ..logger import struct_logger
+except ImportError:  # pragma: no cover
+    import sys
+
     COMPONENT_PARENT = Path(__file__).resolve().parent.parent
     if str(COMPONENT_PARENT) not in sys.path:
         sys.path.append(str(COMPONENT_PARENT))
