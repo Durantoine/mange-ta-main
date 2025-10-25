@@ -64,21 +64,26 @@ def average_duration_distribution(
     df = df.dropna(subset=[duration_col])
 
     # Définition des classes (bins)
+    resolved_bins: Union[int, Sequence[float]]
+    resolved_labels: Optional[Sequence[str]] = labels
+
     if bins is None:
-        bins = [0, 15, 30, 45, 60, 90, 120, np.inf]
-        if labels is None:
-            labels = ["0–15", "15–30", "30–45", "45–60", "60–90", "90–120", "120+"]
+        resolved_bins = [0, 15, 30, 45, 60, 90, 120, np.inf]
+        if resolved_labels is None:
+            resolved_labels = ["0–15", "15–30", "30–45", "45–60", "60–90", "90–120", "120+"]
+    else:
+        resolved_bins = bins
 
     # Si bins est un entier --> classes d’amplitude égale
-    if isinstance(bins, int):
+    if isinstance(resolved_bins, int):
         vmin, vmax = df[duration_col].min(), df[duration_col].max()
-        bins = np.linspace(vmin, vmax, bins + 1).tolist()
+        resolved_bins = np.linspace(vmin, vmax, resolved_bins + 1).tolist()
 
     # Découpage des durées en classes
     df["duration_bin"] = pd.cut(
         df[duration_col],
-        bins=bins,
-        labels=labels,
+        bins=resolved_bins,
+        labels=resolved_labels,
         include_lowest=True,
         right=False
     )

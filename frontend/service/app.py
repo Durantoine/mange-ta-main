@@ -11,20 +11,20 @@ COMPONENTS_DIR = Path(__file__).resolve().parent / "components"
 if COMPONENTS_DIR.exists() and str(COMPONENTS_DIR) not in sys.path:
     sys.path.append(str(COMPONENTS_DIR))
 
-from service.logger import struct_logger
+from service.logger import struct_logger  # noqa: E402
 
 try:
-    from frontend.service.components.tab02_top_contributors import render_top_contributors
+    from frontend.service.components.tab02_top_contributors import render_top_contributors  # noqa: E402
 except ModuleNotFoundError:
     from tab01_top_contributors import render_top_contributors
 
 try:
-    from frontend.service.components.tab02_duration_recipe import render_duration_recipe
+    from frontend.service.components.tab02_duration_recipe import render_duration_recipe  # noqa: E402
 except ModuleNotFoundError:
     from tab02_duration_recipe import render_duration_recipe
 
 try:
-    from frontend.service.components.sidebar import render_sidebar
+    from frontend.service.components.sidebar import render_sidebar  # noqa: E402
 except ModuleNotFoundError:
     from sidebar import render_sidebar
 
