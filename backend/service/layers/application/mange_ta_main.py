@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import List, Optional, Sequence, Union
+from typing import Optional, Sequence, Union
 import pandas as pd
 import numpy as np
 
