@@ -7,9 +7,9 @@ import requests
 import streamlit as st
 
 try:
-    from ..app import BASE_URL
-    from ..logger import struct_logger
-    from ..components.sidebar import render_sidebar
+    from domain import BASE_URL
+    from logger import struct_logger
+    from service.components.sidebar import render_sidebar
 except ImportError:  # pragma: no cover
     import sys
 
@@ -33,7 +33,7 @@ st.caption("Distribution par tranches de minutes (0–15, 15–30, …, 120+)")
 view_mode = st.radio("Afficher :", ["Nombre de recettes", "Part (%)"], horizontal=True)
 
 try:
-    response = requests.get(f"{BASE_URL}/duration-distribution")
+    response = requests.get(f"{BASE_URL}/mange_ta_main/duration-distribution")
     response.raise_for_status()
     data = response.json()
     struct_logger.info("Duration distribution fetched", count=len(data))
@@ -99,7 +99,7 @@ else:
 
 
 try:
-    corr_response = requests.get(f"{BASE_URL}/duration-vs-recipe-count")
+    corr_response = requests.get(f"{BASE_URL}/mange_ta_main/duration-vs-recipe-count")
     corr_response.raise_for_status()
     corr_data = corr_response.json()
     struct_logger.info("Duration vs recipe count fetched", count=len(corr_data))

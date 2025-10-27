@@ -30,7 +30,7 @@ data_type = st.selectbox("Choisir le dataset", ["recipes", "interactions"])
 
 if st.button("Charger le dataset"):
     with st.spinner("Chargement..."):
-        url = f"{BASE_URL}/load-data?data_type={data_type}"
+        url = f"{BASE_URL}/mange_ta_main/load-data?data_type={data_type}"
         try:
             response = requests.get(url)
             response.raise_for_status()

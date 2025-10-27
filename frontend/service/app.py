@@ -1,6 +1,10 @@
 from pathlib import Path
+from domain import BASE_URL
 
 import streamlit as st
+
+st.cache_data.clear()
+st.cache_resource.clear()
 
 try:
     from .logger import struct_logger
@@ -23,7 +27,6 @@ except ImportError:  # pragma: no cover
     from tab02_duration_recipe import render_duration_recipe  # type: ignore
     from sidebar import render_sidebar  # type: ignore
 
-BASE_URL = "http://mange_ta_main:8000/mange_ta_main"
 
 st.set_page_config(page_title="Mangetamain Dashboard", layout="wide")
 
@@ -68,7 +71,7 @@ st.write(
 )
 
 st.divider()
-render_top_contributors(base_url=BASE_URL, logger=struct_logger, show_title=False)
+render_top_contributors(logger=struct_logger, show_title=False)
 st.divider()
 
 st.markdown(

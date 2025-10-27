@@ -1,23 +1,11 @@
-from pathlib import Path
-
 import pandas as pd
 import requests
 import streamlit as st
+from logger import struct_logger
+from domain import BASE_URL
 
-try:
-    from ..logger import struct_logger
-except ImportError:  # pragma: no cover
-    import sys
-
-    COMPONENT_PARENT = Path(__file__).resolve().parent.parent
-    if str(COMPONENT_PARENT) not in sys.path:
-        sys.path.append(str(COMPONENT_PARENT))
-    from logger import struct_logger  # type: ignore
-
-DEFAULT_BASE_URL = "http://mange_ta_main:8000/mange_ta_main"
 
 def render_top_contributors(
-    base_url: str = DEFAULT_BASE_URL,
     logger=struct_logger,
     show_title: bool = True,
 ) -> None:
@@ -29,7 +17,7 @@ def render_top_contributors(
     st.subheader("Contributeurs avec le plus de recettes")
 
     try:
-        response = requests.get(f"{base_url}/most-recipes-contributors")
+        response = requests.get(f"{BASE_URL}/mange_ta_main/most-recipes-contributors")
         response.raise_for_status()
         data = response.json()
         logger.info("Most active contributors fetched", count=len(data))

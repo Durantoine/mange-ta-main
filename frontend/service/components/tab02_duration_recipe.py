@@ -1,4 +1,5 @@
 from pathlib import Path
+from domain import BASE_URL
 
 import altair as alt
 import numpy as np
@@ -16,12 +17,8 @@ except ImportError:  # pragma: no cover
         sys.path.append(str(COMPONENT_PARENT))
     from logger import struct_logger  # type: ignore
 
-
-DEFAULT_BASE_URL = "http://mange_ta_main:8000/mange_ta_main"
-
-
 def render_duration_recipe(
-    base_url: str = DEFAULT_BASE_URL,
+    base_url: str = BASE_URL,
     logger=struct_logger,
 ) -> None:
     """Render duration distribution analysis and correlation charts."""
@@ -32,7 +29,7 @@ def render_duration_recipe(
     view_mode = st.radio("Afficher :", ["Nombre de recettes", "Part (%)"], horizontal=True)
 
     try:
-        response = requests.get(f"{base_url}/duration-distribution")
+        response = requests.get(f"{base_url}/mange_ta_main/duration-distribution")
         response.raise_for_status()
         data = response.json()
         logger.info("Duration distribution fetched", count=len(data))
@@ -97,7 +94,7 @@ def render_duration_recipe(
             st.download_button("📥 Télécharger CSV", csv, "repartition_durees_recettes.csv", "text/csv")
 
     try:
-        corr_response = requests.get(f"{base_url}/duration-vs-recipe-count")
+        corr_response = requests.get(f"{base_url}/mange_ta_main/duration-vs-recipe-count")
         corr_response.raise_for_status()
         corr_data = corr_response.json()
         logger.info("Duration vs recipe count fetched", count=len(corr_data))

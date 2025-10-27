@@ -1,5 +1,5 @@
 services:
-  mange_ta_main:
+  mange-ta-main-back:
     build:
       context: ./backend
       target: dev
@@ -25,7 +25,7 @@ services:
         - action: rebuild
           path: ./uv.lock
 
-  mange_ta_main_front:
+  mange-ta-main-front:
     build:
       context: ./frontend
       target: dev
@@ -38,9 +38,9 @@ services:
     networks:
       - app_network
     depends_on:
-      - mange_ta_main
+      - mange-ta-main-back
     environment:
-      - BACKEND_URL=http://mange_ta_main:8000
+      - BACKEND_URL="http://mange-ta-main-back:8000"
     develop:
       watch:
         - action: sync

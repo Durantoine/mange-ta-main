@@ -1,29 +1,23 @@
-from typing import Dict
-
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from service.layers.application.data_cleaning import clean_data
 from service.layers.application.mange_ta_main import AnalysisType, DataAnylizer
-from service.layers.domain.mange_ta_main import SERVICE_PREFIX, DataPacket, PacketTypes
+from service.layers.domain.mange_ta_main import SERVICE_PREFIX
 from service.layers.infrastructure.csv_adapter import CSVAdapter
 from service.layers.infrastructure.types import DataType
 from service.layers.logger import struct_logger
 
 router: APIRouter = APIRouter(prefix="/" + SERVICE_PREFIX)
 
-demo_data_packet: DataPacket = DataPacket(
-    type=PacketTypes.RESPONSE, payload="Hi, my name is mange_ta_main!"
-)
-
 
 def get_data_analyzer(request: Request) -> DataAnylizer:
     return request.app.state.container.data_analyzer()
 
 
-@router.get("/")
-async def root() -> Dict[str, str]:
-    return demo_data_packet.to_json()
+@router.get("/health")
+async def health():
+    return {"status": "ok"}
 
 
 @router.get("/load-data")

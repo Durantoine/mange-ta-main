@@ -59,11 +59,27 @@ strict = true
 show_error_codes = true
 follow_imports = "silent"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "ruff>=0.6.2",
     "pytest>=8.2.0",
+    "pytest-cov>=5.0.0",
     "pyright>=1.1.300",
-    "pandas-stubs>=2.0.0",   # installer les stubs ici
+    "pandas-stubs>=2.0.0",
     "uvicorn>=0.23.2",
+    "coverage>=7.5.0",
 ]
+
+[tool.coverage.run]
+branch = true
+source = ["service"]
+omit = [
+    "tests/*",
+    "*/__init__.py",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 80
