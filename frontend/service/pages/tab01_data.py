@@ -1,16 +1,12 @@
-import sys
-from pathlib import Path
-
 import pandas as pd
 import requests
 import streamlit as st
+from components.sidebar import render_sidebar
+from domain import BASE_URL
+from logger import struct_logger
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-
-from service.app import BASE_URL
-from service.logger import struct_logger
-
-st.header("🔌 Raw data")
+render_sidebar()
+st.header("🔌 Données")
 
 data_type = st.selectbox("Choisir le dataset", ["recipes", "interactions"])
 

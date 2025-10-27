@@ -1,5 +1,5 @@
 services:
-  mange_ta_main:
+  mange-ta-main-back:
     build:
       context: ./backend
       target: prod

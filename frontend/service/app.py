@@ -1,18 +1,58 @@
-import os
-
 import streamlit as st
-
-BASE_URL = os.getenv("BASE_URL", "http://mange-ta-main-back:8000")
+from components.sidebar import render_sidebar
+from components.tab01_top_contributors import render_top_contributors
+from components.tab02_duration_recipe import render_duration_recipe
+from domain import BASE_URL
+from logger import struct_logger
 
 st.cache_data.clear()
 st.cache_resource.clear()
 
 st.set_page_config(page_title="Mangetamain Dashboard", layout="wide")
 
-st.title("🍽️ Mange ta Main — Analyse des contributeurs")
+st.image("images/home_ban_big.png", width='stretch')
 
+st.markdown(
+    """
+    <style>
+    html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+    }
+    .st-emotion-cache-1lqf7hx {
+        background-color: #5170ff !important;
+    }
+    [style*="rgb(255, 75, 75)"],
+    [style*="rgb(255,75,75)"],
+    div[style*="color: inherit"][style*="background-color: rgb(255, 75, 75)"],
+    span[style*="color: inherit"][style*="background-color: rgb(255, 75, 75)"],
+    div[style*="color: inherit; background-color: rgb(255, 75, 75)"],
+    span[style*="color: inherit; background-color: rgb(255, 75, 75)"] {
+        color: #5170ff !important;
+        background-color: #5170ff !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-st.image("images/mouette.jpg", caption="La mouette surveille le projet 🐦")
+st.title("💬 Édito")
+st.write(
+    "Dans l’univers foisonnant des applications de partage de recettes, certains utilisateurs se distinguent par leur régularité et leur influence."
+)
+st.write(
+    "Notre étude décrypte le profil de ces contributeurs les plus actifs, véritables catalyseurs de la communauté culinaire en ligne."
+)
+st.write(
+    "Entre passion du partage, recherche d’efficacité et goût de la transmission, ils façonnent les tendances du “fait maison connecté”."
+)
+st.write(
+    "Identifier ces profils, c’est comprendre ce qui fait vibrer la créativité culinaire d’aujourd’hui — entre inspiration, engagement et simplicité du quotidien."
+)
+
+st.divider()
+render_top_contributors()
+st.divider()
 
 st.markdown(
     """
@@ -21,38 +61,16 @@ Utilisez les pages dans la barre latérale pour explorer les données.
 """
 )
 
-st.caption('Interface de base — ajoute tes pages et modules au fur et à mesure.')
-
 # ===== SIDEBAR =====
-with st.sidebar:
-    st.header('Navigation')
-    st.page_link('/app/service/app.py', label='🏠 Accueil')
-    st.page_link('/app/service/pages/tab01_overview.py', label='🧭 Données (Overview)')
-    st.page_link('/app/service/pages/tab02_top_contributors.py', label='🏆 Top Contributeurs')
-    st.page_link('/app/service/pages/tab03_raw_data.py', label='🔌 Raw data')
+render_sidebar()
 
-    st.divider()
-    st.subheader('Paramètres')
-    st.toggle('Mode démo', key='demo_mode', value=True)
-    st.caption('Les paramètres ici sont globaux (session_state).')
 
-# ===== CONTENU D'ACCUEIL =====
-kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
-kpi_col1.metric('Utilisateurs (estim.)', '—')
-kpi_col2.metric('Interactions (estim.)', '—')
-kpi_col3.metric('Recettes (estim.)', '—')
-
-st.info(
-    'Astuce : ajoute rapidement des KPI en lisant le DataFrame depuis le backend, '
-    'ou en affichant les tailles/ bornes min-max (via la page Overview).'
-)
-
-tab1, tab2 = st.tabs(['📊 Présentation', '🧱 À venir'])
+tab1, tab2, tab3 = st.tabs(['Durée des recettes', 'Avis postés', 'Note moyenne'])
 with tab1:
-    st.write(
-        '- Cette interface affiche une image, un header, un menu latéral.\n'
-        '- Ajoute tes graphiques dans ⁠ pages/tab01_overview.py ⁠ et ⁠ pages/tab02_top_contributors.py ⁠.\n'
-        '- Les appels API se font via un petit helper dans ⁠ service/src/api.py ⁠.'
-    )
+    render_duration_recipe()
+
 with tab2:
+    st.write('Placeholders pour des cards, des graphes Plotly, etc.')
+
+with tab3:
     st.write('Placeholders pour des cards, des graphes Plotly, etc.')

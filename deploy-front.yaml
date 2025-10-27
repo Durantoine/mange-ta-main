@@ -16,6 +16,7 @@ spec:
       containers:
       - name: frontend
         image: docker.io/durantoine/mange-ta-main-front:3
+        imagePullPolicy: Always
         ports:
         - containerPort: 8501
         env:
