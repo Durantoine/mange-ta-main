@@ -16,6 +16,7 @@ spec:
       containers:
       - name: backend
         image: docker.io/durantoine/mange-ta-main-back:3
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
         readinessProbe:

@@ -1,12 +1,11 @@
 import pandas as pd
 import requests
 import streamlit as st
-from logger import struct_logger
 from domain import BASE_URL
+from logger import struct_logger
 
 
 def render_top_contributors(
-    logger=struct_logger,
     show_title: bool = True,
 ) -> None:
     """Display tabs with most active and best rated contributors."""
@@ -20,7 +19,7 @@ def render_top_contributors(
         response = requests.get(f"{BASE_URL}/mange_ta_main/most-recipes-contributors")
         response.raise_for_status()
         data = response.json()
-        logger.info("Most active contributors fetched", count=len(data))
+        struct_logger.info("Most active contributors fetched", count=len(data))
 
         if data:
             df = pd.DataFrame(data)
@@ -48,4 +47,4 @@ def render_top_contributors(
 
     except requests.RequestException as e:
         st.error(f"Erreur lors de la récupération des données : {e}")
-        logger.error("Failed to fetch most active", error=str(e))
+        struct_logger.error("Failed to fetch most active", error=str(e))

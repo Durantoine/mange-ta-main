@@ -1,7 +1,8 @@
 from enum import StrEnum
 from typing import Optional, Sequence, Union
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.infrastructure.types import DataType
@@ -12,7 +13,7 @@ class AnalysisType(StrEnum):
     NUMBER_RECIPES = "number_recipes"
     BEST_RECIPES = "best_recipes"
     NUMBER_COMMENTS = "number_comments"
-    DURATION_DISTRIBUTION = "duration_distribution" 
+    DURATION_DISTRIBUTION = "duration_distribution"
     DURATION_VS_RECIPE_COUNT = "duration_vs_recipe_count"
 
 
@@ -51,6 +52,7 @@ def best_ratings_contributors(
 
     return contributor_stats
 
+
 def average_duration_distribution(
     df_recipes: pd.DataFrame,
     duration_col: str = "minutes",
@@ -85,7 +87,7 @@ def average_duration_distribution(
         bins=resolved_bins,
         labels=resolved_labels,
         include_lowest=True,
-        right=False
+        right=False,
     )
 
     # Comptage et moyenne par classe
@@ -94,11 +96,8 @@ def average_duration_distribution(
 
     agg = (
         df.groupby(group_keys)
-          .agg(
-              count=(duration_col, "size"),
-              avg_duration_in_bin=(duration_col, "mean")
-          )
-          .reset_index()
+        .agg(count=(duration_col, "size"), avg_duration_in_bin=(duration_col, "mean"))
+        .reset_index()
     )
 
     # Calcul des parts par groupe
@@ -120,11 +119,10 @@ def average_duration_distribution(
 
     # Finition
     out = out.drop(columns=["total_count"])
-    out["avg_duration_in_bin"] = pd.to_numeric(
-        out["avg_duration_in_bin"], errors="coerce"
-    ).round(1)
+    out["avg_duration_in_bin"] = pd.to_numeric(out["avg_duration_in_bin"], errors="coerce").round(1)
 
     return out
+
 
 def duration_vs_recipe_count(
     df_recipes: pd.DataFrame,
@@ -172,11 +170,11 @@ class DataAnylizer:
 
             case AnalysisType.BEST_RECIPES:
                 return best_ratings_contributors(self.df_recipes, self.df_interactions)
-            
-            case AnalysisType.DURATION_DISTRIBUTION: 
+
+            case AnalysisType.DURATION_DISTRIBUTION:
                 return average_duration_distribution(
                     self.df_recipes,
-                    duration_col="minutes",         
+                    duration_col="minutes",
                 )
 
             case AnalysisType.DURATION_VS_RECIPE_COUNT:

@@ -1,36 +1,16 @@
-from pathlib import Path
-from domain import BASE_URL
-
 import streamlit as st
+from components.sidebar import render_sidebar
+from components.tab01_top_contributors import render_top_contributors
+from components.tab02_duration_recipe import render_duration_recipe
+from domain import BASE_URL
+from logger import struct_logger
 
 st.cache_data.clear()
 st.cache_resource.clear()
 
-try:
-    from .logger import struct_logger
-    from .components.tab01_top_contributors import render_top_contributors
-    from .components.tab02_duration_recipe import render_duration_recipe
-    from .components.sidebar import render_sidebar
-except ImportError:  # pragma: no cover
-    import sys
-
-    ROOT_PATH = Path(__file__).resolve().parents[2]
-    if str(ROOT_PATH) not in sys.path:
-        sys.path.append(str(ROOT_PATH))
-
-    COMPONENTS_DIR = Path(__file__).resolve().parent / "components"
-    if COMPONENTS_DIR.exists() and str(COMPONENTS_DIR) not in sys.path:
-        sys.path.append(str(COMPONENTS_DIR))
-
-    from logger import struct_logger  # type: ignore
-    from tab01_top_contributors import render_top_contributors  # type: ignore
-    from tab02_duration_recipe import render_duration_recipe  # type: ignore
-    from sidebar import render_sidebar  # type: ignore
-
-
 st.set_page_config(page_title="Mangetamain Dashboard", layout="wide")
 
-st.image("images/home_ban_big.png", use_container_width=True)
+st.image("images/home_ban_big.png", width='stretch')
 
 st.markdown(
     """
@@ -71,7 +51,7 @@ st.write(
 )
 
 st.divider()
-render_top_contributors(logger=struct_logger, show_title=False)
+render_top_contributors()
 st.divider()
 
 st.markdown(
@@ -87,10 +67,10 @@ render_sidebar()
 
 tab1, tab2, tab3 = st.tabs(['Durée des recettes', 'Avis postés', 'Note moyenne'])
 with tab1:
-    render_duration_recipe(base_url=BASE_URL, logger=struct_logger)
+    render_duration_recipe()
 
 with tab2:
     st.write('Placeholders pour des cards, des graphes Plotly, etc.')
-    
+
 with tab3:
     st.write('Placeholders pour des cards, des graphes Plotly, etc.')

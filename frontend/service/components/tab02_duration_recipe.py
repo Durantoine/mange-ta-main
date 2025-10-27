@@ -1,24 +1,13 @@
-from pathlib import Path
-from domain import BASE_URL
-
 import altair as alt
 import numpy as np
 import pandas as pd
 import requests
 import streamlit as st
+from domain import BASE_URL
+from logger import struct_logger
 
-try:
-    from ..logger import struct_logger
-except ImportError:  # pragma: no cover
-    import sys
-
-    COMPONENT_PARENT = Path(__file__).resolve().parent.parent
-    if str(COMPONENT_PARENT) not in sys.path:
-        sys.path.append(str(COMPONENT_PARENT))
-    from logger import struct_logger  # type: ignore
 
 def render_duration_recipe(
-    base_url: str = BASE_URL,
     logger=struct_logger,
 ) -> None:
     """Render duration distribution analysis and correlation charts."""
@@ -29,7 +18,7 @@ def render_duration_recipe(
     view_mode = st.radio("Afficher :", ["Nombre de recettes", "Part (%)"], horizontal=True)
 
     try:
-        response = requests.get(f"{base_url}/mange_ta_main/duration-distribution")
+        response = requests.get(f"{BASE_URL}/mange_ta_main/duration-distribution")
         response.raise_for_status()
         data = response.json()
         logger.info("Duration distribution fetched", count=len(data))
@@ -42,6 +31,23 @@ def render_duration_recipe(
         else:
             df = pd.DataFrame(data)
 
+            # Sort duration bins by extracting the starting number
+            def extract_start_value(bin_str):
+                """Extract the starting number from a bin string like '0-15' or '120+'"""
+                if pd.isna(bin_str):
+                    return -1
+                bin_str = str(bin_str)
+                if '+' in bin_str:
+                    return float(bin_str.replace('+', ''))
+                parts = bin_str.split('-')
+                try:
+                    return float(parts[0])
+                except (ValueError, IndexError):
+                    return -1
+
+            df['sort_key'] = df['duration_bin'].apply(extract_start_value)
+            df = df.sort_values('sort_key').drop('sort_key', axis=1)
+
             df_display = df.rename(
                 columns={
                     "duration_bin": "Tranche (min)",
@@ -50,6 +56,13 @@ def render_duration_recipe(
                     "avg_duration_in_bin": "Durée Moyenne (min)",
                     "cum_share": "Part Cumulée (%)",
                 }
+            )
+
+            # Preserve the sorted order by making the index categorical
+            df_display["Tranche (min)"] = pd.Categorical(
+                df_display["Tranche (min)"],
+                categories=df_display["Tranche (min)"].tolist(),
+                ordered=True,
             )
 
             total_recipes = int(df_display["Nombre de Recettes"].sum())
@@ -70,7 +83,9 @@ def render_duration_recipe(
             st.subheader("Visualisation")
 
             if view_mode == "Nombre de recettes":
-                bar_source = df_display[["Tranche (min)", "Nombre de Recettes"]].set_index("Tranche (min)")
+                bar_source = df_display[["Tranche (min)", "Nombre de Recettes"]].set_index(
+                    "Tranche (min)"
+                )
             else:
                 bar_source = df_display[["Tranche (min)", "Part (%)"]].set_index("Tranche (min)")
 
@@ -79,22 +94,30 @@ def render_duration_recipe(
             st.line_chart(
                 df_display[["Tranche (min)", "Part Cumulée (%)"]].set_index("Tranche (min)")
             )
-            st.caption("Part cumulée des recettes jusqu’à chaque tranche (en %).")
+            st.caption("Part cumulée des recettes jusqu'à chaque tranche (en %).")
 
             st.subheader("Détail par tranche")
             st.dataframe(
                 df_display[
-                    ["Tranche (min)", "Nombre de Recettes", "Part (%)", "Durée Moyenne (min)", "Part Cumulée (%)"]
+                    [
+                        "Tranche (min)",
+                        "Nombre de Recettes",
+                        "Part (%)",
+                        "Durée Moyenne (min)",
+                        "Part Cumulée (%)",
+                    ]
                 ],
                 width="stretch",
                 hide_index=True,
             )
 
             csv = df_display.to_csv(index=False)
-            st.download_button("📥 Télécharger CSV", csv, "repartition_durees_recettes.csv", "text/csv")
+            st.download_button(
+                "📥 Télécharger CSV", csv, "repartition_durees_recettes.csv", "text/csv"
+            )
 
     try:
-        corr_response = requests.get(f"{base_url}/mange_ta_main/duration-vs-recipe-count")
+        corr_response = requests.get(f"{BASE_URL}/mange_ta_main/duration-vs-recipe-count")
         corr_response.raise_for_status()
         corr_data = corr_response.json()
         logger.info("Duration vs recipe count fetched", count=len(corr_data))
@@ -139,8 +162,12 @@ def render_duration_recipe(
                             tooltip=[
                                 alt.Tooltip("contributor_id", title="Contributeur"),
                                 alt.Tooltip("recipe_count", title="Recettes publiées", format=","),
-                                alt.Tooltip("avg_duration", title="Durée moyenne (min)", format=".2f"),
-                                alt.Tooltip("median_duration", title="Durée médiane (min)", format=".2f"),
+                                alt.Tooltip(
+                                    "avg_duration", title="Durée moyenne (min)", format=".2f"
+                                ),
+                                alt.Tooltip(
+                                    "median_duration", title="Durée médiane (min)", format=".2f"
+                                ),
                             ],
                         )
                     )
@@ -172,6 +199,6 @@ def render_duration_recipe(
                             "predicted_avg_duration": "Durée prédite (min)",
                         }
                     ),
-                    use_container_width=True,
+                    width='stretch',
                     hide_index=True,
                 )
