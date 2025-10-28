@@ -1,7 +1,5 @@
 import streamlit as st
-from app import BASE_URL
 from components.sidebar import render_sidebar
-from logger import struct_logger
 
 render_sidebar()
 
