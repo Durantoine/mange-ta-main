@@ -2,8 +2,6 @@ import streamlit as st
 from components.sidebar import render_sidebar
 from components.tab01_top_contributors import render_top_contributors
 from components.tab02_duration_recipe import render_duration_recipe
-from domain import BASE_URL
-from logger import struct_logger
 
 st.cache_data.clear()
 st.cache_resource.clear()
