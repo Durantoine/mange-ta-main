@@ -25,6 +25,7 @@ def render_sidebar() -> None:
 
     with st.sidebar:
         st.header("Navigation")
-        st.page_link("/app/service/app.py", label="Accueil")
+        st.page_link("/app/service/app.py", label="Exploration")
         st.page_link("/app/service/pages/tab01_data.py", label="Données")
         st.page_link("/app/service/pages/tab02_analyse.py", label="Analyse")
+        st.page_link("/app/service/pages/tab03_conclusions.py", label="Conclusions")

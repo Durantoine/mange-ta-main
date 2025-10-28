@@ -189,6 +189,19 @@ def render_duration_recipe(
                     f"(corrélation r = {corr_coef:.2f})."
                 )
 
+                st.markdown(
+                    """
+                    **✅ Analyse du graphique : corrélation durée moyenne vs volume de recettes**  
+                    Le nuage de points montre la relation entre le nombre de recettes publiées par un utilisateur et la durée moyenne de ses recettes. La droite de régression quasi horizontale indique une corrélation nulle (r ≈ 0). Autrement dit, la quantité de recettes publiées n’a aucun lien significatif avec leur durée moyenne.
+
+                    **🎯 Conclusion**
+                    - Aucune relation notable entre volume de publication et durée moyenne.  
+                    - Les recettes longues restent marginales.  
+                    - La plateforme favorise un format court, même chez les contributeurs les plus actifs.  
+                    - Les comportements “experts” ne se traduisent pas par des durées plus longues, mais plutôt par diversité ou interaction (cf. typologies).
+                    """
+                )
+
                 st.dataframe(
                     corr_df.rename(
                         columns={

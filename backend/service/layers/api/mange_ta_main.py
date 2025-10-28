@@ -81,3 +81,28 @@ def get_duration_vs_recipe_count(
     df_result = data_analyzer.process_data(AnalysisType.DURATION_VS_RECIPE_COUNT)
     struct_logger.info(df_result)
     return df_result.to_dict(orient="records")
+
+@router.get("/top-10-percent-contributors")
+def get_top_10_percent_contributors(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.TOP_10_PERCENT_CONTRIBUTORS)
+    struct_logger.info("top_10_percent_contributors", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+@router.get("/user-segments")
+def get_user_segments(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.USER_SEGMENTS)
+    struct_logger.info("user_segments", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/top-tags-by-segment")
+def get_top_tags_by_segment(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.TOP_TAGS_BY_SEGMENT)
+    struct_logger.info("top_tags_by_segment", rows=len(df_result))
+    return df_result.to_dict(orient="records")

@@ -6,7 +6,18 @@ from domain import BASE_URL
 from logger import struct_logger
 
 render_sidebar()
-st.header("🔌 Données")
+st.header("🔌 Visualisation et export des donnée")
+st.markdown(
+    """
+    Cet espace vous permet de sélectionner le dataset de votre choix puis de le charger en un clic.
+    Une fois affichées, les données peuvent être :
+
+    - ✅ Visualisées directement dans l’interface pour une exploration rapide  
+    - ✅ Téléchargées afin de réaliser vos propres analyses, traitements ou archivages
+
+    Que vous souhaitiez consulter quelques entrées ou travailler en profondeur, cette section offre une expérience simple, flexible et accessible, adaptée à tous les besoins data.
+    """
+)
 
 data_type = st.selectbox("Choisir le dataset", ["recipes", "interactions"])
 
