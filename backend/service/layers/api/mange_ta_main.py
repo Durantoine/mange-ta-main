@@ -106,3 +106,21 @@ def get_top_tags_by_segment(
     df_result = data_analyzer.process_data(AnalysisType.TOP_TAGS_BY_SEGMENT)
     struct_logger.info("top_tags_by_segment", rows=len(df_result))
     return df_result.to_dict(orient="records")
+
+
+@router.get("/rating-distribution")
+def get_rating_distribution(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.RATING_DISTRIBUTION)
+    struct_logger.info("rating_distribution", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/rating-vs-recipes")
+def get_rating_vs_recipes(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.RATING_VS_RECIPES)
+    struct_logger.info("rating_vs_recipes")
+    return df_result.to_dict(orient="records")

@@ -33,7 +33,8 @@ class AnalysisType(StrEnum):
     TOP_10_PERCENT_CONTRIBUTORS = "top_10_percent_contributors"
     USER_SEGMENTS = "user_segments"                 # 👈 nouveau
     TOP_TAGS_BY_SEGMENT = "top_tags_by_segment"     # 👈 nouveau
-
+    RATING_DISTRIBUTION = "rating_distribution"
+    RATING_VS_RECIPES = "rating_vs_recipes"
 
 # ===============================
 # Utilitaires
@@ -382,6 +383,134 @@ def top_tags_by_segment_from_users(
             .sort_values(["segment", "count"], ascending=[True, False])
             .reset_index(drop=True)
     )
+    
+
+
+def _find_col(df: pd.DataFrame, candidates):
+    """Outil permettant de sélectionner une colonne parmi plusieurs candidats."""
+    if df is None:
+        return None
+    cols = list(df.columns)
+    for c in candidates:
+        if c in cols:
+            return c
+        lc = c.lower()
+        for col in cols:
+            if col.lower() == lc:
+                return col
+    for token in candidates:
+        for col in cols:
+            if token in col.lower():
+                return col
+    return None
+
+
+def rating_distribution(
+    df_recipes: pd.DataFrame,
+    df_interactions: pd.DataFrame,
+    bins: Optional[Union[int, Sequence[float]]] = [0, 1, 2, 3, 4, 5],
+    labels: Optional[Sequence[str]] = None
+) -> pd.DataFrame:
+    # Précautions sur les dataframes
+    if df_interactions is None or df_interactions.empty or df_recipes is None or df_recipes.empty:
+        return pd.DataFrame(columns=["rating_bin", "count", "share", "avg_rating_in_bin", "cum_share"])
+
+    recipe_id_col = _find_col(df_interactions, ["recipe_id", "recipe", "id"])
+    rating_col = _find_col(df_interactions, ["rating", "score", "stars"])
+    recipe_id_in_recipes = _find_col(df_recipes, ["id", "recipe_id"])
+
+    if recipe_id_col is None or rating_col is None or recipe_id_in_recipes is None:
+        return pd.DataFrame(columns=["rating_bin", "count", "share", "avg_rating_in_bin", "cum_share"])
+
+    # Note moyenne par recette
+    per_recipe = (
+        df_interactions
+        .dropna(subset=[recipe_id_col, rating_col])
+        .groupby(recipe_id_col)[rating_col]
+        .mean()
+        .reset_index(name="avg_rating")
+    )
+
+    merged = per_recipe.merge(df_recipes[[recipe_id_in_recipes, "contributor_id"]].rename(columns={recipe_id_in_recipes: recipe_id_col}),
+                              on=recipe_id_col, how="left")
+
+    if "contributor_id" not in merged.columns:
+        contrib_col = _find_col(df_recipes, ["contributor_id", "contributor", "author", "user"])
+        if contrib_col:
+            merged = per_recipe.merge(df_recipes[[recipe_id_in_recipes, contrib_col]].rename(columns={recipe_id_in_recipes: recipe_id_col, contrib_col: "contributor_id"}),
+                                      on=recipe_id_col, how="left")
+        else:
+            return pd.DataFrame(columns=["rating_bin", "count", "share", "avg_rating_in_bin", "cum_share"])
+
+    # Notes moyennes des contributeurs
+    avg = merged.dropna(subset=["contributor_id"]).groupby("contributor_id")["avg_rating"].mean().reset_index(name="avg_rating")
+
+    if labels is None:
+        labels = [f"{bins[i]}-{bins[i+1]}" for i in range(len(bins)-1)]
+        labels[-1] = f"{bins[-2]}+"
+
+    avg["rating_bin"] = pd.cut(avg["avg_rating"], bins=bins, labels=labels, include_lowest=True, right=False)
+
+    distribution = (
+        avg.groupby("rating_bin")
+           .agg(count=("contributor_id", "nunique"), avg_rating_in_bin=("avg_rating", "mean"))
+           .reset_index()
+    )
+
+    total = int(distribution["count"].sum()) if not distribution.empty else 0
+    if total == 0:
+        distribution["share"] = 0.0
+        distribution["cum_share"] = 0.0
+    else:
+        distribution["share"] = (distribution["count"] / total * 100).round(2)
+        distribution["cum_share"] = distribution["share"].cumsum().round(2)
+
+    distribution["rating_bin"] = distribution["rating_bin"].astype(str)
+    return distribution[["rating_bin", "count", "share", "avg_rating_in_bin", "cum_share"]]
+
+
+def rating_vs_recipe_count(
+    df_recipes: pd.DataFrame,
+    df_interactions: pd.DataFrame
+) -> pd.DataFrame:
+    if df_recipes is None or df_recipes.empty:
+        return pd.DataFrame(columns=["contributor_id", "recipe_count", "avg_rating", "median_rating"])
+
+    recipe_id_col = _find_col(df_interactions, ["recipe_id", "recipe", "id"])
+    rating_col = _find_col(df_interactions, ["rating", "score", "stars"])
+    recipe_id_in_recipes = _find_col(df_recipes, ["id", "recipe_id"])
+    contrib_col = _find_col(df_recipes, ["contributor_id", "contributor", "author", "user"])
+
+    if recipe_id_in_recipes is None or contrib_col is None:
+        return pd.DataFrame(columns=["contributor_id", "recipe_count", "avg_rating", "median_rating"])
+
+    recipe_counts = df_recipes.groupby(contrib_col).size().reset_index(name="recipe_count").rename(columns={contrib_col: "contributor_id"})
+
+    if df_interactions is None or df_interactions.empty or recipe_id_col is None or rating_col is None:
+        recipe_counts["avg_rating"] = np.nan
+        recipe_counts["median_rating"] = np.nan
+        return recipe_counts[["contributor_id", "recipe_count", "avg_rating", "median_rating"]]
+
+    per_recipe = (
+        df_interactions.dropna(subset=[recipe_id_col, rating_col])
+                       .groupby(recipe_id_col)[rating_col]
+                       .agg(["mean", "median"])
+                       .reset_index()
+                       .rename(columns={"mean": "avg_rating", "median": "median_rating"})
+    )
+
+    merged = per_recipe.merge(df_recipes[[recipe_id_in_recipes, contrib_col]].rename(columns={recipe_id_in_recipes: recipe_id_col, contrib_col: "contributor_id"}),
+                              on=recipe_id_col, how="left").dropna(subset=["contributor_id"])
+
+    contrib_ratings = merged.groupby("contributor_id").agg(avg_rating=("avg_rating", "mean"), median_rating=("median_rating", "median")).reset_index()
+
+    result = contrib_ratings.merge(recipe_counts, on="contributor_id", how="right")
+    result["recipe_count"] = pd.to_numeric(result["recipe_count"], errors="coerce").fillna(0).astype(int)
+    result["avg_rating"] = pd.to_numeric(result.get("avg_rating"), errors="coerce")
+    result["median_rating"] = pd.to_numeric(result.get("median_rating"), errors="coerce")
+
+    return result[["contributor_id", "recipe_count", "avg_rating", "median_rating"]]
+
 
 
 # ===============================
@@ -423,6 +552,17 @@ class DataAnylizer:
                 # Calcule d'abord les segments utilisateurs, puis les top tags
                 df_users = compute_user_segments(self.df_recipes, self.df_interactions, duration_col="minutes")
                 return top_tags_by_segment_from_users(self.df_recipes, df_users, tags_col="tags", top_k=5)
-
+            
+            case AnalysisType.RATING_DISTRIBUTION:
+                return rating_distribution(
+                    self.df_recipes,
+                    self.df_interactions
+                )
+            
+            case AnalysisType.RATING_VS_RECIPES:
+                return rating_vs_recipe_count(
+                    self.df_recipes,
+                    self.df_interactions
+                )
             case _:
                 raise ValueError(f"Analyse non supportée : {analysis_type}")

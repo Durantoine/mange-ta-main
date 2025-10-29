@@ -2,6 +2,8 @@ import streamlit as st
 from components.sidebar import render_sidebar
 from components.tab01_top_contributors import render_top_contributors
 from components.tab02_duration_recipe import render_duration_recipe
+from components.tab04_rating import render_user_rating
+
 
 st.cache_data.clear()
 st.cache_resource.clear()
@@ -71,4 +73,4 @@ with tab2:
     st.write('Placeholders pour des cards, des graphes Plotly, etc.')
 
 with tab3:
-    st.write('Placeholders pour des cards, des graphes Plotly, etc.')
+    render_user_rating()
