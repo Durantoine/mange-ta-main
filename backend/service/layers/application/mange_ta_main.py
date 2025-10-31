@@ -656,10 +656,14 @@ def rating_vs_recipe_count(
         how="left",
     ).dropna(subset=["contributor_id"])
 
-    contrib_ratings = merged.groupby("contributor_id", observed=False).agg(
-        avg_rating=("avg_rating", "mean"),
-        median_rating=("median_rating", "median"),
-    ).reset_index()
+    contrib_ratings = (
+        merged.groupby("contributor_id", observed=False)
+        .agg(
+            avg_rating=("avg_rating", "mean"),
+            median_rating=("median_rating", "median"),
+        )
+        .reset_index()
+    )
 
     result = contrib_ratings.merge(recipe_counts, on="contributor_id", how="right")
     result["recipe_count"] = (
