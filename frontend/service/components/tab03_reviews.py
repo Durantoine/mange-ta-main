@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Iterable, Optional, Sequence, Tuple
 
 import altair as alt
 import numpy as np
@@ -11,8 +11,51 @@ try:  # pragma: no cover - runtime fallback when executed as script
 except ImportError:  # pragma: no cover - streamlit run context
     try:
         from src.http_client import BackendAPIError, fetch_backend_json
-    except ImportError:  # pragma: no cover - fallback when src is namespaced under service
+    except (
+        ImportError
+    ):  # pragma: no cover - fallback when src is namespaced under service
         from service.src.http_client import BackendAPIError, fetch_backend_json
+
+
+MAX_CHART_POINTS = 50_000
+MAX_TABLE_ROWS = 5_000
+MAX_DOWNLOAD_ROWS = 25_000
+
+
+def _arrow_dataframe(
+    data: Iterable[dict],
+    expected_cols: Sequence[str] | None = None,
+) -> pd.DataFrame:
+    """Create a DataFrame using the Arrow backend when available to save memory."""
+    if not data:
+        return pd.DataFrame(columns=list(expected_cols or []))
+    try:
+        df = pd.DataFrame(data, dtype_backend="pyarrow")
+    except TypeError:  # pragma: no cover - safety for older pandas
+        df = pd.DataFrame(data)
+    if expected_cols:
+        for col in expected_cols:
+            if col not in df.columns:
+                df[col] = pd.NA
+        df = df[list(dict.fromkeys(expected_cols))]
+    return df
+
+
+def _limit_for_chart(
+    df: pd.DataFrame, columns: Sequence[str], max_rows: int
+) -> Tuple[pd.DataFrame, bool]:
+    """Return a lightweight view for charting along with a flag when sampling happened."""
+    view = df.loc[:, list(columns)]
+    if max_rows > 0 and len(view) > max_rows:
+        return view.sample(max_rows, random_state=42), True
+    return view, False
+
+
+def _limit_for_table(df: pd.DataFrame, max_rows: int) -> Tuple[pd.DataFrame, bool]:
+    """Restrict the number of rows rendered in Streamlit tables."""
+    if max_rows > 0 and len(df) > max_rows:
+        return df.head(max_rows), True
+    return df, False
 
 
 def _format_metric(metric_id: str, value) -> str:
@@ -30,7 +73,9 @@ def _format_metric(metric_id: str, value) -> str:
     return str(value)
 
 
-def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
+def render_reviews(
+    logger=struct_logger,
+) -> None:  # pragma: no cover - Streamlit UI glue
     """Render the Streamlit tab dedicated to review analytics.
 
     The layout follows four blocks:
@@ -58,11 +103,13 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         logger.info("Review overview fetched", count=len(overview_data))
     except BackendAPIError as exc:
         st.error(f"Impossible de récupérer les indicateurs d'avis : {exc.details}")
-        logger.error("Failed to fetch review overview", error=str(exc), endpoint=exc.endpoint)
+        logger.error(
+            "Failed to fetch review overview", error=str(exc), endpoint=exc.endpoint
+        )
         overview_data = []
 
     if overview_data:
-        overview_df = pd.DataFrame(overview_data)
+        overview_df = _arrow_dataframe(overview_data)
         metrics_map = {row["metric"]: row["value"] for _, row in overview_df.iterrows()}
 
         primary_metrics = [
@@ -105,7 +152,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                 )
         if share_reviewed_pct is not None:
             avg_reviews_recipe_display = (
-                f"{avg_reviews_per_recipe:.2f}" if avg_reviews_per_recipe is not None else "-"
+                f"{avg_reviews_per_recipe:.2f}"
+                if avg_reviews_per_recipe is not None
+                else "-"
             )
             insights.append(
                 f"La couverture du catalogue atteint {share_reviewed_pct:.1f} %, avec en moyenne {avg_reviews_recipe_display} avis par recette."
@@ -145,12 +194,16 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         dist_data = fetch_backend_json("review-distribution", ttl=300)
         logger.info("Review distribution fetched", count=len(dist_data))
     except BackendAPIError as exc:
-        st.error(f"Erreur lors de la récupération de la distribution d'avis : {exc.details}")
-        logger.error("Failed to fetch review distribution", error=str(exc), endpoint=exc.endpoint)
+        st.error(
+            f"Erreur lors de la récupération de la distribution d'avis : {exc.details}"
+        )
+        logger.error(
+            "Failed to fetch review distribution", error=str(exc), endpoint=exc.endpoint
+        )
         dist_data = []
 
     if dist_data:
-        dist_df = pd.DataFrame(dist_data).rename(
+        dist_df = _arrow_dataframe(dist_data).rename(
             columns={
                 "reviews_bin": "Tranche d'avis",
                 "recipe_count": "Recettes",
@@ -162,7 +215,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         try:
             dist_df["Recettes"] = pd.to_numeric(dist_df["Recettes"], errors="coerce")
             dist_df["Part (%)"] = pd.to_numeric(dist_df["Part (%)"], errors="coerce")
-            dist_df["Avis moyens"] = pd.to_numeric(dist_df["Avis moyens"], errors="coerce")
+            dist_df["Avis moyens"] = pd.to_numeric(
+                dist_df["Avis moyens"], errors="coerce"
+            )
         except KeyError:
             pass
 
@@ -178,8 +233,15 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         dist_df["__min_reviews"] = dist_df["Tranche d'avis"].apply(_parse_min_reviews)
 
         target_col = "Recettes" if view_mode == "Nombre de recettes" else "Part (%)"
+        chart_cols = ["Tranche d'avis", "Recettes", "Part (%)", "Avis moyens"]
+        for col in chart_cols:
+            if col not in dist_df.columns:
+                dist_df[col] = pd.NA
+        chart_df, chart_trimmed = _limit_for_chart(
+            dist_df, chart_cols, MAX_CHART_POINTS
+        )
         chart = (
-            alt.Chart(dist_df)
+            alt.Chart(chart_df)
             .mark_bar(color="#5170ff")
             .encode(
                 x=alt.X("Tranche d'avis:N", title="Nombre d'avis par recette"),
@@ -193,6 +255,10 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
             )
         )
         st.altair_chart(chart, use_container_width=True)
+        if chart_trimmed:
+            st.caption(
+                f"Affichage échantillonné sur {MAX_CHART_POINTS:,} lignes pour préserver la mémoire."
+            )
 
         top_row: Optional[pd.Series] = None
         if "Recettes" in dist_df.columns and not dist_df["Recettes"].empty:
@@ -210,7 +276,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
             avg_reviews_raw = top_row.get("Avis moyens")
             recettes_val = int(float(recettes_raw)) if recettes_raw is not None else 0
             part_val = float(part_raw) if part_raw is not None else 0.0
-            avg_reviews_val = float(avg_reviews_raw) if avg_reviews_raw is not None else 0.0
+            avg_reviews_val = (
+                float(avg_reviews_raw) if avg_reviews_raw is not None else 0.0
+            )
             st.caption(
                 f"Tranche la plus fréquente : **{top_label}** "
                 f"({recettes_val} recettes, {part_val:.1f}%)."
@@ -223,7 +291,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
             dist_insights.append(
                 f"Encore {zero_share:.1f} % du catalogue n'a pas reçu de premier avis, laissant un potentiel d'engagement."
             )
-        engaged_share = float(dist_df.loc[dist_df["__min_reviews"] >= 5, "Part (%)"].sum())
+        engaged_share = float(
+            dist_df.loc[dist_df["__min_reviews"] >= 5, "Part (%)"].sum()
+        )
         if engaged_share > 0:
             dist_insights.append(
                 f"À l'inverse, {engaged_share:.1f} % des recettes recueillent au moins cinq avis, signe d'un noyau de contenus phares."
@@ -237,14 +307,25 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
 
         dist_df = dist_df.drop(columns="__min_reviews")
 
-        st.dataframe(dist_df, width="stretch", hide_index=True)
-        download_csv = dist_df.to_csv(index=False)
-        st.download_button(
-            "📥 Exporter la distribution",
-            download_csv,
-            "distribution_avis_recettes.csv",
-            "text/csv",
-        )
+        display_df, table_trimmed = _limit_for_table(dist_df, MAX_TABLE_ROWS)
+        st.dataframe(display_df, width="stretch", hide_index=True)
+        if table_trimmed:
+            st.caption(
+                f"Table réduite aux {MAX_TABLE_ROWS:,} premières lignes (données complètes disponibles via l'API)."
+            )
+
+        if len(dist_df) <= MAX_DOWNLOAD_ROWS:
+            download_csv = dist_df.to_csv(index=False)
+            st.download_button(
+                "📥 Exporter la distribution",
+                download_csv,
+                "distribution_avis_recettes.csv",
+                "text/csv",
+            )
+        else:
+            st.info(
+                "Dataset volumineux : utilisez l'API backend pour récupérer l'intégralité de la distribution."
+            )
     else:
         st.info("Distribution non disponible.")
 
@@ -260,11 +341,13 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         logger.info("Top reviewers fetched", count=len(reviewer_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération des reviewers : {exc.details}")
-        logger.error("Failed to fetch top reviewers", error=str(exc), endpoint=exc.endpoint)
+        logger.error(
+            "Failed to fetch top reviewers", error=str(exc), endpoint=exc.endpoint
+        )
         reviewer_data = []
 
     if reviewer_data:
-        reviewers_df = pd.DataFrame(reviewer_data)
+        reviewers_df = _arrow_dataframe(reviewer_data)
         rename_map = {
             "reviewer_id": "Reviewer",
             "reviews_count": "Nombre d'avis",
@@ -292,7 +375,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
             "Avis publiés",
             _format_metric("total_reviews", top_reviewer["Nombre d'avis"]),
         )
-        col_c.metric("Part du volume", _format_metric("share_pct", top_reviewer.get("Part (%)")))
+        col_c.metric(
+            "Part du volume", _format_metric("share_pct", top_reviewer.get("Part (%)"))
+        )
 
         bars = (
             alt.Chart(reviewers_df)
@@ -310,7 +395,12 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         )
         st.altair_chart(bars, use_container_width=True)
 
-        st.dataframe(reviewers_df, width="stretch", hide_index=True)
+        table_df, table_trimmed = _limit_for_table(reviewers_df, MAX_TABLE_ROWS)
+        st.dataframe(table_df, width="stretch", hide_index=True)
+        if table_trimmed:
+            st.caption(
+                f"Table réduite aux {MAX_TABLE_ROWS:,} premières lignes pour limiter l'empreinte mémoire."
+            )
 
         reviewer_insights = []
         if "Part (%)" in reviewers_df.columns:
@@ -345,19 +435,29 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     st.subheader("Commentaires rédigés vs recettes publiées (par utilisateur)")
 
     try:
-        reviewer_vs_recipes_data = fetch_backend_json("reviewer-vs-recipes", ttl=120)
+        reviewer_vs_recipes_data = fetch_backend_json(
+            "reviewer-vs-recipes",
+            ttl=0,
+            timeout=30.0,
+        )
         logger.info("Reviewer vs recipes fetched", count=len(reviewer_vs_recipes_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la corrélation reviewers / recettes : {exc.details}")
-        logger.error("Failed to fetch reviewer vs recipes", error=str(exc), endpoint=exc.endpoint)
+        logger.error(
+            "Failed to fetch reviewer vs recipes", error=str(exc), endpoint=exc.endpoint
+        )
         reviewer_vs_recipes_data = []
 
     if reviewer_vs_recipes_data:
-        rr_df = pd.DataFrame(reviewer_vs_recipes_data)
+        rr_df = _arrow_dataframe(reviewer_vs_recipes_data)
         expected_cols = {"user_id", "reviews_count", "recipes_published"}
         if expected_cols.issubset(rr_df.columns):
-            rr_df["reviews_count"] = pd.to_numeric(rr_df["reviews_count"], errors="coerce")
-            rr_df["recipes_published"] = pd.to_numeric(rr_df["recipes_published"], errors="coerce")
+            rr_df["reviews_count"] = pd.to_numeric(
+                rr_df["reviews_count"], errors="coerce"
+            )
+            rr_df["recipes_published"] = pd.to_numeric(
+                rr_df["recipes_published"], errors="coerce"
+            )
             if "avg_rating_given" in rr_df.columns:
                 rr_df["avg_rating_given"] = pd.to_numeric(
                     rr_df["avg_rating_given"], errors="coerce"
@@ -372,7 +472,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                 tooltip_fields = [
                     alt.Tooltip("user_id:N", title="Utilisateur"),
                     alt.Tooltip("reviews_count:Q", title="Avis rédigés", format=","),
-                    alt.Tooltip("recipes_published:Q", title="Recettes publiées", format=","),
+                    alt.Tooltip(
+                        "recipes_published:Q", title="Recettes publiées", format=","
+                    ),
                 ]
                 if "avg_rating_given" in rr_df.columns:
                     tooltip_fields.append(
@@ -383,8 +485,20 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                         )
                     )
 
+                chart_cols = [
+                    "user_id",
+                    "reviews_count",
+                    "recipes_published",
+                    "avg_rating_given",
+                ]
+                if "predicted_recipes_published" in rr_df.columns:
+                    chart_cols.append("predicted_recipes_published")
+                chart_df, chart_trimmed = _limit_for_chart(
+                    rr_df, chart_cols, MAX_CHART_POINTS
+                )
+
                 scatter = (
-                    alt.Chart(rr_df)
+                    alt.Chart(chart_df)
                     .mark_circle(size=70, opacity=0.7, color="#ff6f61")
                     .encode(
                         x=alt.X("reviews_count:Q", title="Nombre d'avis rédigés"),
@@ -412,7 +526,7 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                             )[0, 1]
                         )
                         regression = (
-                            alt.Chart(rr_df)
+                            alt.Chart(chart_df)
                             .mark_line(color="#27AE60", strokeWidth=2)
                             .encode(
                                 x="reviews_count:Q",
@@ -424,6 +538,10 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
 
                 chart_obj = scatter if regression is None else scatter + regression
                 st.altair_chart(chart_obj.interactive(), use_container_width=True)
+                if chart_trimmed:
+                    st.caption(
+                        f"Nuage de points construit sur un échantillon de {MAX_CHART_POINTS:,} lignes."
+                    )
 
                 rr_display_cols = [
                     c
@@ -435,19 +553,30 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                     ]
                     if c in rr_df.columns
                 ]
+                table_df, table_trimmed = _limit_for_table(
+                    rr_df[rr_display_cols], MAX_TABLE_ROWS
+                )
                 st.dataframe(
-                    rr_df[rr_display_cols],
+                    table_df,
                     width="stretch",
                     hide_index=True,
                 )
+                if table_trimmed:
+                    st.caption(
+                        f"Table tronquée aux {MAX_TABLE_ROWS:,} premières entrées pour préserver la mémoire."
+                    )
 
                 narrative_parts = []
-                top_reviewer = rr_df.sort_values("reviews_count", ascending=False).iloc[0]
+                top_reviewer = rr_df.sort_values("reviews_count", ascending=False).iloc[
+                    0
+                ]
                 narrative_parts.append(
                     f"L'utilisateur {top_reviewer['user_id']} est le plus prolifique avec {int(top_reviewer['reviews_count'])} avis rédigés."
                 )
 
-                top_author = rr_df.sort_values("recipes_published", ascending=False).iloc[0]
+                top_author = rr_df.sort_values(
+                    "recipes_published", ascending=False
+                ).iloc[0]
                 narrative_parts.append(
                     f"Côté publication, {top_author['user_id']} mène avec {int(top_author['recipes_published'])} recettes au catalogue."
                 )
@@ -468,9 +597,13 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
 
                 st.markdown(" ".join(narrative_parts))
         else:
-            st.error("Colonnes inattendues reçues pour la corrélation reviewers / recettes.")
+            st.error(
+                "Colonnes inattendues reçues pour la corrélation reviewers / recettes."
+            )
     else:
-        st.info("Aucune donnée pour la corrélation entre avis rédigés et recettes publiées.")
+        st.info(
+            "Aucune donnée pour la corrélation entre avis rédigés et recettes publiées."
+        )
 
     st.divider()
 
@@ -484,13 +617,17 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         logger.info("Review trend fetched", count=len(trend_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération de la chronologie : {exc.details}")
-        logger.error("Failed to fetch review trend", error=str(exc), endpoint=exc.endpoint)
+        logger.error(
+            "Failed to fetch review trend", error=str(exc), endpoint=exc.endpoint
+        )
         trend_data = []
 
     if trend_data:
-        trend_df = pd.DataFrame(trend_data)
+        trend_df = _arrow_dataframe(trend_data)
         if "period" in trend_df.columns:
-            trend_df["period"] = pd.PeriodIndex(trend_df["period"], freq="M").to_timestamp()
+            trend_df["period"] = pd.PeriodIndex(
+                trend_df["period"], freq="M"
+            ).to_timestamp()
         trend_df = trend_df.sort_values("period")
 
         line = (
@@ -514,7 +651,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                     x="period:T",
                     y=alt.Y("unique_reviewers:Q", title="Reviewers uniques"),
                     tooltip=[
-                        alt.Tooltip("unique_reviewers:Q", title="Reviewers uniques", format=",")
+                        alt.Tooltip(
+                            "unique_reviewers:Q", title="Reviewers uniques", format=","
+                        )
                     ],
                 )
             )
@@ -523,11 +662,18 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
         else:
             st.altair_chart(line.interactive(), use_container_width=True)
 
+        trend_table, trend_trimmed = _limit_for_table(
+            trend_df.rename(columns={"period": "Période"}), MAX_TABLE_ROWS
+        )
         st.dataframe(
-            trend_df.rename(columns={"period": "Période"}),
+            trend_table,
             width="stretch",
             hide_index=True,
         )
+        if trend_trimmed:
+            st.caption(
+                f"Affichage limité aux {MAX_TABLE_ROWS:,} dernières périodes pour des raisons de mémoire."
+            )
 
         trend_insights = []
         last_row = trend_df.iloc[-1]
@@ -563,19 +709,29 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     st.subheader("Relation entre volume d'avis et note moyenne")
 
     try:
-        scatter_data = fetch_backend_json("reviews-vs-rating", ttl=300)
+        scatter_data = fetch_backend_json(
+            "reviews-vs-rating",
+            ttl=0,
+            timeout=30.0,
+        )
         logger.info("Reviews vs rating fetched", count=len(scatter_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération des corrélations : {exc.details}")
-        logger.error("Failed to fetch reviews vs rating", error=str(exc), endpoint=exc.endpoint)
+        logger.error(
+            "Failed to fetch reviews vs rating", error=str(exc), endpoint=exc.endpoint
+        )
         scatter_data = []
 
     if scatter_data:
-        scatter_df = pd.DataFrame(scatter_data)
+        scatter_df = _arrow_dataframe(scatter_data)
         expected_cols = {"recipe_id", "review_count", "avg_rating"}
         if expected_cols.issubset(scatter_df.columns):
-            scatter_df["review_count"] = pd.to_numeric(scatter_df["review_count"], errors="coerce")
-            scatter_df["avg_rating"] = pd.to_numeric(scatter_df["avg_rating"], errors="coerce")
+            scatter_df["review_count"] = pd.to_numeric(
+                scatter_df["review_count"], errors="coerce"
+            )
+            scatter_df["avg_rating"] = pd.to_numeric(
+                scatter_df["avg_rating"], errors="coerce"
+            )
             scatter_df = scatter_df.dropna(subset=["review_count", "avg_rating"])
 
             if not scatter_df.empty:
@@ -587,13 +743,43 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                     alt.Tooltip("review_count:Q", title="Avis", format=","),
                     alt.Tooltip("avg_rating:Q", title="Note moyenne", format=".2f"),
                 ]
+                chart_cols = ["recipe_id", "review_count", "avg_rating"]
                 if "recipe_name" in scatter_df.columns:
-                    tooltip_fields.insert(0, alt.Tooltip("recipe_name:N", title="Recette"))
+                    tooltip_fields.insert(
+                        0, alt.Tooltip("recipe_name:N", title="Recette")
+                    )
+                    chart_cols.append("recipe_name")
                 if "contributor_id" in scatter_df.columns:
-                    tooltip_fields.append(alt.Tooltip("contributor_id:N", title="Contributeur"))
+                    tooltip_fields.append(
+                        alt.Tooltip("contributor_id:N", title="Contributeur")
+                    )
+                    chart_cols.append("contributor_id")
+
+                corr_coef_value = None
+                slope = intercept = None
+                regression_chart = None
+                try:
+                    slope, intercept = np.polyfit(
+                        scatter_df["review_count"], scatter_df["avg_rating"], 1
+                    )
+                    scatter_df["predicted_avg_rating"] = (
+                        slope * scatter_df["review_count"] + intercept
+                    )
+                    chart_cols.append("predicted_avg_rating")
+                    corr_coef_value = float(
+                        np.corrcoef(
+                            scatter_df["review_count"], scatter_df["avg_rating"]
+                        )[0, 1]
+                    )
+                except Exception:
+                    slope = intercept = None
+
+                chart_df, chart_trimmed = _limit_for_chart(
+                    scatter_df, chart_cols, MAX_CHART_POINTS
+                )
 
                 base = (
-                    alt.Chart(scatter_df)
+                    alt.Chart(chart_df)
                     .mark_circle(size=70, opacity=0.7)
                     .encode(
                         x=alt.X("review_count:Q", title="Nombre d'avis"),
@@ -602,29 +788,31 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                     )
                 )
 
-                corr_coef_value = None
-                try:
-                    slope, intercept = np.polyfit(
-                        scatter_df["review_count"], scatter_df["avg_rating"], 1
-                    )
-                    scatter_df["predicted_avg_rating"] = (
-                        slope * scatter_df["review_count"] + intercept
-                    )
-                    corr_coef_value = float(
-                        np.corrcoef(scatter_df["review_count"], scatter_df["avg_rating"])[0, 1]
-                    )
-                    regression = (
-                        alt.Chart(scatter_df)
+                if (
+                    slope is not None
+                    and intercept is not None
+                    and "predicted_avg_rating" in chart_df
+                ):
+                    regression_chart = (
+                        alt.Chart(chart_df)
                         .mark_line(color="#27AE60", strokeWidth=2)
                         .encode(x="review_count:Q", y="predicted_avg_rating:Q")
                     )
-                    st.altair_chart((base + regression).interactive(), use_container_width=True)
+                    st.altair_chart(
+                        (base + regression_chart).interactive(),
+                        use_container_width=True,
+                    )
                     st.caption(
                         f"Régression linéaire : note ≈ {slope:.3f} × avis + {intercept:.3f}."
                     )
-                except Exception:
+                else:
                     st.altair_chart(base.interactive(), use_container_width=True)
                     st.caption("Régression non calculable (données insuffisantes).")
+
+                if chart_trimmed:
+                    st.caption(
+                        f"Nuage de points limité à {MAX_CHART_POINTS:,} observations pour éviter la saturation mémoire."
+                    )
 
                 display_cols = [
                     c
@@ -634,10 +822,18 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                         "contributor_id",
                         "review_count",
                         "avg_rating",
+                        "predicted_avg_rating",
                     ]
                     if c in scatter_df.columns
                 ]
-                st.dataframe(scatter_df[display_cols], width="stretch", hide_index=True)
+                table_df, table_trimmed = _limit_for_table(
+                    scatter_df[display_cols], MAX_TABLE_ROWS
+                )
+                st.dataframe(table_df, width="stretch", hide_index=True)
+                if table_trimmed:
+                    st.caption(
+                        f"Table tronquée aux {MAX_TABLE_ROWS:,} premières lignes (accès complet via l'API)."
+                    )
 
                 scatter_insights = []
                 if corr_coef_value is not None:
@@ -645,7 +841,9 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
                         f"La corrélation reste modérée (r = {corr_coef_value:.2f}) entre le volume d'avis et la note moyenne."
                     )
                 top_recipe = scatter_df.iloc[-1]
-                recipe_label = top_recipe.get("recipe_name", f"Recette #{top_recipe['recipe_id']}")
+                recipe_label = top_recipe.get(
+                    "recipe_name", f"Recette #{top_recipe['recipe_id']}"
+                )
                 scatter_insights.append(
                     f"La recette la plus commentée, {recipe_label}, totalise {int(top_recipe['review_count'])} avis pour une moyenne de {top_recipe['avg_rating']:.2f}/5."
                 )

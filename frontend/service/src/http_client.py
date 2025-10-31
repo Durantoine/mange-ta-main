@@ -37,7 +37,8 @@ class BackendAPIError(RuntimeError):
 def _make_params_tuple(params: Mapping[str, Any]) -> Tuple[Tuple[str, str], ...]:
     """Normalise query parameters for caching."""
     processed: Sequence[Tuple[str, str]] = [
-        (str(key), str(value)) for key, value in sorted(params.items(), key=lambda item: item[0])
+        (str(key), str(value))
+        for key, value in sorted(params.items(), key=lambda item: item[0])
     ]
     return tuple(processed)
 
@@ -77,11 +78,14 @@ def fetch_backend_json(
         return response.json()
 
     _request = _request_impl
-    cache_fn = getattr(st, "cache_data", None)
+    cache_enabled = ttl is not None and ttl > 0
+    cache_fn = getattr(st, "cache_data", None) if cache_enabled else None
     if cache_fn is not None and cache_fn.__class__.__module__ != "unittest.mock":
         try:
             decorator = cast(Callable[..., CacheDecorator], cache_fn)
-            cached = decorator(show_spinner=False, ttl=ttl)(_request_impl)
+            cached = decorator(show_spinner=False, ttl=ttl, max_entries=16)(
+                _request_impl
+            )
             cached_module = getattr(cached, "__class__", object).__module__
             if cached_module != "unittest.mock":
                 _request = cached
