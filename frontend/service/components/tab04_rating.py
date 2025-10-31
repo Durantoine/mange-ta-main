@@ -4,7 +4,13 @@ import pandas as pd
 import streamlit as st
 from logger import struct_logger
 
-from ..src.http_client import BackendAPIError, fetch_backend_json
+try:  # pragma: no cover - runtime fallback when executed as script
+    from ..src.http_client import BackendAPIError, fetch_backend_json
+except ImportError:  # pragma: no cover - streamlit run context
+    try:
+        from src.http_client import BackendAPIError, fetch_backend_json
+    except ImportError:  # pragma: no cover - fallback when src is namespaced under service
+        from service.src.http_client import BackendAPIError, fetch_backend_json
 
 
 def render_user_rating(

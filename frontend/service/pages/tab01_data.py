@@ -7,7 +7,10 @@ try:
     from ..src.http_client import BackendAPIError, fetch_backend_json
 except ImportError:  # pragma: no cover - fallback for standalone execution
     from components.sidebar import render_sidebar
-    from src.http_client import BackendAPIError, fetch_backend_json
+    try:  # pragma: no cover - streamlit run context
+        from src.http_client import BackendAPIError, fetch_backend_json
+    except ImportError:  # pragma: no cover - fallback when src is package under service
+        from service.src.http_client import BackendAPIError, fetch_backend_json
 
 
 def render_data_page() -> None:
