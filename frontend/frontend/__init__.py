@@ -1,6 +1,5 @@
 # frontend/frontend/__init__.py
 # Make "frontend.*" resolve to modules that live at the project root (/app).
-import os
 from pathlib import Path
 
 _pkg_dir = Path(__file__).resolve().parent        # /app/frontend
