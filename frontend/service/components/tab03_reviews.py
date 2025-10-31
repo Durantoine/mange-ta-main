@@ -10,7 +10,7 @@ from logger import struct_logger
 
 
 def _format_metric(metric_id: str, value) -> str:
-    """Formatte les métriques clés pour l'affichage."""
+    """Format dashboard metrics using a consistent French-friendly style."""
     if value is None:
         return "-"
     if isinstance(value, (int, np.integer)):
@@ -25,7 +25,7 @@ def _format_metric(metric_id: str, value) -> str:
 
 
 def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
-    """Dashboard d'analyse des avis utilisateurs (section Tab 3)."""
+    """Render the Streamlit tab dedicated to review analytics."""
 
     st.header("📝 Analyse des avis utilisateurs")
     st.caption(

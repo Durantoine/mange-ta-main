@@ -14,10 +14,10 @@ import service.main as service_main
 from service.container import Container
 from service.layers.api import mange_ta_main as api_module
 from service.layers.application import mange_ta_main as mtm
-from service.layers.application.data_cleaning import (
-    clean_data,
-    normalize_ids,
-    remove_outliers,
+from service.layers.application.data_cleaning import clean_data, normalize_ids, remove_outliers
+from service.layers.application.exceptions import (
+    DataNormalizationError,
+    UnsupportedAnalysisError,
 )
 from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.application.mange_ta_main import AnalysisType, DataAnylizer
@@ -385,7 +385,7 @@ def test_data_analyzer_invalid_analysis(
     rich_recipes: pd.DataFrame, rich_interactions: pd.DataFrame
 ):
     analyzer = DataAnylizer(StubAdapter(rich_recipes, rich_interactions))
-    with pytest.raises(ValueError):
+    with pytest.raises(UnsupportedAnalysisError):
         analyzer.process_data(AnalysisType.NO_ANALYSIS)
 
 
@@ -409,7 +409,7 @@ def test_normalize_ids_for_recipes_and_interactions():
     normalized_interactions = normalize_ids(interactions.copy(), DataType.INTERACTIONS)
     assert normalized_interactions["user_id"].tolist() == [1, 2]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DataNormalizationError):
         normalize_ids(recipes, cast(DataType, "weird"))  # type: ignore[arg-type]
 
 
@@ -451,7 +451,7 @@ def test_clean_data_with_dummy_adapter(tmp_path):
     assert cleaned_recipes and cleaned_interactions
     assert DataType.RECIPES in adapter.saved and DataType.INTERACTIONS in adapter.saved
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DataNormalizationError):
         clean_data(adapter, cast(DataType, "strange"))  # type: ignore[arg-type]
 
 

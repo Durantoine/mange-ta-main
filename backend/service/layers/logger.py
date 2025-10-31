@@ -1,12 +1,28 @@
-# service/layers/logger.py
+"""Project-wide logging configuration using structlog."""
+
 import logging
+from pathlib import Path
 
 import structlog
 from structlog.dev import ConsoleRenderer
 
+LOG_DIR = Path("logs")
+LOG_DIR.mkdir(exist_ok=True)
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter("%(message)s"))
+
+debug_handler = logging.FileHandler(LOG_DIR / "debug.log")
+debug_handler.setLevel(logging.DEBUG)
+debug_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+
+error_handler = logging.FileHandler(LOG_DIR / "error.log")
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+
 logging.basicConfig(
-    format="%(message)s",
     level=logging.INFO,
+    handlers=[console_handler, debug_handler, error_handler],
 )
 
 structlog.configure(

@@ -18,6 +18,7 @@ check-types:
 lint-all: lint check-types
 
 test:
+	rm -f .coverage .coverage* || true
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) sh -c "uv run coverage run -m pytest /app/tests && uv run coverage report -m"
 	
 lint-all: lint format check-types

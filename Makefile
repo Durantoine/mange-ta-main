@@ -15,4 +15,8 @@ stop:
 clean:
 	docker compose -f $(COMPOSE_FILE) down --remove-orphans
 	docker system prune -f
+
+docs:
+	python -m pip install -r docs/requirements.txt
+	make -C docs html
 	

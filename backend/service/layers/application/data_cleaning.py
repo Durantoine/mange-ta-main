@@ -1,3 +1,5 @@
+"""Utility helpers to clean and normalise the raw CSV datasets."""
+
 import ast
 from enum import StrEnum
 from typing import Any, Hashable
@@ -5,6 +7,7 @@ from typing import Any, Hashable
 import numpy as np
 import pandas as pd
 
+from service.layers.application.exceptions import DataNormalizationError
 from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.infrastructure.types import DataType
 
@@ -14,7 +17,17 @@ class DataTypes(StrEnum):
     INTERACTIONS = "interactions"
 
 
-def remove_outliers(df: pd.DataFrame, factor: float = 5):
+def remove_outliers(df: pd.DataFrame, factor: float = 5) -> pd.DataFrame:
+    """Remove extreme rows based on an interquartile band.
+
+    Args:
+        df: DataFrame containing the dataset to clean.
+        factor: Multiplicative factor applied to the IQR to form upper bounds.
+
+    Returns:
+        The filtered dataframe with outliers removed and ``NaN`` converted to
+        ``None`` for JSON serialisation.
+    """
 
     df = df.replace([np.inf, -np.inf], np.nan)
 
@@ -33,6 +46,15 @@ def remove_outliers(df: pd.DataFrame, factor: float = 5):
 
 
 def normalize_ids(df: pd.DataFrame, data_type: DataType) -> pd.DataFrame:
+    """Ensure identifiers follow a consistent pattern across datasets.
+
+    Args:
+        df: Raw dataframe loaded from CSV.
+        data_type: Dataset kind used to decide which columns to normalise.
+
+    Returns:
+        The dataframe with deterministic integer identifiers.
+    """
 
     match data_type:
         case DataTypes.INTERACTIONS:
@@ -43,12 +65,21 @@ def normalize_ids(df: pd.DataFrame, data_type: DataType) -> pd.DataFrame:
             df['id'] = pd.factorize(df['id'])[0]
 
         case _:
-            raise ValueError(f"Unknown data type: {data_type}")
+            raise DataNormalizationError(f"Unknown data type: {data_type}")
 
     return df
 
 
 def clean_data(csv_adapter: IDataAdapter, data_type: DataType) -> list[dict[Hashable, Any]]:
+    """Load, clean and serialise the requested dataset.
+
+    Args:
+        csv_adapter: Adapter responsible for reading/writing CSV data.
+        data_type: Which dataset to process (recipes or interactions).
+
+    Returns:
+        A JSON-ready list of rows persisted back through the adapter.
+    """
     match data_type:
         case DataType.RECIPES:
             df = csv_adapter.load(DataType.RECIPES, raw=True)
@@ -56,7 +87,7 @@ def clean_data(csv_adapter: IDataAdapter, data_type: DataType) -> list[dict[Hash
         case DataType.INTERACTIONS:
             df = csv_adapter.load(DataType.INTERACTIONS, raw=True)
         case _:
-            raise ValueError(f"Unknown data type: {data_type}")
+            raise DataNormalizationError(f"Unknown data type: {data_type}")
 
     for col in df.columns:
         sample_val = df[col].dropna().iloc[0] if not df[col].dropna().empty else None
