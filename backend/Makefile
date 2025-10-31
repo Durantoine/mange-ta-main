@@ -16,6 +16,7 @@ check-types:
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run pyright /app/service /app/tests
 
 test:
+	rm -f .coverage .coverage* || true
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run coverage run -m pytest /app/tests
 	docker compose -f $(COMPOSE_FILE) run --rm $(SERVICE_NAME) uv run coverage report -m
 

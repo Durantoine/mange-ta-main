@@ -1,3 +1,5 @@
+"""Collection of analytical helpers powering the API and dashboards."""
+
 import ast
 from enum import StrEnum
 from typing import Any, Dict, List, Optional, Sequence, Union
@@ -5,6 +7,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 import numpy as np
 import pandas as pd
 
+from service.layers.application.exceptions import UnsupportedAnalysisError
 from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.infrastructure.types import DataType
 
@@ -78,10 +81,7 @@ class AnalysisType(StrEnum):
 
 
 def _parse_tags_to_list(v) -> List[str]:
-    """
-    Transforme la colonne tags en liste de strings, de façon robuste.
-    Accepte: liste Python, string de liste "['a','b']", string "a,b,c".
-    """
+    """Normalise the ``tags`` column into a clean list of strings."""
     if isinstance(v, list):
         return [str(t).strip().lower() for t in v if str(t).strip()]
     if pd.isna(v):
@@ -103,9 +103,14 @@ def _parse_tags_to_list(v) -> List[str]:
 
 
 def most_recipes_contributors(df_recipes: pd.DataFrame) -> pd.DataFrame:
-    """
-    Retourne le nombre de recettes par contributeur (tri décroissant).
-    Colonnes: contributor_id, 0 (count)
+    """Rank contributors by the number of published recipes.
+
+    Args:
+        df_recipes: Dataset containing at least the columns ``id`` and
+            ``contributor_id``.
+
+    Returns:
+        Dataframe ordered by ``Nombre de Recettes`` with one row per contributor.
     """
     number_recipes_contributors = (
         df_recipes.groupby("contributor_id").size().sort_values(ascending=False).reset_index()
@@ -116,9 +121,17 @@ def most_recipes_contributors(df_recipes: pd.DataFrame) -> pd.DataFrame:
 def best_ratings_contributors(
     df_recipes: pd.DataFrame, df_interactions: pd.DataFrame
 ) -> pd.DataFrame:
-    """
-    Contributeurs avec meilleure note moyenne (>=5 recettes).
-    Colonnes: contributor_id, avg_rating, num_recipes
+    """Highlight contributors with the highest average rating.
+
+    Args:
+        df_recipes: Recipe catalogue with ``id`` and ``contributor_id``.
+        df_interactions: Interactions dataframe containing ``recipe_id`` and
+            ``rating``.
+
+    Returns:
+        A dataframe with ``contributor_id``, ``avg_rating`` and ``num_recipes``
+        sorted by decreasing average rating and filtered so only authors with at
+        least five recipes remain.
     """
     avg_ratings = (
         df_interactions.groupby("recipe_id")["rating"].mean().reset_index(name="avg_rating")
@@ -147,15 +160,25 @@ def average_duration_distribution(
     labels: Optional[Sequence[str]] = None,
     group_cols: Optional[Sequence[str]] = None,
 ) -> pd.DataFrame:
-    """
-    Répartition (histogramme) des durées de recettes (global ou par groupe).
-    Colonnes: (group_cols), duration_bin, count, share, avg_duration_in_bin, cum_share
+    """Build a histogram-like distribution for recipe durations.
+
+    Args:
+        df_recipes: Recipes dataframe holding the duration column.
+        duration_col: Column to analyse (defaults to ``minutes``).
+        bins: Either an integer describing the number of bins or explicit
+            edges passed to :func:`pandas.cut`.
+        labels: Optional labels per bin.
+        group_cols: Optional columns used to compute distributions per cohort.
+
+    Returns:
+        A dataframe with the bin label, count, share and cumulative share
+        (optionally split by ``group_cols``).
     """
     df = df_recipes.copy()
     df[duration_col] = pd.to_numeric(df[duration_col], errors="coerce")
     df = df.dropna(subset=[duration_col])
 
-    # Bins
+    # Derive bin edges used to stratify recipes by duration.
     resolved_bins: Union[int, Sequence[float]]
     resolved_labels: Optional[Sequence[str]] = labels
     if bins is None:
@@ -173,12 +196,12 @@ def average_duration_distribution(
     else:
         resolved_bins = bins
 
-    # Si bins est un entier -> classes égales
+    # When an integer is provided, generate evenly spaced bins.
     if isinstance(resolved_bins, int):
         vmin, vmax = df[duration_col].min(), df[duration_col].max()
         resolved_bins = np.linspace(vmin, vmax, resolved_bins + 1).tolist()
 
-    # Découpage
+    # Cut the durations into the resolved bins.
     df["duration_bin"] = pd.cut(
         df[duration_col],
         bins=resolved_bins,
@@ -187,7 +210,7 @@ def average_duration_distribution(
         right=False,
     )
 
-    # Agrégats
+    # Aggregate counts and mean duration per bin.
     group_cols_list = list(group_cols) if group_cols else []
     group_keys = group_cols_list + ["duration_bin"]
 
@@ -197,7 +220,7 @@ def average_duration_distribution(
         .reset_index()
     )
 
-    # Parts
+    # Compute shares within each group (or globally).
     if group_cols_list:
         totals = (
             agg.groupby(group_cols_list, observed=False)["count"]
@@ -211,7 +234,7 @@ def average_duration_distribution(
 
     out["share"] = (out["count"] / out["total_count"] * 100).round(2)
 
-    # Part cumulée
+    # Compute the cumulative share to ease interpretation.
     out = out.sort_values(group_cols_list + ["duration_bin"]).reset_index(drop=True)
     if group_cols_list:
         out["cum_share"] = out.groupby(group_cols_list, observed=False)["share"].cumsum().round(2)
@@ -228,9 +251,15 @@ def duration_vs_recipe_count(
     df_recipes: pd.DataFrame,
     duration_col: str = "minutes",
 ) -> pd.DataFrame:
-    """
-    Agrège: nombre de recettes par contributeur, durée moyenne/médiane.
-    Colonnes: contributor_id, recipe_count, avg_duration, median_duration
+    """Compute publication volume and duration statistics per contributor.
+
+    Args:
+        df_recipes: Recipes dataframe with at least ``contributor_id`` and the
+            specified duration column.
+        duration_col: Name of the column storing recipe durations.
+
+    Returns:
+        Dataframe containing per-contributor recipe counts and duration stats.
     """
     df = df_recipes.copy()
     df = df.dropna(subset=["contributor_id"])
@@ -260,12 +289,16 @@ def top_10_percent_contributors(
     df_interactions: pd.DataFrame,
     duration_col: str = "minutes",
 ) -> pd.DataFrame:
-    """
-    Compare Top 10% de contributeurs vs global sur:
-      - durée moyenne des recettes
-      - note moyenne
-      - nombre moyen de commentaires
-    Colonnes: population, avg_duration_minutes, avg_rating, avg_comments, contributor_count
+    """Compare the most prolific authors with the rest of the catalogue.
+
+    Args:
+        df_recipes: Recipe dataframe used to compute volume and duration stats.
+        df_interactions: Interactions dataframe to derive ratings and comments.
+        duration_col: Column containing the recipe duration in minutes.
+
+    Returns:
+        A dataframe with two rows – top cohort and global – each exposing the
+        contributor count and several aggregate metrics.
     """
     df = df_recipes.copy()
     df[duration_col] = pd.to_numeric(df[duration_col], errors="coerce")
@@ -333,12 +366,16 @@ def compute_user_segments(
     df_interactions: pd.DataFrame,
     duration_col: str = "minutes",
 ) -> pd.DataFrame:
-    """
-    Calcule pour chaque contributeur:
-      - avg_minutes, avg_rating, avg_reviews
-      - segment (0..5) assigné au plus proche centroïde (SEGMENT_INFO)
-      - persona (libellé)
-    Retour: contributor_id, avg_minutes, avg_rating, avg_reviews, segment, persona
+    """Assign each contributor to one of the predefined behavioural personas.
+
+    Args:
+        df_recipes: Recipe dataframe containing contributor identifiers and
+            preparation durations.
+        df_interactions: Interactions dataframe providing rating information.
+        duration_col: Column name holding the preparation time in minutes.
+
+    Returns:
+        A dataframe listing per-contributor averages and the matching segment.
     """
     df_r = df_recipes[["id", "contributor_id", duration_col]].copy()
     df_r[duration_col] = pd.to_numeric(df_r[duration_col], errors="coerce")
@@ -387,26 +424,26 @@ def compute_user_segments(
             ]
         )
 
-    # Matrices utilisateurs (N x 3) et centroïdes (K x 3)
+    # Build matrices for users (N x 3) and centroids (K x 3).
     U = df_users[["avg_minutes", "avg_rating", "avg_reviews"]].to_numpy(dtype=float)
     centroids_df = pd.DataFrame.from_dict(SEGMENT_INFO, orient="index")
     C = centroids_df[["ref_avg_minutes", "ref_avg_rating", "ref_avg_reviews"]].to_numpy(dtype=float)
 
-    # Distances euclidiennes (vectorisé): (N, K)
+    # Vectorised Euclidean distance between every user and persona centroid.
     distances = np.sqrt(((U[:, None, :] - C[None, :, :]) ** 2).sum(axis=2))
 
-    # Assignation au centroïde le plus proche (0..K-1) — correspond à l'index de centroids_df (0..5)
+    # Assign each user to the nearest centroid (index matches SEGMENT_INFO keys).
     seg_idx = distances.argmin(axis=1)
     df_users["segment"] = seg_idx
 
-    # Ajout du libellé de persona
+    # Enrich with the persona label for display purposes.
     df_users = df_users.merge(
         centroids_df.reset_index().rename(columns={"index": "segment"})[["segment", "persona"]],
         on="segment",
         how="left",
     )
 
-    # Finitions
+    # Final formatting for readability.
     df_users["avg_minutes"] = df_users["avg_minutes"].round(2)
     df_users["avg_rating"] = df_users["avg_rating"].round(2)
     df_users["avg_reviews"] = df_users["avg_reviews"].round(2)
@@ -429,11 +466,8 @@ def top_tags_by_segment_from_users(
     tags_col: str = "tags",
     top_k: int = 5,
 ) -> pd.DataFrame:
-    """
-    Renvoie, pour chaque segment (issu de df_user_segments), les top-K tags les plus utilisés.
-    Colonnes: segment, persona, tag, count, share_pct
-    """
-    # Join recettes ↔ segments utilisateurs via contributor_id
+    """Return the top ``top_k`` tags used by each contributor segment."""
+    # Join recipes with user segments through the contributor identifier.
     df_r = df_recipes[["id", "contributor_id", tags_col]].copy()
     df_r = df_r.merge(
         df_user_segments[["contributor_id", "segment", "persona"]],
@@ -441,22 +475,22 @@ def top_tags_by_segment_from_users(
         how="inner",
     )
 
-    # Parse tags -> liste
+    # Parse the raw tag representation into lists.
     df_r[tags_col] = df_r[tags_col].apply(_parse_tags_to_list)
 
-    # Explode
+    # Expand one row per tag to simplify aggregations.
     df_tags = df_r.explode(tags_col).dropna(subset=[tags_col])
     if df_tags.empty:
         return pd.DataFrame(columns=["segment", "persona", "tag", "count", "share_pct"])
 
-    # Comptage
+    # Count tag occurrences per segment.
     counts = (
         df_tags.groupby(["segment", "persona", tags_col], dropna=False, observed=False)
         .size()
         .reset_index(name="count")
     )
 
-    # Part par segment
+    # Compute shares within each (segment, persona) pair.
     totals = (
         counts.groupby(["segment", "persona"], observed=False)["count"]
         .sum()
@@ -465,7 +499,7 @@ def top_tags_by_segment_from_users(
     counts = counts.merge(totals, on=["segment", "persona"], how="left")
     counts["share_pct"] = (counts["count"] / counts["segment_total"] * 100).round(2)
 
-    # Top-K par segment
+    # Keep only the top-k tags per segment for display purposes.
     counts = counts.sort_values(["segment", "count"], ascending=[True, False])
     topk = counts.groupby("segment").head(top_k).reset_index(drop=True)
 
@@ -478,7 +512,7 @@ def top_tags_by_segment_from_users(
 
 
 def _find_col(df: Optional[pd.DataFrame], candidates):
-    """Outil permettant de sélectionner une colonne parmi plusieurs candidats."""
+    """Return the first column matching one of ``candidates`` (case-insensitive)."""
     if df is None:
         return None
     cols = list(df.columns)
@@ -497,7 +531,7 @@ def _find_col(df: Optional[pd.DataFrame], candidates):
 
 
 def _non_empty_text_mask(series: Optional[pd.Series]) -> pd.Series:
-    """Retourne un masque booléen indiquant les textes non vides (après trim)."""
+    """Return a boolean mask highlighting non-empty review strings."""
     if series is None:
         return pd.Series(dtype=bool)
     return (
@@ -506,7 +540,7 @@ def _non_empty_text_mask(series: Optional[pd.Series]) -> pd.Series:
 
 
 def _word_count(series: Optional[pd.Series]) -> pd.Series:
-    """Compte les mots (séparateur espace) dans une série de textes."""
+    """Approximate the word count for each review entry."""
     if series is None or series.empty:
         return pd.Series(dtype=float)
     clean = series.fillna("").astype(str).str.replace(r"<br\\s*/?>", " ", regex=True).str.strip()
@@ -519,6 +553,7 @@ def rating_distribution(
     bins: Optional[Sequence[float]] = (0, 1, 2, 3, 4, 5),
     labels: Optional[Sequence[str]] = None,
 ) -> pd.DataFrame:
+    """Compute a distribution of contributors grouped by their mean rating."""
     if df_recipes is None or df_recipes.empty or df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=["rating_bin", "count", "share", "avg_rating_in_bin", "cum_share"]
@@ -608,6 +643,7 @@ def rating_vs_recipe_count(
     df_recipes: Optional[pd.DataFrame],
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
+    """Correlate recipe volume with average and median ratings per author."""
     if df_recipes is None or df_recipes.empty:
         return pd.DataFrame(
             columns=["contributor_id", "recipe_count", "avg_rating", "median_rating"]
@@ -687,6 +723,28 @@ def review_overview(
     df_recipes: Optional[pd.DataFrame],
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
+    """Summarise global KPIs about textual reviews and their authors.
+
+    Args:
+        df_recipes: Catalogue of recipes. At minimum, an ``id`` (or ``recipe_id``)
+            column must be present so that we can evaluate the coverage rate.
+        df_interactions: Log of user interactions containing review text, ratings
+            and identifiers (``recipe_id`` and ``user_id``). Empty strings are
+            considered missing reviews.
+
+    Returns:
+        A tidy dataframe with two columns, ``metric`` and ``value``. The returned
+        metrics include total review volume, catalogue coverage, reviewer activity
+        and descriptive statistics (length of comments, note moyenne, …).
+        If the inputs are incomplete, an empty dataframe is returned.
+
+    Notes:
+        - Only catalogue recipes are considered when computing the coverage
+          percentage; this prevents ratios above 100 % when the interaction table
+          references deleted or unpublished recipes.
+        - The function gracefully handles datasets with no written reviews
+          (all metrics fall back to zero or ``None``).
+    """
     if df_recipes is None or df_recipes.empty or df_interactions is None or df_interactions.empty:
         return pd.DataFrame(columns=["metric", "value"])
 
@@ -709,10 +767,11 @@ def review_overview(
     total_interactions = len(df_int)
     total_reviews = int(mask_reviews.sum())
 
-    recipes_with_reviews = int(
-        df_int.loc[mask_reviews, recipe_id_interactions].nunique(dropna=True)
-    )
-    total_recipes = int(df_recipes[recipe_id_recipes].nunique(dropna=True))
+    # Intersection stricte pour éviter d'inclure des recettes supprimées
+    catalog_recipe_ids = set(df_recipes[recipe_id_recipes].dropna().unique())
+    reviewed_recipe_ids = set(df_int.loc[mask_reviews, recipe_id_interactions].dropna().unique())
+    recipes_with_reviews = len(catalog_recipe_ids.intersection(reviewed_recipe_ids))
+    total_recipes = len(catalog_recipe_ids)
     unique_reviewers = int(df_int.loc[mask_reviews, user_col].nunique(dropna=True))
 
     reviews_per_recipe = (
@@ -776,6 +835,23 @@ def review_distribution_per_recipe(
     df_interactions: Optional[pd.DataFrame],
     bins: Optional[Sequence[float]] = (0, 1, 2, 3, 5, 10, 20, 50, np.inf),
 ) -> pd.DataFrame:
+    """Describe how the number of reviews is distributed across recipes.
+
+    Args:
+        df_recipes: Recipe catalogue dataframe. Only the identifier column is
+            required; duplicates or missing rows are dropped automatically.
+        df_interactions: Interactions dataframe supplying review text and
+            recipe identifiers.
+        bins: Optional sequence of monotonically increasing cut points used to
+            bucket recipes by review count. The default mirrors what is shown in
+            the dashboard (0, 1, 2, 3, 5, 10, 20, 50, 50+).
+
+    Returns:
+        A dataframe with one row per bin. For each tranche we provide the number
+        of recipes, the percentage of the catalogue they represent and the average
+        review count. If the inputs are not usable, an empty dataframe with the
+        expected schema is returned.
+    """
     if df_recipes is None or df_recipes.empty or df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=["reviews_bin", "recipe_count", "share_pct", "avg_reviews_in_bin"]
@@ -870,6 +946,26 @@ def reviewer_activity(
     df_interactions: Optional[pd.DataFrame],
     top_n: int = 20,
 ) -> pd.DataFrame:
+    """Summarise reviewer engagement and return the top ``top_n`` profiles.
+
+    Args:
+        df_interactions: Interactions dataframe containing reviewer identifiers,
+            textual reviews and optional ratings/dates.
+        top_n: Number of reviewers to keep after sorting by review volume.
+
+    Returns:
+        A dataframe ordered by ``reviews_count`` (descending) and limited to
+        ``top_n`` rows. Typical columns include:
+        ``reviewer_id``, ``reviews_count``, ``share_pct``, ``avg_rating_given``,
+        ``avg_review_length_words`` and the first/last review dates (if available).
+        An empty dataframe is returned when no textual reviews are present.
+
+    Notes:
+        - ``share_pct`` is computed relatively to the number of non-empty reviews
+          to ensure the percentages sum to 100 across all reviewers.
+        - Non textual interactions (empty strings, nulls) are filtered out via
+          :func:`_non_empty_text_mask` before aggregation.
+    """
     if df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=[
@@ -974,6 +1070,22 @@ def reviewer_activity(
 def review_temporal_trend(
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
+    """Aggregate review activity by month to expose temporal dynamics.
+
+    Args:
+        df_interactions: Interactions dataframe. Must include a date column,
+            review content and, ideally, reviewer identifiers and ratings.
+
+    Returns:
+        A dataframe indexed by month (``period`` as ``YYYY-MM``) containing the
+        number of reviews collected, the number of unique reviewers and the mean
+        rating when available. Empty inputs yield an empty dataframe with the
+        expected columns.
+
+    Notes:
+        The grouping uses ``freq='ME'`` (month end) so that the trend aligns with
+        calendar months even when the raw dataset has sparse dates.
+    """
     if df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=["period", "reviews_count", "unique_reviewers", "avg_rating_given"]
@@ -1037,6 +1149,17 @@ def reviews_vs_rating(
     df_recipes: Optional[pd.DataFrame],
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
+    """Combine review counts and ratings for each recipe.
+
+    Args:
+        df_recipes: Recipe catalogue including identifiers, titles and contributors.
+        df_interactions: Interactions dataframe providing review text and ratings.
+
+    Returns:
+        A tidy dataframe with identifiers, review volume, average rating and
+        optional metadata (recipe name, contributor). Missing values are coerced
+        to sensible defaults (e.g. zero reviews, ``NaN`` rating).
+    """
     if df_recipes is None or df_recipes.empty or df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=[
@@ -1127,6 +1250,20 @@ def reviewer_reviews_vs_recipes(
     df_recipes: Optional[pd.DataFrame],
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
+    """Contrast the number of reviews written by a user and their publications.
+
+    Args:
+        df_recipes: Recipe catalogue used to count how many recipes each
+            contributor has published. Can be ``None`` if the information is
+            unavailable.
+        df_interactions: Interactions dataframe containing reviews and ratings.
+
+    Returns:
+        A dataframe with one row per user. It exposes the number of reviews they
+        have written, the number of recipes they have published (if known) and
+        their average rating. Empty inputs produce an empty dataframe with the
+        expected columns.
+    """
     if df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=[
@@ -1213,79 +1350,64 @@ def reviewer_reviews_vs_recipes(
 
 
 class DataAnylizer:
+    """Container orchestrant les analyses côté backend.
+
+    Les datasets sont chargés une seule fois à l'initialisation (recettes et
+    interactions), puis les méthodes d'analyse sont mises à disposition via
+    :meth:`process_data`. Cette classe est injectée dans l'API FastAPI pour
+    garantir un cache en mémoire performant.
+    """
+
     def __init__(self, csv_adapter: IDataAdapter):
+        """Charge immédiatement les jeux de données via l’adapter fourni."""
         self.df_recipes = csv_adapter.load(DataType.RECIPES)
         self.df_interactions = csv_adapter.load(DataType.INTERACTIONS)
 
     def get_raw_data(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """Retourne les dataframes bruts (recettes, interactions)."""
         return self.df_recipes, self.df_interactions
 
     def process_data(self, analysis_type: AnalysisType) -> pd.DataFrame:
-        match analysis_type:
-            case AnalysisType.NUMBER_RECIPES:
-                return most_recipes_contributors(self.df_recipes)
-
-            case AnalysisType.BEST_RECIPES:
-                return best_ratings_contributors(self.df_recipes, self.df_interactions)
-
-            case AnalysisType.DURATION_DISTRIBUTION:
-                return average_duration_distribution(self.df_recipes, duration_col="minutes")
-
-            case AnalysisType.DURATION_VS_RECIPE_COUNT:
-                return duration_vs_recipe_count(self.df_recipes, duration_col="minutes")
-
-            case AnalysisType.TOP_10_PERCENT_CONTRIBUTORS:
-                return top_10_percent_contributors(
-                    self.df_recipes, self.df_interactions, duration_col="minutes"
-                )
-
-            case AnalysisType.USER_SEGMENTS:
-                # Table des utilisateurs avec attribution de segment
-                return compute_user_segments(
-                    self.df_recipes, self.df_interactions, duration_col="minutes"
-                )
-
-            case AnalysisType.TOP_TAGS_BY_SEGMENT:
-                # Calcule d'abord les segments utilisateurs, puis les top tags
-                df_users = compute_user_segments(
-                    self.df_recipes, self.df_interactions, duration_col="minutes"
-                )
-                return top_tags_by_segment_from_users(
-                    self.df_recipes, df_users, tags_col="tags", top_k=5
-                )
-
-            case AnalysisType.RATING_DISTRIBUTION:
-                return rating_distribution(self.df_recipes, self.df_interactions)
-
-            case AnalysisType.RATING_VS_RECIPES:
-                return rating_vs_recipe_count(self.df_recipes, self.df_interactions)
-            case AnalysisType.REVIEW_OVERVIEW:
-                return review_overview(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEW_DISTRIBUTION:
-                return review_distribution_per_recipe(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEWER_ACTIVITY:
-                return reviewer_activity(
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEW_TEMPORAL_TREND:
-                return review_temporal_trend(
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEWS_VS_RATING:
-                return reviews_vs_rating(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEWER_VS_RECIPES:
-                return reviewer_reviews_vs_recipes(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case _:
-                raise ValueError(f"Analyse non supportée : {analysis_type}")
+        """Route la demande d'analyse vers la fonction adéquate."""
+        if analysis_type == AnalysisType.NUMBER_RECIPES:
+            return most_recipes_contributors(self.df_recipes)
+        if analysis_type == AnalysisType.BEST_RECIPES:
+            return best_ratings_contributors(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.DURATION_DISTRIBUTION:
+            return average_duration_distribution(self.df_recipes, duration_col="minutes")
+        if analysis_type == AnalysisType.DURATION_VS_RECIPE_COUNT:
+            return duration_vs_recipe_count(self.df_recipes, duration_col="minutes")
+        if analysis_type == AnalysisType.TOP_10_PERCENT_CONTRIBUTORS:
+            return top_10_percent_contributors(
+                self.df_recipes, self.df_interactions, duration_col="minutes"
+            )
+        if analysis_type == AnalysisType.USER_SEGMENTS:
+            # Compute persona assignment once and reuse the dataframe below.
+            return compute_user_segments(
+                self.df_recipes, self.df_interactions, duration_col="minutes"
+            )
+        if analysis_type == AnalysisType.TOP_TAGS_BY_SEGMENT:
+            # Compute user segments first, then derive their favourite tags.
+            df_users = compute_user_segments(
+                self.df_recipes, self.df_interactions, duration_col="minutes"
+            )
+            return top_tags_by_segment_from_users(
+                self.df_recipes, df_users, tags_col="tags", top_k=5
+            )
+        if analysis_type == AnalysisType.RATING_DISTRIBUTION:
+            return rating_distribution(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.RATING_VS_RECIPES:
+            return rating_vs_recipe_count(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEW_OVERVIEW:
+            return review_overview(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEW_DISTRIBUTION:
+            return review_distribution_per_recipe(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEWER_ACTIVITY:
+            return reviewer_activity(self.df_interactions)
+        if analysis_type == AnalysisType.REVIEW_TEMPORAL_TREND:
+            return review_temporal_trend(self.df_interactions)
+        if analysis_type == AnalysisType.REVIEWS_VS_RATING:
+            return reviews_vs_rating(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEWER_VS_RECIPES:
+            return reviewer_reviews_vs_recipes(self.df_recipes, self.df_interactions)
+        raise UnsupportedAnalysisError(f"Unsupported analysis type: {analysis_type}")

@@ -7,6 +7,7 @@ from logger import struct_logger
 
 
 def render_top10_vs_global(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
+    """Render the comparison dashboard between the top cohort and global users."""
     st.header("🏅 Utilisateurs Top 10% vs Global")
     st.caption("Comparaison des comportements des contributeurs les plus actifs")
 

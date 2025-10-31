@@ -1,3 +1,8 @@
+import importlib
+import io
+import logging
+import sys
+import types
 from unittest.mock import MagicMock, Mock, patch
 
 import altair as alt
@@ -262,9 +267,6 @@ def test_render_sidebar_smoke():
 
 def test_pages_imports_smoke_without_network():
     # Import pages with streamlit/requests patched so module-level UI runs safely and no network occurs.
-    import importlib as _importlib
-    import sys as _sys
-    import types as _types
 
     class _FakeResp:
         def raise_for_status(self):
@@ -273,17 +275,134 @@ def test_pages_imports_smoke_without_network():
         def json(self):
             return []
 
-    fake_requests = _types.SimpleNamespace(get=MagicMock(return_value=_FakeResp()))
+    fake_requests = types.SimpleNamespace(get=MagicMock(return_value=_FakeResp()))
     fake_st = MagicMock()
     fake_st.sidebar.__enter__.return_value = MagicMock()
     fake_st.tabs.return_value = (MagicMock(), MagicMock(), MagicMock())
 
-    with patch.dict(_sys.modules, {"streamlit": fake_st, "requests": fake_requests}):
-        mod_app = _importlib.import_module("service.app")
-        mod_data = _importlib.import_module("service.pages.tab01_data")
-        mod_analyse = _importlib.import_module("service.pages.tab02_analyse")
-        mod_conclusions = _importlib.import_module("service.pages.tab03_conclusions")
+    with patch.dict(sys.modules, {"streamlit": fake_st, "requests": fake_requests}):
+        mod_app = importlib.import_module("service.app")
+        mod_data = importlib.import_module("service.pages.tab01_data")
+        mod_analyse = importlib.import_module("service.pages.tab02_analyse")
+        mod_conclusions = importlib.import_module("service.pages.tab03_conclusions")
 
     # Basic sanity that modules loaded
     assert mod_app is not None and mod_data is not None
     assert mod_analyse is not None and mod_conclusions is not None
+
+
+def test_keyword_friendly_logger_captures_kwargs():
+    from ..service import logger as logger_module
+
+    base_logger = logging.getLogger("frontend.test.logger")
+    previous_handlers = list(base_logger.handlers)
+    previous_level = base_logger.level
+    previous_propagate = base_logger.propagate
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    base_logger.handlers = [handler]
+    base_logger.setLevel(logging.DEBUG)
+    base_logger.propagate = False
+
+    fallback = logger_module._KeywordFriendlyLogger(base_logger)
+
+    fallback.info("Fetched data", count=3, error="none")
+    fallback.bind(user="abc").warning("", reason="coverage")
+    try:
+        raise ValueError("boom")
+    except ValueError:
+        fallback.exception("Failure")
+    fallback.debug("Just message without kwargs")
+    assert fallback.bind() is fallback
+    handler.flush()
+
+    log_output = stream.getvalue()
+    assert "count=3" in log_output
+    assert "reason=coverage" in log_output
+    assert "Failure" in log_output and "exc_info=True" in log_output
+    underlying = getattr(fallback, "_logger", None)
+    if isinstance(underlying, logging.LoggerAdapter):
+        assert underlying.logger is base_logger
+
+    base_logger.handlers = previous_handlers
+    base_logger.setLevel(previous_level)
+    base_logger.propagate = previous_propagate
+
+
+def test_tab01_data_logs_request_exception(monkeypatch, caplog):
+    module_name = "service.pages.tab01_data"
+    sys.modules.pop(module_name, None)
+
+    class _Spinner:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    fake_st = types.SimpleNamespace(
+        header=lambda *a, **k: None,
+        markdown=lambda *a, **k: None,
+        selectbox=lambda *a, **k: "recipes",
+        button=lambda *a, **k: True,
+        spinner=lambda *a, **k: _Spinner(),
+        dataframe=lambda *a, **k: None,
+    )
+    fake_sidebar = types.SimpleNamespace(render_sidebar=lambda: None)
+
+    monkeypatch.setitem(sys.modules, "streamlit", fake_st)
+    monkeypatch.setitem(sys.modules, "components.sidebar", fake_sidebar)
+
+    def _raise_request(*args, **kwargs):
+        raise requests.exceptions.RequestException("boom")
+
+    monkeypatch.setattr("requests.get", _raise_request)
+
+    with caplog.at_level(logging.ERROR):
+        imported = importlib.import_module(module_name)
+
+    sys.modules.pop(module_name, None)
+
+    assert imported is not None
+    assert any("boom" in record.getMessage() for record in caplog.records)
+
+
+def test_structlog_configuration_branch(monkeypatch):
+    module_name = "service.logger"
+    original_module = sys.modules.pop(module_name, None)
+
+    fake_configure = MagicMock()
+    fake_get_logger = MagicMock(return_value="fake_struct_logger")
+
+    fake_structlog = types.SimpleNamespace(
+        contextvars=types.SimpleNamespace(merge_contextvars="merge"),
+        processors=types.SimpleNamespace(
+            add_log_level="add",
+            TimeStamper=lambda **kwargs: "ts",
+            StackInfoRenderer=lambda: "stack",
+            format_exc_info="fmt",
+        ),
+        stdlib=types.SimpleNamespace(LoggerFactory=lambda: "factory"),
+        make_filtering_bound_logger=lambda *args, **kwargs: "wrapper",
+        configure=fake_configure,
+        get_logger=fake_get_logger,
+    )
+    fake_structlog_dev = types.SimpleNamespace(ConsoleRenderer=lambda: "console")
+
+    monkeypatch.setitem(sys.modules, "structlog", fake_structlog)
+    monkeypatch.setitem(sys.modules, "structlog.dev", fake_structlog_dev)
+
+    logger_module = importlib.import_module(module_name)
+
+    assert logger_module.struct_logger == "fake_struct_logger"
+    fake_configure.assert_called_once()
+    fake_get_logger.assert_called_once()
+
+    sys.modules.pop(module_name, None)
+    sys.modules.pop("structlog", None)
+    sys.modules.pop("structlog.dev", None)
+
+    if original_module is not None:
+        sys.modules[module_name] = original_module
+    else:
+        importlib.import_module(module_name)

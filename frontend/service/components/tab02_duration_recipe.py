@@ -10,7 +10,13 @@ from logger import struct_logger
 def render_duration_recipe(
     logger=struct_logger,
 ) -> None:  # pragma: no cover - Streamlit UI glue
-    """Render duration distribution analysis and correlation charts."""
+    """Render the Streamlit tab dedicated to recipe durations.
+
+    The tab first maps the distribution of preparation times across discrete
+    buckets, then highlights how duration correlates with publication volume
+    and reviewer activity. All API calls are guarded; a failure results in a
+    visible warning rather than a broken interface.
+    """
 
     st.header("⏱️ Répartition des durées des recettes")
     st.caption("Distribution par tranches de minutes (0–15, 15–30, …, 120+)")

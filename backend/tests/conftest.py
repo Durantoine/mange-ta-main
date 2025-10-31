@@ -1,24 +1,16 @@
+"""Reusable Pytest fixtures for backend analytics tests."""
+
 from typing import Iterator
 from unittest.mock import MagicMock
 
 import pandas as pd
 import pytest
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import service.main as service_main
 from service.layers.api import mange_ta_main as api_module
 from service.layers.application.mange_ta_main import AnalysisType
 from service.main import app
-
-
-@pytest.fixture
-def test_client() -> Iterator[TestClient]:
-    """Minimal FastAPI router exposure for lightweight endpoint checks."""
-    app_instance = FastAPI()
-    app_instance.include_router(api_module.router)
-    with TestClient(app_instance) as client:
-        yield client
 
 
 @pytest.fixture
@@ -100,10 +92,34 @@ def rich_recipes() -> pd.DataFrame:
                 "tags": "['sweet','family']",
                 "name": "C",
             },
-            {"id": 4, "contributor_id": "c1", "minutes": 40, "tags": "['snack']", "name": "D"},
-            {"id": 5, "contributor_id": "c1", "minutes": 50, "tags": "['dessert']", "name": "E"},
-            {"id": 6, "contributor_id": "c2", "minutes": 15, "tags": "['quick']", "name": "F"},
-            {"id": 7, "contributor_id": "c3", "minutes": 70, "tags": "['slow']", "name": "G"},
+            {
+                "id": 4,
+                "contributor_id": "c1",
+                "minutes": 40,
+                "tags": "['snack']",
+                "name": "D",
+            },
+            {
+                "id": 5,
+                "contributor_id": "c1",
+                "minutes": 50,
+                "tags": "['dessert']",
+                "name": "E",
+            },
+            {
+                "id": 6,
+                "contributor_id": "c2",
+                "minutes": 15,
+                "tags": "['quick']",
+                "name": "F",
+            },
+            {
+                "id": 7,
+                "contributor_id": "c3",
+                "minutes": 70,
+                "tags": "['slow']",
+                "name": "G",
+            },
             {
                 "id": 8,
                 "contributor_id": "c4",
@@ -111,8 +127,20 @@ def rich_recipes() -> pd.DataFrame:
                 "tags": "['quick','veggie']",
                 "name": "H",
             },
-            {"id": 9, "contributor_id": "c5", "minutes": 45, "tags": "['sweet']", "name": "I"},
-            {"id": 10, "contributor_id": "c6", "minutes": 35, "tags": "['family']", "name": "J"},
+            {
+                "id": 9,
+                "contributor_id": "c5",
+                "minutes": 45,
+                "tags": "['sweet']",
+                "name": "I",
+            },
+            {
+                "id": 10,
+                "contributor_id": "c6",
+                "minutes": 35,
+                "tags": "['family']",
+                "name": "J",
+            },
         ]
     )
 
@@ -156,7 +184,13 @@ def rich_interactions() -> pd.DataFrame:
                 "review": "Tasty",
                 "date": "2024-03-03",
             },
-            {"user_id": "u6", "recipe_id": 5, "rating": 5.0, "review": "Yum", "date": "2024-03-10"},
+            {
+                "user_id": "u6",
+                "recipe_id": 5,
+                "rating": 5.0,
+                "review": "Yum",
+                "date": "2024-03-10",
+            },
             {
                 "user_id": "u1",
                 "recipe_id": 6,

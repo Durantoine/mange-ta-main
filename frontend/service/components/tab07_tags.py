@@ -18,7 +18,19 @@ SEGMENT_ORDER = [
 def render_top_tags_by_segment(
     logger=struct_logger,
 ) -> None:  # pragma: no cover - Streamlit UI glue
-    """Render per-segment charts of most popular tags."""
+    """Render the persona segmentation view and associated top tags.
+
+    Cette section combine :
+
+    * un tableau récapitulatif des caractéristiques de segments (durée moyenne,
+      note moyenne, volume d'avis) ;
+    * une visualisation Altair permettant de comparer les tags dominants selon
+      l'axe sélectionné (volume ou pourcentage) ;
+    * un bouton de téléchargement CSV pour faciliter des analyses hors produit.
+
+    Chaque appel réseau est journalisé via ``logger`` afin de faciliter le
+    diagnostic en cas de “404” ou de latence prolongée côté API.
+    """
 
     st.header("🏷️ Cartographie des tags")
     st.caption("Analyse de la popularité et de la distribution des tags au sein de la communauté")

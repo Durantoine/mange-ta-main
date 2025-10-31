@@ -1,3 +1,8 @@
+import importlib
+import io
+import logging
+import sys
+import types
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -12,12 +17,17 @@ from fastapi.testclient import TestClient
 
 import service.main as service_main
 from service.container import Container
+from service.layers import logger as backend_logger
 from service.layers.api import mange_ta_main as api_module
 from service.layers.application import mange_ta_main as mtm
 from service.layers.application.data_cleaning import (
     clean_data,
     normalize_ids,
     remove_outliers,
+)
+from service.layers.application.exceptions import (
+    DataNormalizationError,
+    UnsupportedAnalysisError,
 )
 from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.application.mange_ta_main import AnalysisType, DataAnylizer
@@ -385,7 +395,7 @@ def test_data_analyzer_invalid_analysis(
     rich_recipes: pd.DataFrame, rich_interactions: pd.DataFrame
 ):
     analyzer = DataAnylizer(StubAdapter(rich_recipes, rich_interactions))
-    with pytest.raises(ValueError):
+    with pytest.raises(UnsupportedAnalysisError):
         analyzer.process_data(AnalysisType.NO_ANALYSIS)
 
 
@@ -409,7 +419,7 @@ def test_normalize_ids_for_recipes_and_interactions():
     normalized_interactions = normalize_ids(interactions.copy(), DataType.INTERACTIONS)
     assert normalized_interactions["user_id"].tolist() == [1, 2]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DataNormalizationError):
         normalize_ids(recipes, cast(DataType, "weird"))  # type: ignore[arg-type]
 
 
@@ -451,7 +461,7 @@ def test_clean_data_with_dummy_adapter(tmp_path):
     assert cleaned_recipes and cleaned_interactions
     assert DataType.RECIPES in adapter.saved and DataType.INTERACTIONS in adapter.saved
 
-    with pytest.raises(ValueError):
+    with pytest.raises(DataNormalizationError):
         clean_data(adapter, cast(DataType, "strange"))  # type: ignore[arg-type]
 
 
@@ -487,6 +497,87 @@ def test_container_provides_singleton(rich_recipes: pd.DataFrame, rich_interacti
 def test_domain_and_logger_usage(caplog):
     struct_logger.info("Testing logger output")
     assert SERVICE_PREFIX == "mange_ta_main"
+
+
+def test_keyword_friendly_logger_backend(tmp_path: Path):
+    base_logger = logging.getLogger("backend.test.logger")
+    previous_handlers = list(base_logger.handlers)
+    previous_level = base_logger.level
+    previous_propagate = base_logger.propagate
+
+    stream = io.StringIO()
+    handler = logging.StreamHandler(stream)
+    base_logger.handlers = [handler]
+    base_logger.setLevel(logging.DEBUG)
+    base_logger.propagate = False
+
+    fallback = backend_logger._KeywordFriendlyLogger(base_logger)
+
+    fallback.info("Loaded data", count=3, status="ok")
+    fallback.warning("Slow query", duration=1.2)
+    fallback.error("Failed", reason="timeout")
+    try:
+        raise RuntimeError("boom")
+    except RuntimeError:
+        fallback.exception("Processing failure")
+    fallback.debug("Raw event")
+    fallback.setLevel(logging.INFO)  # exercise __getattr__
+
+    handler.flush()
+    log_output = stream.getvalue()
+    assert "count=3" in log_output
+    assert "reason=timeout" in log_output
+    assert "Processing failure" in log_output and "exc_info=True" in log_output
+
+    base_logger.handlers = previous_handlers
+    base_logger.setLevel(previous_level)
+    base_logger.propagate = previous_propagate
+
+
+def test_structlog_configuration_branch_backend(monkeypatch):
+    module_name = "service.layers.logger"
+    original_module = sys.modules.pop(module_name, None)
+
+    fake_stream = io.StringIO()
+
+    class DummyFileHandler(logging.StreamHandler):
+        def __init__(self, filename, mode="a", encoding=None, delay=False):
+            super().__init__(fake_stream)
+
+    fake_configure = MagicMock()
+    fake_get_logger = MagicMock(return_value="fake_struct_logger")
+
+    fake_structlog = types.SimpleNamespace(
+        contextvars=types.SimpleNamespace(merge_contextvars="merge"),
+        processors=types.SimpleNamespace(
+            add_log_level="add",
+            TimeStamper=lambda **kwargs: "timestamp",
+            StackInfoRenderer=lambda: "stack",
+            format_exc_info="format",
+        ),
+        stdlib=types.SimpleNamespace(LoggerFactory=lambda: "factory"),
+        make_filtering_bound_logger=lambda *args, **kwargs: "wrapper",
+        configure=fake_configure,
+        get_logger=fake_get_logger,
+    )
+    fake_structlog_dev = types.SimpleNamespace(ConsoleRenderer=lambda: "console")
+
+    monkeypatch.setitem(sys.modules, "structlog", fake_structlog)
+    monkeypatch.setitem(sys.modules, "structlog.dev", fake_structlog_dev)
+    monkeypatch.setattr(logging, "FileHandler", DummyFileHandler)
+
+    imported = importlib.import_module(module_name)
+    assert imported.struct_logger == "fake_struct_logger"
+    fake_configure.assert_called_once()
+    fake_get_logger.assert_called_once()
+
+    sys.modules.pop(module_name, None)
+    sys.modules.pop("structlog", None)
+    sys.modules.pop("structlog.dev", None)
+    if original_module is not None:
+        sys.modules[module_name] = original_module
+    else:
+        importlib.import_module(module_name)
 
 
 def test_lifespan_context(monkeypatch):

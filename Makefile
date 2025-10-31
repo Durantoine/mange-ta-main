@@ -1,6 +1,9 @@
 SERVICE_NAME = mange_ta_main
 COMPOSE_FILE = compose.yaml
 PROD_COMPOSE_FILE = compose-prod-override.yaml
+PYTHON ?= python3
+
+.PHONY: service-dev-up service-prod-up stop clean docs
 
 service-dev-up:
 	docker compose -f $(COMPOSE_FILE) build --no-cache
@@ -15,4 +18,8 @@ stop:
 clean:
 	docker compose -f $(COMPOSE_FILE) down --remove-orphans
 	docker system prune -f
+
+docs:
+	$(PYTHON) -m pip install -r docs/requirements.txt
+	make -C docs html
 	

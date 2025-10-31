@@ -8,7 +8,12 @@ from logger import struct_logger
 def render_top_contributors(
     show_title: bool = True,
 ) -> None:  # pragma: no cover - Streamlit UI glue
-    """Display tabs with most active and best rated contributors."""
+    """Display the dashboard section dedicated to prolific contributors.
+
+    The view exposes the top authors (par nombre de recettes publiées) along
+    with quick metrics and a downloadable CSV extract. Network errors are logged
+    and surfaced to the user without interrupting the session.
+    """
 
     if show_title:
         st.title("👨‍🍳 Top Contributeurs")

@@ -10,7 +10,7 @@ from logger import struct_logger
 
 
 def _format_metric(metric_id: str, value) -> str:
-    """Formatte les métriques clés pour l'affichage."""
+    """Format dashboard metrics using a consistent French-friendly style."""
     if value is None:
         return "-"
     if isinstance(value, (int, np.integer)):
@@ -25,7 +25,19 @@ def _format_metric(metric_id: str, value) -> str:
 
 
 def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
-    """Dashboard d'analyse des avis utilisateurs (section Tab 3)."""
+    """Render the Streamlit tab dedicated to review analytics.
+
+    The layout follows four blocks:
+
+    1. KPI tiles summarising the review ecosystem and synthesised insights.
+    2. Histogram of review counts per recipe, switchable between absolute numbers
+       and percentages.
+    3. Tables and charts dedicated to prolific reviewers and their trajectories.
+    4. Correlation analyses (reviews vs. ratings, activity vs. publication).
+
+    All API calls are guarded so that transient network failures surface as
+    Streamlit alerts without breaking the dashboard.
+    """
 
     st.header("📝 Analyse des avis utilisateurs")
     st.caption(
