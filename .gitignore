@@ -4,3 +4,6 @@
 .DS_Store
 frontend/.DS_Store
 .spyproject
+# Couverture tests
+**/.coverage
+.coverage
