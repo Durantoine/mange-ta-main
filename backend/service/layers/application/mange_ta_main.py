@@ -386,7 +386,7 @@ def top_tags_by_segment_from_users(
     
 
 
-def _find_col(df: pd.DataFrame, candidates):
+def _find_col(df: Optional[pd.DataFrame], candidates):
     """Outil permettant de sélectionner une colonne parmi plusieurs candidats."""
     if df is None:
         return None
@@ -408,11 +408,11 @@ def _find_col(df: pd.DataFrame, candidates):
 def rating_distribution(
     df_recipes: pd.DataFrame,
     df_interactions: pd.DataFrame,
-    bins: Optional[Union[int, Sequence[float]]] = [0, 1, 2, 3, 4, 5],
+    bins: Union[int, Sequence[float]] = [0, 1, 2, 3, 4, 5],
     labels: Optional[Sequence[str]] = None
 ) -> pd.DataFrame:
     # Précautions sur les dataframes
-    if df_interactions is None or df_interactions.empty or df_recipes is None or df_recipes.empty:
+    if df_interactions.empty or df_recipes.empty:
         return pd.DataFrame(columns=["rating_bin", "count", "share", "avg_rating_in_bin", "cum_share"])
 
     recipe_id_col = _find_col(df_interactions, ["recipe_id", "recipe", "id"])
@@ -445,11 +445,20 @@ def rating_distribution(
     # Notes moyennes des contributeurs
     avg = merged.dropna(subset=["contributor_id"]).groupby("contributor_id")["avg_rating"].mean().reset_index(name="avg_rating")
 
-    if labels is None:
-        labels = [f"{bins[i]}-{bins[i+1]}" for i in range(len(bins)-1)]
-        labels[-1] = f"{bins[-2]}+"
+    # Ensure bins is not None and handle labels
+    resolved_bins: Union[int, Sequence[float]]
+    if isinstance(bins, int):
+        resolved_bins = bins
+        resolved_labels = labels
+    else:
+        resolved_bins = bins
+        if labels is None:
+            resolved_labels = [f"{bins[i]}-{bins[i+1]}" for i in range(len(bins)-1)]
+            resolved_labels[-1] = f"{bins[-2]}+"
+        else:
+            resolved_labels = labels
 
-    avg["rating_bin"] = pd.cut(avg["avg_rating"], bins=bins, labels=labels, include_lowest=True, right=False)
+    avg["rating_bin"] = pd.cut(avg["avg_rating"], bins=resolved_bins, labels=resolved_labels, include_lowest=True, right=False)
 
     distribution = (
         avg.groupby("rating_bin")
@@ -473,7 +482,7 @@ def rating_vs_recipe_count(
     df_recipes: pd.DataFrame,
     df_interactions: pd.DataFrame
 ) -> pd.DataFrame:
-    if df_recipes is None or df_recipes.empty:
+    if df_recipes.empty:
         return pd.DataFrame(columns=["contributor_id", "recipe_count", "avg_rating", "median_rating"])
 
     recipe_id_col = _find_col(df_interactions, ["recipe_id", "recipe", "id"])
@@ -486,7 +495,7 @@ def rating_vs_recipe_count(
 
     recipe_counts = df_recipes.groupby(contrib_col).size().reset_index(name="recipe_count").rename(columns={contrib_col: "contributor_id"})
 
-    if df_interactions is None or df_interactions.empty or recipe_id_col is None or rating_col is None:
+    if df_interactions.empty or recipe_id_col is None or rating_col is None:
         recipe_counts["avg_rating"] = np.nan
         recipe_counts["median_rating"] = np.nan
         return recipe_counts[["contributor_id", "recipe_count", "avg_rating", "median_rating"]]
@@ -506,8 +515,17 @@ def rating_vs_recipe_count(
 
     result = contrib_ratings.merge(recipe_counts, on="contributor_id", how="right")
     result["recipe_count"] = pd.to_numeric(result["recipe_count"], errors="coerce").fillna(0).astype(int)
-    result["avg_rating"] = pd.to_numeric(result.get("avg_rating"), errors="coerce")
-    result["median_rating"] = pd.to_numeric(result.get("median_rating"), errors="coerce")
+    # Handle potential None from get() by providing a fallback empty Series
+    avg_rating_series = result.get("avg_rating")
+    median_rating_series = result.get("median_rating")
+    if avg_rating_series is not None:
+        result["avg_rating"] = pd.to_numeric(avg_rating_series, errors="coerce")
+    else:
+        result["avg_rating"] = np.nan
+    if median_rating_series is not None:
+        result["median_rating"] = pd.to_numeric(median_rating_series, errors="coerce")
+    else:
+        result["median_rating"] = np.nan
 
     return result[["contributor_id", "recipe_count", "avg_rating", "median_rating"]]
 
