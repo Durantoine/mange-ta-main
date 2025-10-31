@@ -1,5 +1,5 @@
-Bienvenue dans la documentation de *Mange Ta Main*
-=================================================
+Documentation de *Mange Ta Main*
+================================
 
 .. image:: https://img.shields.io/badge/docs-Sphinx-informational
    :alt: Badge Sphinx
@@ -18,12 +18,6 @@ fonctionnalités et expose l'API Python disponible côté backend.
    :caption: Référence API
 
    api/index
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Annexes
-
-   changelog (à venir)
 
 Indices et tables
 -----------------

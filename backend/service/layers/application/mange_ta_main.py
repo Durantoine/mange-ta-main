@@ -746,10 +746,12 @@ def review_overview(
     total_interactions = len(df_int)
     total_reviews = int(mask_reviews.sum())
 
-    recipes_with_reviews = int(
-        df_int.loc[mask_reviews, recipe_id_interactions].nunique(dropna=True)
+    catalog_recipe_ids = set(df_recipes[recipe_id_recipes].dropna().unique())
+    reviewed_recipe_ids = set(
+        df_int.loc[mask_reviews, recipe_id_interactions].dropna().unique()
     )
-    total_recipes = int(df_recipes[recipe_id_recipes].nunique(dropna=True))
+    recipes_with_reviews = len(catalog_recipe_ids.intersection(reviewed_recipe_ids))
+    total_recipes = len(catalog_recipe_ids)
     unique_reviewers = int(df_int.loc[mask_reviews, user_col].nunique(dropna=True))
 
     reviews_per_recipe = (
@@ -1268,71 +1270,45 @@ class DataAnylizer:
 
     def process_data(self, analysis_type: AnalysisType) -> pd.DataFrame:
         """Route the analysis request to the corresponding helper."""
-        match analysis_type:
-            case AnalysisType.NUMBER_RECIPES:
-                return most_recipes_contributors(self.df_recipes)
-
-            case AnalysisType.BEST_RECIPES:
-                return best_ratings_contributors(self.df_recipes, self.df_interactions)
-
-            case AnalysisType.DURATION_DISTRIBUTION:
-                return average_duration_distribution(self.df_recipes, duration_col="minutes")
-
-            case AnalysisType.DURATION_VS_RECIPE_COUNT:
-                return duration_vs_recipe_count(self.df_recipes, duration_col="minutes")
-
-            case AnalysisType.TOP_10_PERCENT_CONTRIBUTORS:
-                return top_10_percent_contributors(
-                    self.df_recipes, self.df_interactions, duration_col="minutes"
-                )
-
-            case AnalysisType.USER_SEGMENTS:
-                # Compute persona assignment once and reuse the dataframe below.
-                return compute_user_segments(
-                    self.df_recipes, self.df_interactions, duration_col="minutes"
-                )
-
-            case AnalysisType.TOP_TAGS_BY_SEGMENT:
-                # Compute user segments first, then derive their favourite tags.
-                df_users = compute_user_segments(
-                    self.df_recipes, self.df_interactions, duration_col="minutes"
-                )
-                return top_tags_by_segment_from_users(
-                    self.df_recipes, df_users, tags_col="tags", top_k=5
-                )
-
-            case AnalysisType.RATING_DISTRIBUTION:
-                return rating_distribution(self.df_recipes, self.df_interactions)
-
-            case AnalysisType.RATING_VS_RECIPES:
-                return rating_vs_recipe_count(self.df_recipes, self.df_interactions)
-            case AnalysisType.REVIEW_OVERVIEW:
-                return review_overview(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEW_DISTRIBUTION:
-                return review_distribution_per_recipe(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEWER_ACTIVITY:
-                return reviewer_activity(
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEW_TEMPORAL_TREND:
-                return review_temporal_trend(
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEWS_VS_RATING:
-                return reviews_vs_rating(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case AnalysisType.REVIEWER_VS_RECIPES:
-                return reviewer_reviews_vs_recipes(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
-            case _:
-                raise UnsupportedAnalysisError(f"Unsupported analysis type: {analysis_type}")
+        if analysis_type == AnalysisType.NUMBER_RECIPES:
+            return most_recipes_contributors(self.df_recipes)
+        if analysis_type == AnalysisType.BEST_RECIPES:
+            return best_ratings_contributors(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.DURATION_DISTRIBUTION:
+            return average_duration_distribution(self.df_recipes, duration_col="minutes")
+        if analysis_type == AnalysisType.DURATION_VS_RECIPE_COUNT:
+            return duration_vs_recipe_count(self.df_recipes, duration_col="minutes")
+        if analysis_type == AnalysisType.TOP_10_PERCENT_CONTRIBUTORS:
+            return top_10_percent_contributors(
+                self.df_recipes, self.df_interactions, duration_col="minutes"
+            )
+        if analysis_type == AnalysisType.USER_SEGMENTS:
+            # Compute persona assignment once and reuse the dataframe below.
+            return compute_user_segments(
+                self.df_recipes, self.df_interactions, duration_col="minutes"
+            )
+        if analysis_type == AnalysisType.TOP_TAGS_BY_SEGMENT:
+            # Compute user segments first, then derive their favourite tags.
+            df_users = compute_user_segments(
+                self.df_recipes, self.df_interactions, duration_col="minutes"
+            )
+            return top_tags_by_segment_from_users(
+                self.df_recipes, df_users, tags_col="tags", top_k=5
+            )
+        if analysis_type == AnalysisType.RATING_DISTRIBUTION:
+            return rating_distribution(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.RATING_VS_RECIPES:
+            return rating_vs_recipe_count(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEW_OVERVIEW:
+            return review_overview(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEW_DISTRIBUTION:
+            return review_distribution_per_recipe(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEWER_ACTIVITY:
+            return reviewer_activity(self.df_interactions)
+        if analysis_type == AnalysisType.REVIEW_TEMPORAL_TREND:
+            return review_temporal_trend(self.df_interactions)
+        if analysis_type == AnalysisType.REVIEWS_VS_RATING:
+            return reviews_vs_rating(self.df_recipes, self.df_interactions)
+        if analysis_type == AnalysisType.REVIEWER_VS_RECIPES:
+            return reviewer_reviews_vs_recipes(self.df_recipes, self.df_interactions)
+        raise UnsupportedAnalysisError(f"Unsupported analysis type: {analysis_type}")

@@ -35,16 +35,14 @@ def get_data(
     df_interactions: pd.DataFrame
     df_recipes, df_interactions = data_analyzer.get_raw_data()
 
-    match data_type:
-        case DataType.RECIPES:
-            return df_recipes.to_dict(orient="records")
-        case DataType.INTERACTIONS:
-            return df_interactions.to_dict(orient="records")
-        case _:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Unknown data_type: {data_type}. Must be 'recipes' or 'interactions'.",
-            )
+    if data_type == DataType.RECIPES:
+        return df_recipes.to_dict(orient="records")
+    if data_type == DataType.INTERACTIONS:
+        return df_interactions.to_dict(orient="records")
+    raise HTTPException(
+        status_code=400,
+        detail=f"Unknown data_type: {data_type}. Must be 'recipes' or 'interactions'.",
+    )
 
 
 @router.get("/most-recipes-contributors")

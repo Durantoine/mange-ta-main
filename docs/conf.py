@@ -7,10 +7,15 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BACKEND_ROOT = PROJECT_ROOT / "backend"
+BACKEND_SERVICE_ROOT = BACKEND_ROOT / "service"
 FRONTEND_ROOT = PROJECT_ROOT / "frontend"
+FRONTEND_SERVICE_ROOT = FRONTEND_ROOT / "service"
 
 sys.path.insert(0, str(BACKEND_ROOT))
+sys.path.insert(0, str(BACKEND_SERVICE_ROOT))
 sys.path.insert(0, str(FRONTEND_ROOT))
+sys.path.insert(0, str(FRONTEND_SERVICE_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT))
 
 project = "Mange Ta Main"
 author = "Telecom Paris – Intelligence Artificielle Multimodale"
@@ -20,17 +25,11 @@ copyright = (
 release = "0.1.0"
 
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
     "sphinx.ext.todo",
-    "sphinx.ext.coverage",
     "sphinx.ext.extlinks",
-    "sphinx.ext.intersphinx",
     "sphinx.ext.autosectionlabel",
     "sphinx_copybutton",
-    "sphinx_autodoc_typehints",
     "myst_parser",
 ]
 
@@ -45,36 +44,13 @@ html_static_path = ["_static"]
 html_logo = None
 html_favicon = None
 
-autodoc_typehints = "description"
-autodoc_default_options = {
-    "members": True,
-    "undoc-members": False,
-    "show-inheritance": True,
-    "exclude-members": "__weakref__",
-}
-autodoc_mock_imports = [
-    "altair",
-    "dependency_injector",
-    "fastapi",
-    "httpx",
-    "numpy",
-    "pandas",
-    "requests",
-    "streamlit",
-]
-
-autosummary_generate = True
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
 napoleon_include_private_with_doc = False
 
 todo_include_todos = True
 
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", {}),
-    "pandas": ("https://pandas.pydata.org/docs/", {}),
-    "numpy": ("https://numpy.org/doc/stable/", {}),
-}
+intersphinx_mapping: dict[str, tuple[str, str]] = {}
 
 extlinks = {
     "issue": ("https://github.com/Durantoine/mange-ta-main/issues/%s", "#%s"),

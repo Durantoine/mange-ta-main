@@ -3,8 +3,12 @@
 import logging
 from pathlib import Path
 
-import structlog
-from structlog.dev import ConsoleRenderer
+try:  # pragma: no cover - exercised implicitly when structlog missing
+    import structlog
+    from structlog.dev import ConsoleRenderer
+except ImportError:  # pragma: no cover - triggered in doc builds without structlog
+    structlog = None
+    ConsoleRenderer = None
 
 LOG_DIR = Path("logs")
 LOG_DIR.mkdir(exist_ok=True)
@@ -25,19 +29,22 @@ logging.basicConfig(
     handlers=[console_handler, debug_handler, error_handler],
 )
 
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        ConsoleRenderer(),
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
-    cache_logger_on_first_use=True,
-)
+if structlog:
+    structlog.configure(
+        processors=[
+            structlog.contextvars.merge_contextvars,
+            structlog.processors.add_log_level,
+            structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            ConsoleRenderer(),
+        ],
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+        cache_logger_on_first_use=True,
+    )
 
-struct_logger = structlog.get_logger()
+    struct_logger = structlog.get_logger()
+else:
+    struct_logger = logging.getLogger("mange-ta-main")
