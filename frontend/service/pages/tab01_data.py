@@ -32,6 +32,18 @@ def render_data_page() -> None:
     if not callable(getattr(st, "button", None)):
         return
 
+    def _render_load_error(exc: Exception) -> None:
+        struct_logger.error(
+            "dataset_load_failed",
+            data_type=data_type,
+            error=str(exc),
+            endpoint=getattr(exc, "endpoint", None),
+        )
+        error_fn = getattr(st, "error", None)
+        if callable(error_fn):
+            details = getattr(exc, "details", str(exc))
+            error_fn(f"Impossible de charger le dataset : {details}")
+
     if st.button("Charger le dataset"):
         with st.spinner("Chargement..."):
             try:
@@ -40,18 +52,16 @@ def render_data_page() -> None:
                     params={"data_type": data_type, "limit": 5_000},
                     ttl=30,
                 )
-                struct_logger.info("dataset_loaded", data_type=data_type, rows=len(payload))
             except BackendAPIError as exc:
-                struct_logger.error(
-                    "dataset_load_failed",
-                    data_type=data_type,
-                    error=str(exc),
-                    endpoint=exc.endpoint,
-                )
-                st.error(f"Impossible de charger le dataset : {exc.details}")
-            else:
-                df = pd.DataFrame(payload)
-                st.dataframe(df, use_container_width=True)
+                _render_load_error(exc)
+                return
+            except Exception as exc:  # pragma: no cover - defensive fallback
+                _render_load_error(exc)
+                return
+
+            struct_logger.info("dataset_loaded", data_type=data_type, rows=len(payload))
+            df = pd.DataFrame(payload)
+            st.dataframe(df, use_container_width=True)
 
 
 if __name__ == "__main__":  # pragma: no cover - executed when run via `streamlit run`
