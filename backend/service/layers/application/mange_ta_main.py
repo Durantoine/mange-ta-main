@@ -747,9 +747,7 @@ def review_overview(
     total_reviews = int(mask_reviews.sum())
 
     catalog_recipe_ids = set(df_recipes[recipe_id_recipes].dropna().unique())
-    reviewed_recipe_ids = set(
-        df_int.loc[mask_reviews, recipe_id_interactions].dropna().unique()
-    )
+    reviewed_recipe_ids = set(df_int.loc[mask_reviews, recipe_id_interactions].dropna().unique())
     recipes_with_reviews = len(catalog_recipe_ids.intersection(reviewed_recipe_ids))
     total_recipes = len(catalog_recipe_ids)
     unique_reviewers = int(df_int.loc[mask_reviews, user_col].nunique(dropna=True))
