@@ -1,8 +1,8 @@
 import streamlit as st
 from components.sidebar import render_sidebar
-from components.tab07_tags import render_top_tags_by_segment
-from components.tab06_top10_analyse import render_top10_vs_global
 from components.tab05_personnas import render_listing_personas
+from components.tab06_top10_analyse import render_top10_vs_global
+from components.tab07_tags import render_top_tags_by_segment
 
 st.title("💬 Classification Comportementale des Contributeurs")
 

@@ -4,7 +4,6 @@ from components.tab01_top_contributors import render_top_contributors
 from components.tab02_duration_recipe import render_duration_recipe
 from components.tab04_rating import render_user_rating
 
-
 st.cache_data.clear()
 st.cache_resource.clear()
 

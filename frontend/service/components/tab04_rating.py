@@ -13,7 +13,9 @@ def render_user_rating(
     """Render distribution of average ratings per contributor and correlation with recipe count."""
 
     st.header("⭐ Répartition des notes moyennes des contributeurs")
-    st.caption("Distribution des notes moyennes attribuées aux recettes par contributeur (ex. 0–1, 1–2, …, 4–5)")
+    st.caption(
+        "Distribution des notes moyennes attribuées aux recettes par contributeur (ex. 0–1, 1–2, …, 4–5)"
+    )
 
     view_mode = st.radio("Afficher :", ["Nombre de contributeurs", "Part (%)"], horizontal=True)
 
@@ -32,8 +34,12 @@ def render_user_rating(
         else:
             df = pd.DataFrame(data)
 
-            bin_col = next((c for c in df.columns if "rating" in c and "bin" in c), None) or df.columns[0]
-            count_col = next((c for c in df.columns if c in ("count", "contributors_count", "n")), None)
+            bin_col = (
+                next((c for c in df.columns if "rating" in c and "bin" in c), None) or df.columns[0]
+            )
+            count_col = next(
+                (c for c in df.columns if c in ("count", "contributors_count", "n")), None
+            )
             share_col = next((c for c in df.columns if "share" in c or "%" in c), None)
             avg_in_bin_col = next((c for c in df.columns if "avg" in c and "rating" in c), None)
             cum_share_col = next((c for c in df.columns if "cum" in c and "share" in c), None)
@@ -67,7 +73,9 @@ def render_user_rating(
 
             if "Tranche (note)" in df_display.columns:
                 try:
-                    df_display["__sort_key"] = df_display["Tranche (note)"].apply(extract_start_value)
+                    df_display["__sort_key"] = df_display["Tranche (note)"].apply(
+                        extract_start_value
+                    )
                     df_display = df_display.sort_values("__sort_key").drop(columns="__sort_key")
                 except Exception:
                     pass
@@ -78,44 +86,76 @@ def render_user_rating(
 
             total_contrib = int(df_display["Nombre de Contributeurs"].sum())
             nb_classes = df_display.shape[0]
-            top_bin = df_display.sort_values("Nombre de Contributeurs", ascending=False).iloc[0] if not df_display.empty else None
+            top_bin = (
+                df_display.sort_values("Nombre de Contributeurs", ascending=False).iloc[0]
+                if not df_display.empty
+                else None
+            )
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Total Contributeurs (dans distribution)", f"{total_contrib:,}".replace(",", " "))
+                st.metric(
+                    "Total Contributeurs (dans distribution)",
+                    f"{total_contrib:,}".replace(",", " "),
+                )
             with col2:
                 st.metric("Nombre de Classes", nb_classes)
             with col3:
                 if top_bin is not None and "Tranche (note)" in top_bin:
-                    st.metric("Tranche la plus fréquente", f"{top_bin['Tranche (note)']} ({int(top_bin['Nombre de Contributeurs'])})")
+                    st.metric(
+                        "Tranche la plus fréquente",
+                        f"{top_bin['Tranche (note)']} ({int(top_bin['Nombre de Contributeurs'])})",
+                    )
                 else:
                     st.metric("Tranche la plus fréquente", "-")
 
             st.subheader("Visualisation")
 
             if view_mode == "Nombre de contributeurs":
-                bar_source = df_display[["Tranche (note)", "Nombre de Contributeurs"]].set_index("Tranche (note)")
+                bar_source = df_display[["Tranche (note)", "Nombre de Contributeurs"]].set_index(
+                    "Tranche (note)"
+                )
             else:
                 if "Part (%)" in df_display.columns:
-                    bar_source = df_display[["Tranche (note)", "Part (%)"]].set_index("Tranche (note)")
+                    bar_source = df_display[["Tranche (note)", "Part (%)"]].set_index(
+                        "Tranche (note)"
+                    )
                 else:
-                    bar_source = df_display[["Tranche (note)", "Nombre de Contributeurs"]].set_index("Tranche (note)")
+                    bar_source = df_display[
+                        ["Tranche (note)", "Nombre de Contributeurs"]
+                    ].set_index("Tranche (note)")
 
             st.bar_chart(bar_source)
 
             if "Part Cumulée (%)" in df_display.columns:
                 try:
-                    st.line_chart(df_display[["Tranche (note)", "Part Cumulée (%)"]].set_index("Tranche (note)"))
+                    st.line_chart(
+                        df_display[["Tranche (note)", "Part Cumulée (%)"]].set_index(
+                            "Tranche (note)"
+                        )
+                    )
                     st.caption("Part cumulée des contributeurs jusqu'à chaque tranche (en %).")
                 except Exception:
                     pass
 
             st.subheader("Détail par tranche")
-            display_cols = [c for c in ["Tranche (note)", "Nombre de Contributeurs", "Part (%)", "Note Moyenne (bin)", "Part Cumulée (%)"] if c in df_display.columns]
+            display_cols = [
+                c
+                for c in [
+                    "Tranche (note)",
+                    "Nombre de Contributeurs",
+                    "Part (%)",
+                    "Note Moyenne (bin)",
+                    "Part Cumulée (%)",
+                ]
+                if c in df_display.columns
+            ]
             st.dataframe(df_display[display_cols], width="stretch", hide_index=True)
 
             csv = df_display.to_csv(index=False)
-            st.download_button("📥 Télécharger CSV", csv, "repartition_notes_contributeurs.csv", "text/csv")
+            st.download_button(
+                "📥 Télécharger CSV", csv, "repartition_notes_contributeurs.csv", "text/csv"
+            )
 
     # Correlation: Note moyenne par contributeur et leur nombre de recettes
     try:
@@ -136,12 +176,22 @@ def render_user_rating(
             corr_df = pd.DataFrame(corr_data)
 
             rating_cols = {"avg_rating", "average_rating", "mean_rating", "rating", "avg"}
-            found_rating_col = next((c for c in corr_df.columns if c in rating_cols or "rating" in c and "avg" in c), None)
-            if not {"contributor_id", "recipe_count"}.issubset(corr_df.columns) or found_rating_col is None:
-                st.error("Données inattendues reçues pour la corrélation. Colonnes attendues : contributor_id, recipe_count, avg_rating")
+            found_rating_col = next(
+                (c for c in corr_df.columns if c in rating_cols or "rating" in c and "avg" in c),
+                None,
+            )
+            if (
+                not {"contributor_id", "recipe_count"}.issubset(corr_df.columns)
+                or found_rating_col is None
+            ):
+                st.error(
+                    "Données inattendues reçues pour la corrélation. Colonnes attendues : contributor_id, recipe_count, avg_rating"
+                )
             else:
                 corr_df["recipe_count"] = pd.to_numeric(corr_df["recipe_count"], errors="coerce")
-                corr_df[found_rating_col] = pd.to_numeric(corr_df[found_rating_col], errors="coerce")
+                corr_df[found_rating_col] = pd.to_numeric(
+                    corr_df[found_rating_col], errors="coerce"
+                )
                 corr_df = corr_df.rename(columns={found_rating_col: "avg_rating"})
                 if "median_rating" not in corr_df.columns:
                     corr_df["median_rating"] = np.nan

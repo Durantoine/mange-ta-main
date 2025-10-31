@@ -14,6 +14,7 @@ SEGMENT_ORDER = [
     "Everyday Cookers",
 ]
 
+
 def render_top_tags_by_segment(logger=struct_logger) -> None:
     """Render per-segment charts of most popular tags."""
 
@@ -103,7 +104,7 @@ def render_top_tags_by_segment(logger=struct_logger) -> None:
         df["persona"] = pd.Categorical(df["persona"], categories=SEGMENT_ORDER, ordered=True)
 
         st.subheader("📊 Top tags par persona")
-        
+
         st.markdown(
             """
             Cette visualisation met en évidence les tags les plus utilisés par segment d’utilisateurs.
@@ -113,7 +114,6 @@ def render_top_tags_by_segment(logger=struct_logger) -> None:
             des spécificités de comportement, ainsi que des opportunités de ciblage éditorial.
             """
         )
-
 
         cols = st.columns(2)
         col_idx = 0

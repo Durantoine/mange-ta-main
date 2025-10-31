@@ -1,7 +1,8 @@
 import streamlit as st
 
+
 def render_listing_personas():
-    
+
     st.header("🧑‍🍳 Segmentation des personas")
     st.caption("Classification comportementale des contributeurs selon leurs habitudes culinaires")
     st.markdown(

@@ -1,7 +1,7 @@
+import altair as alt
 import pandas as pd
 import requests
 import streamlit as st
-import altair as alt
 from domain import BASE_URL
 from logger import struct_logger
 
@@ -84,21 +84,21 @@ def render_top10_vs_global(logger=struct_logger) -> None:
         )
         st.altair_chart(chart, use_container_width=True)
 
-    st.markdown("""
+    st.markdown(
+        """
     ### ✨ Lecture
     - **Durée plus élevée** chez le Top 10% ? → contributeurs experts
     - **Plus de commentaires** ? → profils engagés
     - **Meilleure note moyenne** ? → qualité supérieure de contenu
-    """)
+    """
+    )
 
     st.subheader("Tableau détaillé")
     st.dataframe(df, hide_index=True)
 
     # Téléchargement CSV global
     csv = df.to_csv(index=False)
-    st.download_button(
-        "📥 Télécharger CSV", csv, "top10_vs_global.csv", "text/csv"
-    )
+    st.download_button("📥 Télécharger CSV", csv, "top10_vs_global.csv", "text/csv")
 
     st.markdown(
         """

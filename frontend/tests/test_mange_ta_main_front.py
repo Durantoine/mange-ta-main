@@ -1,18 +1,18 @@
-import sys
-from pathlib import Path
-import pytest
-from unittest.mock import patch, Mock, MagicMock
-import pandas as pd
-import numpy as np
-import requests
+from unittest.mock import MagicMock, Mock, patch
+
 import altair as alt
-from ..service.domain import BASE_URL
-from ..service.logger import struct_logger
+import numpy as np
+import pandas as pd
+import requests
+
 from ..service.components.tab01_top_contributors import render_top_contributors
 from ..service.components.tab02_duration_recipe import render_duration_recipe
 from ..service.components.tab04_rating import render_user_rating
 from ..service.components.tab06_top10_analyse import render_top10_vs_global
-from ..service.components.tab07_tags import render_top_tags_by_segment, SEGMENT_ORDER
+from ..service.components.tab07_tags import SEGMENT_ORDER, render_top_tags_by_segment
+from ..service.domain import BASE_URL
+from ..service.logger import struct_logger
+
 
 def test_base_url_is_non_empty_string():
     assert isinstance(BASE_URL, str)
@@ -69,8 +69,10 @@ def test_render_top_contributors_with_data():
     fake_response.raise_for_status.return_value = None
 
     module_path = render_top_contributors.__module__
-    with patch(f"{module_path}.requests.get", return_value=fake_response) as mock_get, \
-         patch(f"{module_path}.st") as st_mock:
+    with (
+        patch(f"{module_path}.requests.get", return_value=fake_response) as mock_get,
+        patch(f"{module_path}.st") as st_mock,
+    ):
 
         # Make st.columns return three context-manageable columns
         col1, col2, col3 = MagicMock(), MagicMock(), MagicMock()
@@ -108,8 +110,10 @@ def test_render_top_contributors_no_data():
     fake_response.raise_for_status.return_value = None
 
     module_path = render_top_contributors.__module__
-    with patch(f"{module_path}.requests.get", return_value=fake_response), \
-         patch(f"{module_path}.st") as st_mock:
+    with (
+        patch(f"{module_path}.requests.get", return_value=fake_response),
+        patch(f"{module_path}.st") as st_mock,
+    ):
         render_top_contributors(show_title=False)
         st_mock.warning.assert_called_once()
         st_mock.error.assert_not_called()
@@ -118,9 +122,27 @@ def test_render_top_contributors_no_data():
 def test_render_duration_recipe_with_data():
     # Arrange distribution data
     dist_data = [
-        {"duration_bin": "0-15", "count": 100, "share": 50.0, "avg_duration_in_bin": 10, "cum_share": 50.0},
-        {"duration_bin": "15-30", "count": 60, "share": 30.0, "avg_duration_in_bin": 22, "cum_share": 80.0},
-        {"duration_bin": "30-45", "count": 40, "share": 20.0, "avg_duration_in_bin": 37, "cum_share": 100.0},
+        {
+            "duration_bin": "0-15",
+            "count": 100,
+            "share": 50.0,
+            "avg_duration_in_bin": 10,
+            "cum_share": 50.0,
+        },
+        {
+            "duration_bin": "15-30",
+            "count": 60,
+            "share": 30.0,
+            "avg_duration_in_bin": 22,
+            "cum_share": 80.0,
+        },
+        {
+            "duration_bin": "30-45",
+            "count": 40,
+            "share": 20.0,
+            "avg_duration_in_bin": 37,
+            "cum_share": 100.0,
+        },
     ]
 
     # Arrange correlation data with enough unique x to avoid the "not enough" branch
@@ -139,8 +161,12 @@ def test_render_duration_recipe_with_data():
     fake_resp_corr.raise_for_status.return_value = None
 
     module_path = render_duration_recipe.__module__
-    with patch(f"{module_path}.requests.get", side_effect=[fake_resp_dist, fake_resp_corr]) as mock_get, \
-         patch(f"{module_path}.st") as st_mock:
+    with (
+        patch(
+            f"{module_path}.requests.get", side_effect=[fake_resp_dist, fake_resp_corr]
+        ) as mock_get,
+        patch(f"{module_path}.st") as st_mock,
+    ):
 
         # Ensure radio returns a valid option
         st_mock.radio.return_value = "Nombre de recettes"
@@ -174,9 +200,27 @@ def test_render_duration_recipe_with_data():
 def test_render_user_rating_with_data():
     # Distribution
     dist_data = [
-        {"rating_bin": "0-1", "count": 5, "share": 10.0, "avg_rating_in_bin": 0.5, "cum_share": 10.0},
-        {"rating_bin": "1-2", "count": 10, "share": 20.0, "avg_rating_in_bin": 1.5, "cum_share": 30.0},
-        {"rating_bin": "4-5", "count": 30, "share": 70.0, "avg_rating_in_bin": 4.5, "cum_share": 100.0},
+        {
+            "rating_bin": "0-1",
+            "count": 5,
+            "share": 10.0,
+            "avg_rating_in_bin": 0.5,
+            "cum_share": 10.0,
+        },
+        {
+            "rating_bin": "1-2",
+            "count": 10,
+            "share": 20.0,
+            "avg_rating_in_bin": 1.5,
+            "cum_share": 30.0,
+        },
+        {
+            "rating_bin": "4-5",
+            "count": 30,
+            "share": 70.0,
+            "avg_rating_in_bin": 4.5,
+            "cum_share": 100.0,
+        },
     ]
     # Correlation
     corr_data = [
@@ -194,8 +238,12 @@ def test_render_user_rating_with_data():
     fake_resp_corr.raise_for_status.return_value = None
 
     module_path = render_user_rating.__module__
-    with patch(f"{module_path}.requests.get", side_effect=[fake_resp_dist, fake_resp_corr]) as mock_get, \
-         patch(f"{module_path}.st") as st_mock:
+    with (
+        patch(
+            f"{module_path}.requests.get", side_effect=[fake_resp_dist, fake_resp_corr]
+        ) as mock_get,
+        patch(f"{module_path}.st") as st_mock,
+    ):
 
         st_mock.radio.return_value = "Nombre de contributeurs"
         col1, col2, col3 = MagicMock(), MagicMock(), MagicMock()
@@ -220,8 +268,20 @@ def test_render_user_rating_with_data():
 
 def test_render_top10_vs_global_with_data():
     data = [
-        {"population": "top_10_percent", "contributor_count": 100, "avg_duration_minutes": 30, "avg_rating": 4.1, "avg_comments": 8},
-        {"population": "global", "contributor_count": 1000, "avg_duration_minutes": 28, "avg_rating": 4.0, "avg_comments": 3},
+        {
+            "population": "top_10_percent",
+            "contributor_count": 100,
+            "avg_duration_minutes": 30,
+            "avg_rating": 4.1,
+            "avg_comments": 8,
+        },
+        {
+            "population": "global",
+            "contributor_count": 1000,
+            "avg_duration_minutes": 28,
+            "avg_rating": 4.0,
+            "avg_comments": 3,
+        },
     ]
 
     fake_resp = Mock()
@@ -229,8 +289,10 @@ def test_render_top10_vs_global_with_data():
     fake_resp.raise_for_status.return_value = None
 
     module_path = render_top10_vs_global.__module__
-    with patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get, \
-         patch(f"{module_path}.st") as st_mock:
+    with (
+        patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get,
+        patch(f"{module_path}.st") as st_mock,
+    ):
 
         col1, col2 = MagicMock(), MagicMock()
         st_mock.columns.return_value = (col1, col2)
@@ -251,10 +313,34 @@ def test_render_top10_vs_global_with_data():
 def test_render_top_tags_by_segment_with_data():
     # Minimal dataset covering two personas
     sample = [
-        {"segment": 0, "persona": SEGMENT_ORDER[0], "tag": "preparation", "count": 50, "share_pct": 5.0},
-        {"segment": 0, "persona": SEGMENT_ORDER[0], "tag": "main-ingredient", "count": 30, "share_pct": 3.0},
-        {"segment": 1, "persona": SEGMENT_ORDER[1], "tag": "time-to-make", "count": 70, "share_pct": 7.0},
-        {"segment": 1, "persona": SEGMENT_ORDER[1], "tag": "dietary", "count": 20, "share_pct": 2.0},
+        {
+            "segment": 0,
+            "persona": SEGMENT_ORDER[0],
+            "tag": "preparation",
+            "count": 50,
+            "share_pct": 5.0,
+        },
+        {
+            "segment": 0,
+            "persona": SEGMENT_ORDER[0],
+            "tag": "main-ingredient",
+            "count": 30,
+            "share_pct": 3.0,
+        },
+        {
+            "segment": 1,
+            "persona": SEGMENT_ORDER[1],
+            "tag": "time-to-make",
+            "count": 70,
+            "share_pct": 7.0,
+        },
+        {
+            "segment": 1,
+            "persona": SEGMENT_ORDER[1],
+            "tag": "dietary",
+            "count": 20,
+            "share_pct": 2.0,
+        },
     ]
 
     fake_resp = Mock()
@@ -262,8 +348,10 @@ def test_render_top_tags_by_segment_with_data():
     fake_resp.raise_for_status.return_value = None
 
     module_path = render_top_tags_by_segment.__module__
-    with patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get, \
-         patch(f"{module_path}.st") as st_mock:
+    with (
+        patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get,
+        patch(f"{module_path}.st") as st_mock,
+    ):
 
         st_mock.columns.return_value = (MagicMock(), MagicMock())
         st_mock.radio.return_value = "Volume (count)"
@@ -297,13 +385,14 @@ def test_render_sidebar_smoke():
 
 def test_pages_imports_smoke_without_network():
     # Import pages with streamlit/requests patched so module-level UI runs safely and no network occurs.
+    import importlib as _importlib
     import sys as _sys
     import types as _types
-    import importlib as _importlib
 
     class _FakeResp:
         def raise_for_status(self):
             return None
+
         def json(self):
             return []
 
@@ -321,5 +410,3 @@ def test_pages_imports_smoke_without_network():
     # Basic sanity that modules loaded
     assert mod_app is not None and mod_data is not None
     assert mod_analyse is not None and mod_conclusions is not None
-        
-        
