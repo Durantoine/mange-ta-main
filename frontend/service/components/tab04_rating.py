@@ -9,7 +9,7 @@ from logger import struct_logger
 
 def render_user_rating(
     logger=struct_logger,
-) -> None:
+) -> None:  # pragma: no cover - Streamlit UI glue
     """Render distribution of average ratings per contributor and correlation with recipe count."""
 
     st.header("⭐ Répartition des notes moyennes des contributeurs")
@@ -40,20 +40,15 @@ def render_user_rating(
             df = pd.DataFrame(data)
 
             bin_col = (
-                next((c for c in df.columns if "rating" in c and "bin" in c), None)
-                or df.columns[0]
+                next((c for c in df.columns if "rating" in c and "bin" in c), None) or df.columns[0]
             )
             count_col = next(
                 (c for c in df.columns if c in ("count", "contributors_count", "n")),
                 None,
             )
             share_col = next((c for c in df.columns if "share" in c or "%" in c), None)
-            avg_in_bin_col = next(
-                (c for c in df.columns if "avg" in c and "rating" in c), None
-            )
-            cum_share_col = next(
-                (c for c in df.columns if "cum" in c and "share" in c), None
-            )
+            avg_in_bin_col = next((c for c in df.columns if "avg" in c and "rating" in c), None)
+            cum_share_col = next((c for c in df.columns if "cum" in c and "share" in c), None)
 
             rename_map = {bin_col: "Tranche (note)"}
             if count_col:
@@ -87,9 +82,7 @@ def render_user_rating(
                     df_display["__sort_key"] = df_display["Tranche (note)"].apply(
                         extract_start_value
                     )
-                    df_display = df_display.sort_values("__sort_key").drop(
-                        columns="__sort_key"
-                    )
+                    df_display = df_display.sort_values("__sort_key").drop(columns="__sort_key")
                 except Exception:
                     pass
 
@@ -100,9 +93,7 @@ def render_user_rating(
             total_contrib = int(df_display["Nombre de Contributeurs"].sum())
             nb_classes = df_display.shape[0]
             top_bin = (
-                df_display.sort_values("Nombre de Contributeurs", ascending=False).iloc[
-                    0
-                ]
+                df_display.sort_values("Nombre de Contributeurs", ascending=False).iloc[0]
                 if not df_display.empty
                 else None
             )
@@ -127,9 +118,9 @@ def render_user_rating(
             st.subheader("Visualisation")
 
             if view_mode == "Nombre de contributeurs":
-                bar_source = df_display[
-                    ["Tranche (note)", "Nombre de Contributeurs"]
-                ].set_index("Tranche (note)")
+                bar_source = df_display[["Tranche (note)", "Nombre de Contributeurs"]].set_index(
+                    "Tranche (note)"
+                )
             else:
                 if "Part (%)" in df_display.columns:
                     bar_source = df_display[["Tranche (note)", "Part (%)"]].set_index(
@@ -149,9 +140,7 @@ def render_user_rating(
                             "Tranche (note)"
                         )
                     )
-                    st.caption(
-                        "Part cumulée des contributeurs jusqu'à chaque tranche (en %)."
-                    )
+                    st.caption("Part cumulée des contributeurs jusqu'à chaque tranche (en %).")
                 except Exception:
                     pass
 
@@ -184,15 +173,11 @@ def render_user_rating(
         corr_data = corr_response.json()
         logger.info("Rating vs recipe count fetched", count=len(corr_data))
     except requests.RequestException as e:
-        st.error(
-            f"Erreur lors de la récupération de la corrélation note / volume : {e}"
-        )
+        st.error(f"Erreur lors de la récupération de la corrélation note / volume : {e}")
         logger.error("Failed to fetch rating vs recipe count", error=str(e))
     else:
         st.divider()
-        st.subheader(
-            "📈 Corrélation note moyenne par contributeur vs volume de recettes"
-        )
+        st.subheader("📈 Corrélation note moyenne par contributeur vs volume de recettes")
 
         if not corr_data:
             st.warning("Aucune donnée disponible pour la corrélation.")
@@ -207,11 +192,7 @@ def render_user_rating(
                 "avg",
             }
             found_rating_col = next(
-                (
-                    c
-                    for c in corr_df.columns
-                    if c in rating_cols or "rating" in c and "avg" in c
-                ),
+                (c for c in corr_df.columns if c in rating_cols or "rating" in c and "avg" in c),
                 None,
             )
             if (
@@ -222,9 +203,7 @@ def render_user_rating(
                     "Données inattendues reçues pour la corrélation. Colonnes attendues : contributor_id, recipe_count, avg_rating"
                 )
             else:
-                corr_df["recipe_count"] = pd.to_numeric(
-                    corr_df["recipe_count"], errors="coerce"
-                )
+                corr_df["recipe_count"] = pd.to_numeric(corr_df["recipe_count"], errors="coerce")
                 corr_df[found_rating_col] = pd.to_numeric(
                     corr_df[found_rating_col], errors="coerce"
                 )
@@ -234,9 +213,7 @@ def render_user_rating(
                 corr_df = corr_df.dropna(subset=["recipe_count", "avg_rating"])
 
                 if corr_df.empty or corr_df["recipe_count"].nunique() <= 1:
-                    st.info(
-                        "Pas assez de contributeurs différents pour tracer une régression."
-                    )
+                    st.info("Pas assez de contributeurs différents pour tracer une régression.")
                 else:
                     x = corr_df["recipe_count"]
                     y = corr_df["avg_rating"]
@@ -244,20 +221,14 @@ def render_user_rating(
                     corr_coef = np.corrcoef(x, y)[0, 1]
 
                     corr_df = corr_df.sort_values("recipe_count")
-                    corr_df["predicted_avg_rating"] = (
-                        slope * corr_df["recipe_count"] + intercept
-                    )
+                    corr_df["predicted_avg_rating"] = slope * corr_df["recipe_count"] + intercept
 
                     chart = (
                         alt.Chart(corr_df)
                         .mark_circle(size=60, opacity=0.7)
                         .encode(
-                            x=alt.X(
-                                "recipe_count", title="Nombre de recettes publiées"
-                            ),
-                            y=alt.Y(
-                                "avg_rating", title="Note moyenne par contributeur"
-                            ),
+                            x=alt.X("recipe_count", title="Nombre de recettes publiées"),
+                            y=alt.Y("avg_rating", title="Note moyenne par contributeur"),
                             tooltip=[
                                 alt.Tooltip("contributor_id", title="Contributeur"),
                                 alt.Tooltip(
@@ -265,12 +236,8 @@ def render_user_rating(
                                     title="Recettes publiées",
                                     format=",",
                                 ),
-                                alt.Tooltip(
-                                    "avg_rating", title="Note moyenne", format=".2f"
-                                ),
-                                alt.Tooltip(
-                                    "median_rating", title="Note médiane", format=".2f"
-                                ),
+                                alt.Tooltip("avg_rating", title="Note moyenne", format=".2f"),
+                                alt.Tooltip("median_rating", title="Note médiane", format=".2f"),
                             ],
                         )
                     )
@@ -281,9 +248,7 @@ def render_user_rating(
                         .encode(x="recipe_count", y="predicted_avg_rating")
                     )
 
-                    st.altair_chart(
-                        (chart + regression).interactive(), use_container_width=True
-                    )
+                    st.altair_chart((chart + regression).interactive(), use_container_width=True)
 
                     st.caption(
                         f"Régression linéaire : note moyenne ≈ {slope:.3f} × recettes + {intercept:.3f} "

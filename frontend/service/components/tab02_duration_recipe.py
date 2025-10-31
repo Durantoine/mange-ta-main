@@ -9,7 +9,7 @@ from logger import struct_logger
 
 def render_duration_recipe(
     logger=struct_logger,
-) -> None:
+) -> None:  # pragma: no cover - Streamlit UI glue
     """Render duration distribution analysis and correlation charts."""
 
     st.header("⏱️ Répartition des durées des recettes")

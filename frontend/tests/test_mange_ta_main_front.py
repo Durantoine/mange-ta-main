@@ -7,6 +7,7 @@ import requests
 
 from ..service.components.tab01_top_contributors import render_top_contributors
 from ..service.components.tab02_duration_recipe import render_duration_recipe
+from ..service.components.tab03_reviews import _format_metric
 from ..service.components.tab04_rating import render_user_rating
 from ..service.components.tab06_top10_analyse import render_top10_vs_global
 from ..service.components.tab07_tags import SEGMENT_ORDER, render_top_tags_by_segment
@@ -60,14 +61,18 @@ def test_requests_can_be_mocked_without_calls():
         mocked_get.assert_not_called()
 
 
-def test_render_top_contributors_with_data():
-    # Arrange sample API payload: list of [contributor_id, recipes_count], already sorted desc
-    sample_data = [[i, 20 - i] for i in range(101, 111)]  # 10 rows to satisfy Rank assignment
+def test_format_metric_various_types():
+    assert _format_metric("total_reviews", 1250) == "1 250"
+    assert _format_metric("share_pct", 87.345) == "87.3%"
+    assert _format_metric("avg_reviews_per_recipe", 3.50) == "3.5"
+    assert _format_metric("median_review_length_words", 12.0) == "12"
+    assert _format_metric("custom", 1.23456) == "1.23"
+    assert _format_metric("anything", None) == "-"
+    assert _format_metric("text", "Hello") == "Hello"
 
-    fake_response = Mock()
-    fake_response.json.return_value = sample_data
-    fake_response.raise_for_status.return_value = None
 
+def test_render_top_contributors_with_data(top_contributors_payload, make_response):
+    fake_response = make_response(top_contributors_payload)
     module_path = render_top_contributors.__module__
     with (
         patch(f"{module_path}.requests.get", return_value=fake_response) as mock_get,
@@ -103,12 +108,8 @@ def test_render_top_contributors_with_data():
         st_mock.error.assert_not_called()
 
 
-def test_render_top_contributors_no_data():
-    # Empty payload should show a warning and not crash
-    fake_response = Mock()
-    fake_response.json.return_value = []
-    fake_response.raise_for_status.return_value = None
-
+def test_render_top_contributors_no_data(make_response):
+    fake_response = make_response([])
     module_path = render_top_contributors.__module__
     with (
         patch(f"{module_path}.requests.get", return_value=fake_response),
@@ -119,46 +120,11 @@ def test_render_top_contributors_no_data():
         st_mock.error.assert_not_called()
 
 
-def test_render_duration_recipe_with_data():
-    # Arrange distribution data
-    dist_data = [
-        {
-            "duration_bin": "0-15",
-            "count": 100,
-            "share": 50.0,
-            "avg_duration_in_bin": 10,
-            "cum_share": 50.0,
-        },
-        {
-            "duration_bin": "15-30",
-            "count": 60,
-            "share": 30.0,
-            "avg_duration_in_bin": 22,
-            "cum_share": 80.0,
-        },
-        {
-            "duration_bin": "30-45",
-            "count": 40,
-            "share": 20.0,
-            "avg_duration_in_bin": 37,
-            "cum_share": 100.0,
-        },
-    ]
-
-    # Arrange correlation data with enough unique x to avoid the "not enough" branch
-    corr_data = [
-        {"contributor_id": 1, "recipe_count": 5, "avg_duration": 20, "median_duration": 18},
-        {"contributor_id": 2, "recipe_count": 10, "avg_duration": 22, "median_duration": 21},
-        {"contributor_id": 3, "recipe_count": 20, "avg_duration": 24, "median_duration": 23},
-    ]
-
-    fake_resp_dist = Mock()
-    fake_resp_dist.json.return_value = dist_data
-    fake_resp_dist.raise_for_status.return_value = None
-
-    fake_resp_corr = Mock()
-    fake_resp_corr.json.return_value = corr_data
-    fake_resp_corr.raise_for_status.return_value = None
+def test_render_duration_recipe_with_data(
+    duration_distribution_payload, duration_vs_recipe_payload, make_response
+):
+    fake_resp_dist = make_response(duration_distribution_payload)
+    fake_resp_corr = make_response(duration_vs_recipe_payload)
 
     module_path = render_duration_recipe.__module__
     with (
@@ -197,45 +163,11 @@ def test_render_duration_recipe_with_data():
         st_mock.error.assert_not_called()
 
 
-def test_render_user_rating_with_data():
-    # Distribution
-    dist_data = [
-        {
-            "rating_bin": "0-1",
-            "count": 5,
-            "share": 10.0,
-            "avg_rating_in_bin": 0.5,
-            "cum_share": 10.0,
-        },
-        {
-            "rating_bin": "1-2",
-            "count": 10,
-            "share": 20.0,
-            "avg_rating_in_bin": 1.5,
-            "cum_share": 30.0,
-        },
-        {
-            "rating_bin": "4-5",
-            "count": 30,
-            "share": 70.0,
-            "avg_rating_in_bin": 4.5,
-            "cum_share": 100.0,
-        },
-    ]
-    # Correlation
-    corr_data = [
-        {"contributor_id": 1, "recipe_count": 5, "avg_rating": 3.8, "median_rating": 3.7},
-        {"contributor_id": 2, "recipe_count": 12, "avg_rating": 4.0, "median_rating": 4.0},
-        {"contributor_id": 3, "recipe_count": 20, "avg_rating": 4.2, "median_rating": 4.1},
-    ]
-
-    fake_resp_dist = Mock()
-    fake_resp_dist.json.return_value = dist_data
-    fake_resp_dist.raise_for_status.return_value = None
-
-    fake_resp_corr = Mock()
-    fake_resp_corr.json.return_value = corr_data
-    fake_resp_corr.raise_for_status.return_value = None
+def test_render_user_rating_with_data(
+    rating_distribution_payload, rating_vs_recipes_payload, make_response
+):
+    fake_resp_dist = make_response(rating_distribution_payload)
+    fake_resp_corr = make_response(rating_vs_recipes_payload)
 
     module_path = render_user_rating.__module__
     with (
@@ -266,28 +198,8 @@ def test_render_user_rating_with_data():
         st_mock.error.assert_not_called()
 
 
-def test_render_top10_vs_global_with_data():
-    data = [
-        {
-            "population": "top_10_percent",
-            "contributor_count": 100,
-            "avg_duration_minutes": 30,
-            "avg_rating": 4.1,
-            "avg_comments": 8,
-        },
-        {
-            "population": "global",
-            "contributor_count": 1000,
-            "avg_duration_minutes": 28,
-            "avg_rating": 4.0,
-            "avg_comments": 3,
-        },
-    ]
-
-    fake_resp = Mock()
-    fake_resp.json.return_value = data
-    fake_resp.raise_for_status.return_value = None
-
+def test_render_top10_vs_global_with_data(top10_vs_global_payload, make_response):
+    fake_resp = make_response(top10_vs_global_payload)
     module_path = render_top10_vs_global.__module__
     with (
         patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get,
@@ -310,43 +222,8 @@ def test_render_top10_vs_global_with_data():
         st_mock.error.assert_not_called()
 
 
-def test_render_top_tags_by_segment_with_data():
-    # Minimal dataset covering two personas
-    sample = [
-        {
-            "segment": 0,
-            "persona": SEGMENT_ORDER[0],
-            "tag": "preparation",
-            "count": 50,
-            "share_pct": 5.0,
-        },
-        {
-            "segment": 0,
-            "persona": SEGMENT_ORDER[0],
-            "tag": "main-ingredient",
-            "count": 30,
-            "share_pct": 3.0,
-        },
-        {
-            "segment": 1,
-            "persona": SEGMENT_ORDER[1],
-            "tag": "time-to-make",
-            "count": 70,
-            "share_pct": 7.0,
-        },
-        {
-            "segment": 1,
-            "persona": SEGMENT_ORDER[1],
-            "tag": "dietary",
-            "count": 20,
-            "share_pct": 2.0,
-        },
-    ]
-
-    fake_resp = Mock()
-    fake_resp.json.return_value = sample
-    fake_resp.raise_for_status.return_value = None
-
+def test_render_top_tags_by_segment_with_data(tags_by_segment_payload, make_response):
+    fake_resp = make_response(tags_by_segment_payload)
     module_path = render_top_tags_by_segment.__module__
     with (
         patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get,

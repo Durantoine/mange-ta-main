@@ -1,3 +1,5 @@
+from typing import Optional
+
 import altair as alt
 import numpy as np
 import pandas as pd
@@ -22,7 +24,7 @@ def _format_metric(metric_id: str, value) -> str:
     return str(value)
 
 
-def render_reviews(logger=struct_logger) -> None:
+def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
     """Dashboard d'analyse des avis utilisateurs (section Tab 3)."""
 
     st.header("📝 Analyse des avis utilisateurs")
@@ -87,9 +89,7 @@ def render_reviews(logger=struct_logger) -> None:
                 )
         if share_reviewed_pct is not None:
             avg_reviews_recipe_display = (
-                f"{avg_reviews_per_recipe:.2f}"
-                if avg_reviews_per_recipe is not None
-                else "-"
+                f"{avg_reviews_per_recipe:.2f}" if avg_reviews_per_recipe is not None else "-"
             )
             insights.append(
                 f"La couverture du catalogue atteint {share_reviewed_pct:.1f} %, avec en moyenne {avg_reviews_recipe_display} avis par recette."
@@ -148,9 +148,7 @@ def render_reviews(logger=struct_logger) -> None:
         try:
             dist_df["Recettes"] = pd.to_numeric(dist_df["Recettes"], errors="coerce")
             dist_df["Part (%)"] = pd.to_numeric(dist_df["Part (%)"], errors="coerce")
-            dist_df["Avis moyens"] = pd.to_numeric(
-                dist_df["Avis moyens"], errors="coerce"
-            )
+            dist_df["Avis moyens"] = pd.to_numeric(dist_df["Avis moyens"], errors="coerce")
         except KeyError:
             pass
 
@@ -182,16 +180,26 @@ def render_reviews(logger=struct_logger) -> None:
         )
         st.altair_chart(chart, use_container_width=True)
 
-        top_bin = (
-            dist_df.iloc[dist_df["Recettes"].idxmax()]
-            if "Recettes" in dist_df
-            else None
-        )
-        if top_bin is not None:
-            top_label = top_bin["Tranche d'avis"]
+        top_row: Optional[pd.Series] = None
+        if "Recettes" in dist_df.columns and not dist_df["Recettes"].empty:
+            top_idx = dist_df["Recettes"].idxmax()
+            if pd.notna(top_idx):
+                candidate = dist_df.loc[top_idx]
+                if isinstance(candidate, pd.DataFrame):
+                    top_row = candidate.iloc[0]
+                else:
+                    top_row = candidate
+        if top_row is not None:
+            top_label = str(top_row.get("Tranche d'avis", ""))
+            recettes_raw = top_row.get("Recettes")
+            part_raw = top_row.get("Part (%)")
+            avg_reviews_raw = top_row.get("Avis moyens")
+            recettes_val = int(float(recettes_raw)) if recettes_raw is not None else 0
+            part_val = float(part_raw) if part_raw is not None else 0.0
+            avg_reviews_val = float(avg_reviews_raw) if avg_reviews_raw is not None else 0.0
             st.caption(
                 f"Tranche la plus fréquente : **{top_label}** "
-                f"({int(top_bin['Recettes'])} recettes, {top_bin['Part (%)']:.1f}%)."
+                f"({recettes_val} recettes, {part_val:.1f}%)."
             )
 
         dist_insights = []
@@ -201,16 +209,14 @@ def render_reviews(logger=struct_logger) -> None:
             dist_insights.append(
                 f"Encore {zero_share:.1f} % du catalogue n'a pas reçu de premier avis, laissant un potentiel d'engagement."
             )
-        engaged_share = float(
-            dist_df.loc[dist_df["__min_reviews"] >= 5, "Part (%)"].sum()
-        )
+        engaged_share = float(dist_df.loc[dist_df["__min_reviews"] >= 5, "Part (%)"].sum())
         if engaged_share > 0:
             dist_insights.append(
                 f"À l'inverse, {engaged_share:.1f} % des recettes recueillent au moins cinq avis, signe d'un noyau de contenus phares."
             )
-        if top_bin is not None:
+        if top_row is not None and top_label:
             dist_insights.append(
-                f"La tranche {top_label} concentre à elle seule {float(top_bin['Part (%)']):.1f} % des recettes et génère {float(top_bin['Avis moyens']):.2f} avis en moyenne."
+                f"La tranche {top_label} concentre à elle seule {part_val:.1f} % des recettes et génère {avg_reviews_val:.2f} avis en moyenne."
             )
         if dist_insights:
             st.markdown(" ".join(dist_insights))
@@ -274,9 +280,7 @@ def render_reviews(logger=struct_logger) -> None:
             "Avis publiés",
             _format_metric("total_reviews", top_reviewer["Nombre d'avis"]),
         )
-        col_c.metric(
-            "Part du volume", _format_metric("share_pct", top_reviewer.get("Part (%)"))
-        )
+        col_c.metric("Part du volume", _format_metric("share_pct", top_reviewer.get("Part (%)")))
 
         bars = (
             alt.Chart(reviewers_df)
@@ -329,9 +333,7 @@ def render_reviews(logger=struct_logger) -> None:
     st.subheader("Commentaires rédigés vs recettes publiées (par utilisateur)")
 
     try:
-        reviewer_vs_recipes_resp = requests.get(
-            f"{BASE_URL}/mange_ta_main/reviewer-vs-recipes"
-        )
+        reviewer_vs_recipes_resp = requests.get(f"{BASE_URL}/mange_ta_main/reviewer-vs-recipes")
         reviewer_vs_recipes_resp.raise_for_status()
         reviewer_vs_recipes_data = reviewer_vs_recipes_resp.json()
         logger.info("Reviewer vs recipes fetched", count=len(reviewer_vs_recipes_data))
@@ -344,12 +346,8 @@ def render_reviews(logger=struct_logger) -> None:
         rr_df = pd.DataFrame(reviewer_vs_recipes_data)
         expected_cols = {"user_id", "reviews_count", "recipes_published"}
         if expected_cols.issubset(rr_df.columns):
-            rr_df["reviews_count"] = pd.to_numeric(
-                rr_df["reviews_count"], errors="coerce"
-            )
-            rr_df["recipes_published"] = pd.to_numeric(
-                rr_df["recipes_published"], errors="coerce"
-            )
+            rr_df["reviews_count"] = pd.to_numeric(rr_df["reviews_count"], errors="coerce")
+            rr_df["recipes_published"] = pd.to_numeric(rr_df["recipes_published"], errors="coerce")
             if "avg_rating_given" in rr_df.columns:
                 rr_df["avg_rating_given"] = pd.to_numeric(
                     rr_df["avg_rating_given"], errors="coerce"
@@ -364,9 +362,7 @@ def render_reviews(logger=struct_logger) -> None:
                 tooltip_fields = [
                     alt.Tooltip("user_id:N", title="Utilisateur"),
                     alt.Tooltip("reviews_count:Q", title="Avis rédigés", format=","),
-                    alt.Tooltip(
-                        "recipes_published:Q", title="Recettes publiées", format=","
-                    ),
+                    alt.Tooltip("recipes_published:Q", title="Recettes publiées", format=","),
                 ]
                 if "avg_rating_given" in rr_df.columns:
                     tooltip_fields.append(
@@ -436,16 +432,12 @@ def render_reviews(logger=struct_logger) -> None:
                 )
 
                 narrative_parts = []
-                top_reviewer = rr_df.sort_values("reviews_count", ascending=False).iloc[
-                    0
-                ]
+                top_reviewer = rr_df.sort_values("reviews_count", ascending=False).iloc[0]
                 narrative_parts.append(
                     f"L'utilisateur {top_reviewer['user_id']} est le plus prolifique avec {int(top_reviewer['reviews_count'])} avis rédigés."
                 )
 
-                top_author = rr_df.sort_values(
-                    "recipes_published", ascending=False
-                ).iloc[0]
+                top_author = rr_df.sort_values("recipes_published", ascending=False).iloc[0]
                 narrative_parts.append(
                     f"Côté publication, {top_author['user_id']} mène avec {int(top_author['recipes_published'])} recettes au catalogue."
                 )
@@ -466,13 +458,9 @@ def render_reviews(logger=struct_logger) -> None:
 
                 st.markdown(" ".join(narrative_parts))
         else:
-            st.error(
-                "Colonnes inattendues reçues pour la corrélation reviewers / recettes."
-            )
+            st.error("Colonnes inattendues reçues pour la corrélation reviewers / recettes.")
     else:
-        st.info(
-            "Aucune donnée pour la corrélation entre avis rédigés et recettes publiées."
-        )
+        st.info("Aucune donnée pour la corrélation entre avis rédigés et recettes publiées.")
 
     st.divider()
 
@@ -494,9 +482,7 @@ def render_reviews(logger=struct_logger) -> None:
     if trend_data:
         trend_df = pd.DataFrame(trend_data)
         if "period" in trend_df.columns:
-            trend_df["period"] = pd.PeriodIndex(
-                trend_df["period"], freq="M"
-            ).to_timestamp()
+            trend_df["period"] = pd.PeriodIndex(trend_df["period"], freq="M").to_timestamp()
         trend_df = trend_df.sort_values("period")
 
         line = (
@@ -520,9 +506,7 @@ def render_reviews(logger=struct_logger) -> None:
                     x="period:T",
                     y=alt.Y("unique_reviewers:Q", title="Reviewers uniques"),
                     tooltip=[
-                        alt.Tooltip(
-                            "unique_reviewers:Q", title="Reviewers uniques", format=","
-                        )
+                        alt.Tooltip("unique_reviewers:Q", title="Reviewers uniques", format=",")
                     ],
                 )
             )
@@ -584,12 +568,8 @@ def render_reviews(logger=struct_logger) -> None:
         scatter_df = pd.DataFrame(scatter_data)
         expected_cols = {"recipe_id", "review_count", "avg_rating"}
         if expected_cols.issubset(scatter_df.columns):
-            scatter_df["review_count"] = pd.to_numeric(
-                scatter_df["review_count"], errors="coerce"
-            )
-            scatter_df["avg_rating"] = pd.to_numeric(
-                scatter_df["avg_rating"], errors="coerce"
-            )
+            scatter_df["review_count"] = pd.to_numeric(scatter_df["review_count"], errors="coerce")
+            scatter_df["avg_rating"] = pd.to_numeric(scatter_df["avg_rating"], errors="coerce")
             scatter_df = scatter_df.dropna(subset=["review_count", "avg_rating"])
 
             if not scatter_df.empty:
@@ -602,13 +582,9 @@ def render_reviews(logger=struct_logger) -> None:
                     alt.Tooltip("avg_rating:Q", title="Note moyenne", format=".2f"),
                 ]
                 if "recipe_name" in scatter_df.columns:
-                    tooltip_fields.insert(
-                        0, alt.Tooltip("recipe_name:N", title="Recette")
-                    )
+                    tooltip_fields.insert(0, alt.Tooltip("recipe_name:N", title="Recette"))
                 if "contributor_id" in scatter_df.columns:
-                    tooltip_fields.append(
-                        alt.Tooltip("contributor_id:N", title="Contributeur")
-                    )
+                    tooltip_fields.append(alt.Tooltip("contributor_id:N", title="Contributeur"))
 
                 base = (
                     alt.Chart(scatter_df)
@@ -629,18 +605,14 @@ def render_reviews(logger=struct_logger) -> None:
                         slope * scatter_df["review_count"] + intercept
                     )
                     corr_coef_value = float(
-                        np.corrcoef(
-                            scatter_df["review_count"], scatter_df["avg_rating"]
-                        )[0, 1]
+                        np.corrcoef(scatter_df["review_count"], scatter_df["avg_rating"])[0, 1]
                     )
                     regression = (
                         alt.Chart(scatter_df)
                         .mark_line(color="#27AE60", strokeWidth=2)
                         .encode(x="review_count:Q", y="predicted_avg_rating:Q")
                     )
-                    st.altair_chart(
-                        (base + regression).interactive(), use_container_width=True
-                    )
+                    st.altair_chart((base + regression).interactive(), use_container_width=True)
                     st.caption(
                         f"Régression linéaire : note ≈ {slope:.3f} × avis + {intercept:.3f}."
                     )
@@ -667,9 +639,7 @@ def render_reviews(logger=struct_logger) -> None:
                         f"La corrélation reste modérée (r = {corr_coef_value:.2f}) entre le volume d'avis et la note moyenne."
                     )
                 top_recipe = scatter_df.iloc[-1]
-                recipe_label = top_recipe.get(
-                    "recipe_name", f"Recette #{top_recipe['recipe_id']}"
-                )
+                recipe_label = top_recipe.get("recipe_name", f"Recette #{top_recipe['recipe_id']}")
                 scatter_insights.append(
                     f"La recette la plus commentée, {recipe_label}, totalise {int(top_recipe['review_count'])} avis pour une moyenne de {top_recipe['avg_rating']:.2f}/5."
                 )

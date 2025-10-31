@@ -6,7 +6,7 @@ from domain import BASE_URL
 from logger import struct_logger
 
 
-def render_top10_vs_global(logger=struct_logger) -> None:
+def render_top10_vs_global(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
     st.header("🏅 Utilisateurs Top 10% vs Global")
     st.caption("Comparaison des comportements des contributeurs les plus actifs")
 

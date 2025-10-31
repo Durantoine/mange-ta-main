@@ -7,7 +7,7 @@ from logger import struct_logger
 
 def render_top_contributors(
     show_title: bool = True,
-) -> None:
+) -> None:  # pragma: no cover - Streamlit UI glue
     """Display tabs with most active and best rated contributors."""
 
     if show_title:

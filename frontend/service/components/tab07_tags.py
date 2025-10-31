@@ -15,7 +15,9 @@ SEGMENT_ORDER = [
 ]
 
 
-def render_top_tags_by_segment(logger=struct_logger) -> None:
+def render_top_tags_by_segment(
+    logger=struct_logger,
+) -> None:  # pragma: no cover - Streamlit UI glue
     """Render per-segment charts of most popular tags."""
 
     st.header("🏷️ Cartographie des tags")
