@@ -10,7 +10,18 @@ from logger import struct_logger
 def render_user_rating(
     logger=struct_logger,
 ) -> None:  # pragma: no cover - Streamlit UI glue
-    """Render distribution of average ratings per contributor and correlation with recipe count."""
+    """Render the Streamlit tab dedicated to contributor ratings.
+
+    The tab provides two complementary angles:
+
+    - A histogram of average ratings awarded to each contributor, with toggleable
+      display between raw counts and percentages.
+    - A scatter/correlation view juxtaposing publication volume and rating,
+      helping to identify outliers (ex. beaucoup de recettes mais notes faibles).
+
+    All API calls are wrapped with defensive error handling so that the UI remains
+    readable even if the backend temporarily fails.
+    """
 
     st.header("⭐ Répartition des notes moyennes des contributeurs")
     st.caption(

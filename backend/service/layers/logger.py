@@ -32,7 +32,14 @@ logging.basicConfig(
 
 
 class _KeywordFriendlyLogger:
-    """Fallback logger that accepts keyword arguments like structlog."""
+    """Fallback logger that accepte les keyword arguments façon structlog.
+
+    La plupart des composants frontend/backend journalisent des métadonnées sous
+    forme ``logger.info("event", count=3)``. Lorsque ``structlog`` n'est pas
+    disponible (ex. environnement de test, build Sphinx), ce wrapper reconstruit
+    un message lisible en concaténant les paires ``clé=valeur`` puis délègue
+    l’écriture au logger standard.
+    """
 
     def __init__(self, base_logger: logging.Logger):
         self._logger = base_logger

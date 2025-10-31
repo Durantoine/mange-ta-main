@@ -723,7 +723,28 @@ def review_overview(
     df_recipes: Optional[pd.DataFrame],
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
-    """Return high-level metrics describing the review ecosystem."""
+    """Summarise global KPIs about textual reviews and their authors.
+
+    Args:
+        df_recipes: Catalogue of recipes. At minimum, an ``id`` (or ``recipe_id``)
+            column must be present so that we can evaluate the coverage rate.
+        df_interactions: Log of user interactions containing review text, ratings
+            and identifiers (``recipe_id`` and ``user_id``). Empty strings are
+            considered missing reviews.
+
+    Returns:
+        A tidy dataframe with two columns, ``metric`` and ``value``. The returned
+        metrics include total review volume, catalogue coverage, reviewer activity
+        and descriptive statistics (length of comments, note moyenne, …).
+        If the inputs are incomplete, an empty dataframe is returned.
+
+    Notes:
+        - Only catalogue recipes are considered when computing the coverage
+          percentage; this prevents ratios above 100 % when the interaction table
+          references deleted or unpublished recipes.
+        - The function gracefully handles datasets with no written reviews
+          (all metrics fall back to zero or ``None``).
+    """
     if df_recipes is None or df_recipes.empty or df_interactions is None or df_interactions.empty:
         return pd.DataFrame(columns=["metric", "value"])
 
@@ -746,6 +767,7 @@ def review_overview(
     total_interactions = len(df_int)
     total_reviews = int(mask_reviews.sum())
 
+    # Intersection stricte pour éviter d'inclure des recettes supprimées
     catalog_recipe_ids = set(df_recipes[recipe_id_recipes].dropna().unique())
     reviewed_recipe_ids = set(df_int.loc[mask_reviews, recipe_id_interactions].dropna().unique())
     recipes_with_reviews = len(catalog_recipe_ids.intersection(reviewed_recipe_ids))
@@ -813,7 +835,23 @@ def review_distribution_per_recipe(
     df_interactions: Optional[pd.DataFrame],
     bins: Optional[Sequence[float]] = (0, 1, 2, 3, 5, 10, 20, 50, np.inf),
 ) -> pd.DataFrame:
-    """Describe how the number of reviews is distributed across recipes."""
+    """Describe how the number of reviews is distributed across recipes.
+
+    Args:
+        df_recipes: Recipe catalogue dataframe. Only the identifier column is
+            required; duplicates or missing rows are dropped automatically.
+        df_interactions: Interactions dataframe supplying review text and
+            recipe identifiers.
+        bins: Optional sequence of monotonically increasing cut points used to
+            bucket recipes by review count. The default mirrors what is shown in
+            the dashboard (0, 1, 2, 3, 5, 10, 20, 50, 50+).
+
+    Returns:
+        A dataframe with one row per bin. For each tranche we provide the number
+        of recipes, the percentage of the catalogue they represent and the average
+        review count. If the inputs are not usable, an empty dataframe with the
+        expected schema is returned.
+    """
     if df_recipes is None or df_recipes.empty or df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=["reviews_bin", "recipe_count", "share_pct", "avg_reviews_in_bin"]
@@ -908,7 +946,26 @@ def reviewer_activity(
     df_interactions: Optional[pd.DataFrame],
     top_n: int = 20,
 ) -> pd.DataFrame:
-    """Summarise reviewer engagement and return the top ``top_n`` profiles."""
+    """Summarise reviewer engagement and return the top ``top_n`` profiles.
+
+    Args:
+        df_interactions: Interactions dataframe containing reviewer identifiers,
+            textual reviews and optional ratings/dates.
+        top_n: Number of reviewers to keep after sorting by review volume.
+
+    Returns:
+        A dataframe ordered by ``reviews_count`` (descending) and limited to
+        ``top_n`` rows. Typical columns include:
+        ``reviewer_id``, ``reviews_count``, ``share_pct``, ``avg_rating_given``,
+        ``avg_review_length_words`` and the first/last review dates (if available).
+        An empty dataframe is returned when no textual reviews are present.
+
+    Notes:
+        - ``share_pct`` is computed relatively to the number of non-empty reviews
+          to ensure the percentages sum to 100 across all reviewers.
+        - Non textual interactions (empty strings, nulls) are filtered out via
+          :func:`_non_empty_text_mask` before aggregation.
+    """
     if df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=[
@@ -1013,7 +1070,22 @@ def reviewer_activity(
 def review_temporal_trend(
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
-    """Produce a monthly series describing review volume and intensity."""
+    """Aggregate review activity by month to expose temporal dynamics.
+
+    Args:
+        df_interactions: Interactions dataframe. Must include a date column,
+            review content and, ideally, reviewer identifiers and ratings.
+
+    Returns:
+        A dataframe indexed by month (``period`` as ``YYYY-MM``) containing the
+        number of reviews collected, the number of unique reviewers and the mean
+        rating when available. Empty inputs yield an empty dataframe with the
+        expected columns.
+
+    Notes:
+        The grouping uses ``freq='ME'`` (month end) so that the trend aligns with
+        calendar months even when the raw dataset has sparse dates.
+    """
     if df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=["period", "reviews_count", "unique_reviewers", "avg_rating_given"]
@@ -1077,7 +1149,17 @@ def reviews_vs_rating(
     df_recipes: Optional[pd.DataFrame],
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
-    """Combine review counts and ratings for each recipe."""
+    """Combine review counts and ratings for each recipe.
+
+    Args:
+        df_recipes: Recipe catalogue including identifiers, titles and contributors.
+        df_interactions: Interactions dataframe providing review text and ratings.
+
+    Returns:
+        A tidy dataframe with identifiers, review volume, average rating and
+        optional metadata (recipe name, contributor). Missing values are coerced
+        to sensible defaults (e.g. zero reviews, ``NaN`` rating).
+    """
     if df_recipes is None or df_recipes.empty or df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=[
@@ -1168,7 +1250,20 @@ def reviewer_reviews_vs_recipes(
     df_recipes: Optional[pd.DataFrame],
     df_interactions: Optional[pd.DataFrame],
 ) -> pd.DataFrame:
-    """Contrast the number of reviews written by a user and their publications."""
+    """Contrast the number of reviews written by a user and their publications.
+
+    Args:
+        df_recipes: Recipe catalogue used to count how many recipes each
+            contributor has published. Can be ``None`` if the information is
+            unavailable.
+        df_interactions: Interactions dataframe containing reviews and ratings.
+
+    Returns:
+        A dataframe with one row per user. It exposes the number of reviews they
+        have written, the number of recipes they have published (if known) and
+        their average rating. Empty inputs produce an empty dataframe with the
+        expected columns.
+    """
     if df_interactions is None or df_interactions.empty:
         return pd.DataFrame(
             columns=[
@@ -1255,19 +1350,25 @@ def reviewer_reviews_vs_recipes(
 
 
 class DataAnylizer:
-    """Load datasets once and expose high level analytics helpers."""
+    """Container orchestrant les analyses côté backend.
+
+    Les datasets sont chargés une seule fois à l'initialisation (recettes et
+    interactions), puis les méthodes d'analyse sont mises à disposition via
+    :meth:`process_data`. Cette classe est injectée dans l'API FastAPI pour
+    garantir un cache en mémoire performant.
+    """
 
     def __init__(self, csv_adapter: IDataAdapter):
-        """Eagerly load both datasets via the provided adapter."""
+        """Charge immédiatement les jeux de données via l’adapter fourni."""
         self.df_recipes = csv_adapter.load(DataType.RECIPES)
         self.df_interactions = csv_adapter.load(DataType.INTERACTIONS)
 
     def get_raw_data(self) -> tuple[pd.DataFrame, pd.DataFrame]:
-        """Return the raw recipe and interaction dataframes."""
+        """Retourne les dataframes bruts (recettes, interactions)."""
         return self.df_recipes, self.df_interactions
 
     def process_data(self, analysis_type: AnalysisType) -> pd.DataFrame:
-        """Route the analysis request to the corresponding helper."""
+        """Route la demande d'analyse vers la fonction adéquate."""
         if analysis_type == AnalysisType.NUMBER_RECIPES:
             return most_recipes_contributors(self.df_recipes)
         if analysis_type == AnalysisType.BEST_RECIPES:
