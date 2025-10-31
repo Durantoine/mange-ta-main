@@ -192,14 +192,18 @@ def average_duration_distribution(
     group_keys = group_cols_list + ["duration_bin"]
 
     agg = (
-        df.groupby(group_keys)
+        df.groupby(group_keys, observed=False)
         .agg(count=(duration_col, "size"), avg_duration_in_bin=(duration_col, "mean"))
         .reset_index()
     )
 
     # Parts
     if group_cols_list:
-        totals = agg.groupby(group_cols_list)["count"].sum().reset_index(name="total_count")
+        totals = (
+            agg.groupby(group_cols_list, observed=False)["count"]
+            .sum()
+            .reset_index(name="total_count")
+        )
         out = agg.merge(totals, on=group_cols_list, how="left")
     else:
         total_count = agg["count"].sum()
@@ -210,7 +214,7 @@ def average_duration_distribution(
     # Part cumulée
     out = out.sort_values(group_cols_list + ["duration_bin"]).reset_index(drop=True)
     if group_cols_list:
-        out["cum_share"] = out.groupby(group_cols_list)["share"].cumsum().round(2)
+        out["cum_share"] = out.groupby(group_cols_list, observed=False)["share"].cumsum().round(2)
     else:
         out["cum_share"] = out["share"].cumsum().round(2)
 
@@ -447,13 +451,17 @@ def top_tags_by_segment_from_users(
 
     # Comptage
     counts = (
-        df_tags.groupby(["segment", "persona", tags_col], dropna=False)
+        df_tags.groupby(["segment", "persona", tags_col], dropna=False, observed=False)
         .size()
         .reset_index(name="count")
     )
 
     # Part par segment
-    totals = counts.groupby(["segment", "persona"])["count"].sum().reset_index(name="segment_total")
+    totals = (
+        counts.groupby(["segment", "persona"], observed=False)["count"]
+        .sum()
+        .reset_index(name="segment_total")
+    )
     counts = counts.merge(totals, on=["segment", "persona"], how="left")
     counts["share_pct"] = (counts["count"] / counts["segment_total"] * 100).round(2)
 
@@ -703,7 +711,9 @@ def review_overview(
     total_recipes = int(df_recipes[recipe_id_recipes].nunique(dropna=True))
     unique_reviewers = int(df_int.loc[mask_reviews, user_col].nunique(dropna=True))
 
-    reviews_per_recipe = df_int.loc[mask_reviews].groupby(recipe_id_interactions)[review_col].size()
+    reviews_per_recipe = (
+        df_int.loc[mask_reviews].groupby(recipe_id_interactions, observed=False)[review_col].size()
+    )
 
     empty_reviews = total_interactions - total_reviews
     empty_ratio = (empty_reviews / total_interactions * 100) if total_interactions else 0.0
@@ -788,7 +798,7 @@ def review_distribution_per_recipe(
     review_counts = (
         df_int.loc[mask_reviews, [recipe_id_interactions]]
         .assign(count=1)
-        .groupby(recipe_id_interactions)["count"]
+        .groupby(recipe_id_interactions, observed=False)["count"]
         .sum()
         .reset_index()
         .rename(columns={recipe_id_interactions: "recipe_id", "count": "review_count"})
@@ -829,7 +839,7 @@ def review_distribution_per_recipe(
     )
 
     distribution = (
-        merged.groupby("reviews_bin")
+        merged.groupby("reviews_bin", observed=False)
         .agg(
             recipe_count=("recipe_id", "size"),
             avg_reviews_in_bin=("review_count", "mean"),
@@ -918,7 +928,7 @@ def reviewer_activity(
         agg_map["last_review_date"] = (date_col, "max")
 
     activity = (
-        df_reviews.groupby(user_col)
+        df_reviews.groupby(user_col, observed=False)
         .agg(**agg_map)
         .reset_index()
         .rename(columns={user_col: "reviewer_id"})
@@ -996,7 +1006,7 @@ def review_temporal_trend(
         agg_dict["avg_rating_given"] = (rating_col, "mean")
 
     trend = (
-        df_reviews.groupby(pd.Grouper(key=date_col, freq="M"))
+        df_reviews.groupby(pd.Grouper(key=date_col, freq="ME"))
         .agg(**agg_dict)
         .reset_index()
         .rename(columns={date_col: "period_start"})
