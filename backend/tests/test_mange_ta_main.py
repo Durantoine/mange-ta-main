@@ -17,6 +17,7 @@ from fastapi.testclient import TestClient
 
 import service.main as service_main
 from service.container import Container
+from service.layers import logger as backend_logger
 from service.layers.api import mange_ta_main as api_module
 from service.layers.application import mange_ta_main as mtm
 from service.layers.application.data_cleaning import (
@@ -33,7 +34,6 @@ from service.layers.application.mange_ta_main import AnalysisType, DataAnylizer
 from service.layers.domain.mange_ta_main import SERVICE_PREFIX
 from service.layers.infrastructure.csv_adapter import CSVAdapter
 from service.layers.infrastructure.types import DataType
-from service.layers import logger as backend_logger
 from service.layers.logger import struct_logger
 from service.main import app, lifespan
 

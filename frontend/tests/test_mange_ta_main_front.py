@@ -320,8 +320,9 @@ def test_keyword_friendly_logger_captures_kwargs():
     assert "count=3" in log_output
     assert "reason=coverage" in log_output
     assert "Failure" in log_output and "exc_info=True" in log_output
-    if hasattr(fallback, "_logger") and hasattr(fallback._logger, "logger"):
-        assert fallback._logger.logger is base_logger
+    underlying = getattr(fallback, "_logger", None)
+    if isinstance(underlying, logging.LoggerAdapter):
+        assert underlying.logger is base_logger
 
     base_logger.handlers = previous_handlers
     base_logger.setLevel(previous_level)
