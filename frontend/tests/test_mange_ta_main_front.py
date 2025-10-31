@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, Mock, patch
 import altair as alt
 import numpy as np
 import pandas as pd
+import pytest
 import requests
 
 from ..service.components.tab01_top_contributors import render_top_contributors
@@ -331,6 +332,78 @@ def test_keyword_friendly_logger_captures_kwargs():
     base_logger.propagate = previous_propagate
 
 
+def test_sidebar_without_context_manager(monkeypatch):
+    from ..service.components import sidebar as sidebar_module
+
+    fake_sidebar = types.SimpleNamespace(header=MagicMock(), page_link=MagicMock())
+    fake_st = types.SimpleNamespace(markdown=MagicMock(), sidebar=fake_sidebar)
+
+    monkeypatch.setattr(sidebar_module, "st", fake_st)
+
+    sidebar_module.render_sidebar()
+
+    fake_st.markdown.assert_called_once()
+    assert fake_sidebar.header.call_count == 1
+    assert fake_sidebar.page_link.call_count == 4
+
+
+def test_render_data_page_success(monkeypatch):
+    module_name = "service.pages.tab01_data"
+    sys.modules.pop(module_name, None)
+
+    class _Spinner:
+        def __enter__(self):
+            return None
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    fake_st = types.SimpleNamespace(
+        header=MagicMock(),
+        markdown=MagicMock(),
+        selectbox=lambda *a, **k: "recipes",
+        button=lambda *a, **k: True,
+        spinner=lambda *a, **k: _Spinner(),
+        dataframe=MagicMock(),
+        error=MagicMock(),
+    )
+    fake_sidebar = types.SimpleNamespace(render_sidebar=lambda: None)
+
+    monkeypatch.setitem(sys.modules, "streamlit", fake_st)
+    monkeypatch.setitem(sys.modules, "components.sidebar", fake_sidebar)
+
+    imported = importlib.import_module(module_name)
+
+    monkeypatch.setattr(imported, "fetch_backend_json", lambda *a, **k: [{"id": 1, "name": "Test"}])
+
+    imported.render_data_page()
+
+    fake_st.dataframe.assert_called_once()
+    fake_st.error.assert_not_called()
+
+    sys.modules.pop(module_name, None)
+
+
+def test_logger_fallback_branch(monkeypatch):
+    module_name = "service.logger"
+    original = sys.modules.pop(module_name, None)
+
+    fake_structlog = types.ModuleType("structlog")
+    monkeypatch.setitem(sys.modules, "structlog", fake_structlog)
+    monkeypatch.delitem(sys.modules, "structlog.dev", raising=False)
+
+    import importlib
+
+    module = importlib.import_module(module_name)
+    fallback_logger = module.struct_logger
+    assert isinstance(fallback_logger, module._KeywordFriendlyLogger)
+    fallback_logger.bind(user="abc").error("fallback error", count=5)
+    fallback_logger.debug("fallback debug")
+
+    if original is not None:
+        sys.modules[module_name] = original
+
+
 def test_tab01_data_logs_request_exception(monkeypatch, caplog):
     module_name = "service.pages.tab01_data"
     sys.modules.pop(module_name, None)
@@ -349,6 +422,7 @@ def test_tab01_data_logs_request_exception(monkeypatch, caplog):
         button=lambda *a, **k: True,
         spinner=lambda *a, **k: _Spinner(),
         dataframe=lambda *a, **k: None,
+        error=MagicMock(),
     )
     fake_sidebar = types.SimpleNamespace(render_sidebar=lambda: None)
 
@@ -358,16 +432,63 @@ def test_tab01_data_logs_request_exception(monkeypatch, caplog):
     def _raise_backend(*args, **kwargs):
         raise BackendAPIError(endpoint="http://fake", details="boom")
 
-    monkeypatch.setattr(f"{module_name}.fetch_backend_json", _raise_backend)
-
-    with caplog.at_level(logging.ERROR):
+    with caplog.at_level(logging.ERROR, logger="mange-ta-main.frontend"):
         imported = importlib.import_module(module_name)
+        monkeypatch.setattr(imported, "fetch_backend_json", _raise_backend, raising=False)
         imported.render_data_page()
 
     sys.modules.pop(module_name, None)
 
     assert imported is not None
-    assert any("boom" in record.getMessage() for record in caplog.records)
+    fake_st.error.assert_called_once()
+    assert "boom" in fake_st.error.call_args.args[0]
+
+
+def test_fetch_backend_json_raises_backend_error(monkeypatch):
+    from ..service.src import http_client as http_client_module
+
+    class DummyResponse:
+        def raise_for_status(self):
+            raise requests.HTTPError("boom")
+
+    monkeypatch.setattr(http_client_module.requests, "get", lambda *a, **k: DummyResponse())
+
+    with pytest.raises(http_client_module.BackendAPIError):
+        http_client_module.fetch_backend_json("endpoint")
+
+
+def test_fetch_backend_json_uses_cache_wrapper(monkeypatch):
+    from ..service.src import http_client as http_client_module
+
+    class DummyCache:
+        __module__ = "dummy_cache_module"
+
+        def __call__(self, **cache_kwargs):
+            def decorator(func):
+                def wrapper(*args, **kwargs):
+                    return func(*args, **kwargs)
+
+                return wrapper
+
+            return decorator
+
+    class DummyResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"status": "ok"}
+
+    monkeypatch.setattr(http_client_module.requests, "get", lambda *a, **k: DummyResponse())
+
+    original_st = http_client_module.st
+    http_client_module.st = types.SimpleNamespace(cache_data=DummyCache())
+    try:
+        result = http_client_module.fetch_backend_json("endpoint", params={"a": 1})
+    finally:
+        http_client_module.st = original_st
+
+    assert result == {"status": "ok"}
 
 
 def test_structlog_configuration_branch(monkeypatch):
