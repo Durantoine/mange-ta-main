@@ -2,6 +2,7 @@ import streamlit as st
 from components.sidebar import render_sidebar
 from components.tab01_top_contributors import render_top_contributors
 from components.tab02_duration_recipe import render_duration_recipe
+from components.tab03_reviews import render_reviews
 from components.tab04_rating import render_user_rating
 
 st.cache_data.clear()
@@ -9,7 +10,7 @@ st.cache_resource.clear()
 
 st.set_page_config(page_title="Mangetamain Dashboard", layout="wide")
 
-st.image("images/home_ban_big.png", width='stretch')
+st.image("images/home_ban_big.png", width="stretch")
 
 st.markdown(
     """
@@ -64,12 +65,12 @@ Utilisez les pages dans la barre latérale pour explorer les données.
 render_sidebar()
 
 
-tab1, tab2, tab3 = st.tabs(['Durée des recettes', 'Avis postés', 'Note moyenne'])
+tab1, tab2, tab3 = st.tabs(["Durée des recettes", "Avis postés", "Note moyenne"])
 with tab1:
     render_duration_recipe()
 
 with tab2:
-    st.write('Placeholders pour des cards, des graphes Plotly, etc.')
+    render_reviews()
 
 with tab3:
     render_user_rating()

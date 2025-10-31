@@ -82,6 +82,7 @@ def get_duration_vs_recipe_count(
     struct_logger.info(df_result)
     return df_result.to_dict(orient="records")
 
+
 @router.get("/top-10-percent-contributors")
 def get_top_10_percent_contributors(
     data_analyzer: DataAnylizer = Depends(get_data_analyzer),
@@ -89,6 +90,7 @@ def get_top_10_percent_contributors(
     df_result = data_analyzer.process_data(AnalysisType.TOP_10_PERCENT_CONTRIBUTORS)
     struct_logger.info("top_10_percent_contributors", rows=len(df_result))
     return df_result.to_dict(orient="records")
+
 
 @router.get("/user-segments")
 def get_user_segments(
@@ -123,4 +125,58 @@ def get_rating_vs_recipes(
 ) -> list[dict]:
     df_result = data_analyzer.process_data(AnalysisType.RATING_VS_RECIPES)
     struct_logger.info("rating_vs_recipes")
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/review-overview")
+def get_review_overview(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.REVIEW_OVERVIEW)
+    struct_logger.info("review_overview", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/review-distribution")
+def get_review_distribution(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.REVIEW_DISTRIBUTION)
+    struct_logger.info("review_distribution", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/top-reviewers")
+def get_top_reviewers(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.REVIEWER_ACTIVITY)
+    struct_logger.info("top_reviewers", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/review-trend")
+def get_review_trend(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.REVIEW_TEMPORAL_TREND)
+    struct_logger.info("review_trend", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/reviews-vs-rating")
+def get_reviews_vs_rating(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.REVIEWS_VS_RATING)
+    struct_logger.info("reviews_vs_rating", rows=len(df_result))
+    return df_result.to_dict(orient="records")
+
+
+@router.get("/reviewer-vs-recipes")
+def get_reviewer_vs_recipes(
+    data_analyzer: DataAnylizer = Depends(get_data_analyzer),
+) -> list[dict]:
+    df_result = data_analyzer.process_data(AnalysisType.REVIEWER_VS_RECIPES)
+    struct_logger.info("reviewer_vs_recipes", rows=len(df_result))
     return df_result.to_dict(orient="records")
