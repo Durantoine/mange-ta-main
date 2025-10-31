@@ -259,7 +259,12 @@ def test_render_sidebar_smoke():
         _render_sidebar()
         # Should style and create links
         st_mock.markdown.assert_called()
-        assert st_mock.page_link.call_count >= 4
+        sidebar_links = (
+            st_mock.sidebar.__enter__.return_value.page_link.call_count
+            if hasattr(st_mock.sidebar.__enter__.return_value, "page_link")
+            else 0
+        )
+        assert st_mock.page_link.call_count + sidebar_links >= 4
 
 
 def test_pages_imports_smoke_without_network():
@@ -357,6 +362,7 @@ def test_tab01_data_logs_request_exception(monkeypatch, caplog):
 
     with caplog.at_level(logging.ERROR):
         imported = importlib.import_module(module_name)
+        imported.render_data_page()
 
     sys.modules.pop(module_name, None)
 

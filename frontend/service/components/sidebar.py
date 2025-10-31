@@ -42,11 +42,13 @@ def render_sidebar() -> None:
     )
 
     with _sidebar_context() as sidebar:
-        header_fn = getattr(sidebar, "header", None) or getattr(st, "header", None)
+        target = sidebar if sidebar is not None else st
+
+        header_fn = getattr(target, "header", None)
         if callable(header_fn):
             header_fn("Navigation")
 
-        page_link_fn = getattr(sidebar, "page_link", None) or getattr(st, "page_link", None)
+        page_link_fn = getattr(target, "page_link", None)
         if callable(page_link_fn):
             page_link_fn("/app/service/app.py", label="Exploration")
             page_link_fn("/app/service/pages/tab01_data.py", label="Données")
