@@ -1,9 +1,13 @@
 import pandas as pd
-import requests
 import streamlit as st
-from components.sidebar import render_sidebar
-from domain import BASE_URL
 from logger import struct_logger
+
+try:
+    from ..components.sidebar import render_sidebar
+    from ..src.http_client import BackendAPIError, fetch_backend_json
+except ImportError:  # pragma: no cover - fallback for standalone execution
+    from components.sidebar import render_sidebar
+    from src.http_client import BackendAPIError, fetch_backend_json
 
 render_sidebar()
 st.header("🔌 Visualisation et export des donnée")
@@ -23,16 +27,18 @@ data_type = st.selectbox("Choisir le dataset", ["recipes", "interactions"])
 
 if st.button("Charger le dataset"):
     with st.spinner("Chargement..."):
-        url = f"{BASE_URL}/mange_ta_main/load-data?data_type={data_type}"
         try:
-            response = requests.get(url)
-            response.raise_for_status()
-            data = response.json()
-        except requests.exceptions.RequestException as e:
-            struct_logger.error(e)
-
+            payload = fetch_backend_json(
+                "load-data",
+                params={"data_type": data_type, "limit": 5_000},
+                ttl=30,
+            )
+            struct_logger.info("dataset_loaded", data_type=data_type, rows=len(payload))
+        except BackendAPIError as exc:
+            struct_logger.error(
+                "dataset_load_failed", data_type=data_type, error=str(exc), endpoint=exc.endpoint
+            )
+            st.error(f"Impossible de charger le dataset : {exc.details}")
         else:
-            print(type(data))
-            df = pd.DataFrame(data)
-            struct_logger.info(df)
-            st.dataframe(df.head(100))
+            df = pd.DataFrame(payload)
+            st.dataframe(df, use_container_width=True)

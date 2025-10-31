@@ -3,10 +3,10 @@ from typing import Optional
 import altair as alt
 import numpy as np
 import pandas as pd
-import requests
 import streamlit as st
-from domain import BASE_URL
 from logger import struct_logger
+
+from ..src.http_client import BackendAPIError, fetch_backend_json
 
 
 def _format_metric(metric_id: str, value) -> str:
@@ -48,13 +48,11 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     # 1. Indicateurs clés
     # =========================
     try:
-        overview_resp = requests.get(f"{BASE_URL}/mange_ta_main/review-overview")
-        overview_resp.raise_for_status()
-        overview_data = overview_resp.json()
+        overview_data = fetch_backend_json("review-overview", ttl=120)
         logger.info("Review overview fetched", count=len(overview_data))
-    except requests.RequestException as exc:
-        st.error(f"Impossible de récupérer les indicateurs d'avis : {exc}")
-        logger.error("Failed to fetch review overview", error=str(exc))
+    except BackendAPIError as exc:
+        st.error(f"Impossible de récupérer les indicateurs d'avis : {exc.details}")
+        logger.error("Failed to fetch review overview", error=str(exc), endpoint=exc.endpoint)
         overview_data = []
 
     if overview_data:
@@ -138,13 +136,11 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     )
 
     try:
-        dist_resp = requests.get(f"{BASE_URL}/mange_ta_main/review-distribution")
-        dist_resp.raise_for_status()
-        dist_data = dist_resp.json()
+        dist_data = fetch_backend_json("review-distribution", ttl=300)
         logger.info("Review distribution fetched", count=len(dist_data))
-    except requests.RequestException as exc:
-        st.error(f"Erreur lors de la récupération de la distribution d'avis : {exc}")
-        logger.error("Failed to fetch review distribution", error=str(exc))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la récupération de la distribution d'avis : {exc.details}")
+        logger.error("Failed to fetch review distribution", error=str(exc), endpoint=exc.endpoint)
         dist_data = []
 
     if dist_data:
@@ -254,13 +250,11 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     st.subheader("Reviewers les plus actifs")
 
     try:
-        reviewer_resp = requests.get(f"{BASE_URL}/mange_ta_main/top-reviewers")
-        reviewer_resp.raise_for_status()
-        reviewer_data = reviewer_resp.json()
+        reviewer_data = fetch_backend_json("top-reviewers", ttl=120)
         logger.info("Top reviewers fetched", count=len(reviewer_data))
-    except requests.RequestException as exc:
-        st.error(f"Erreur lors de la récupération des reviewers : {exc}")
-        logger.error("Failed to fetch top reviewers", error=str(exc))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la récupération des reviewers : {exc.details}")
+        logger.error("Failed to fetch top reviewers", error=str(exc), endpoint=exc.endpoint)
         reviewer_data = []
 
     if reviewer_data:
@@ -345,13 +339,11 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     st.subheader("Commentaires rédigés vs recettes publiées (par utilisateur)")
 
     try:
-        reviewer_vs_recipes_resp = requests.get(f"{BASE_URL}/mange_ta_main/reviewer-vs-recipes")
-        reviewer_vs_recipes_resp.raise_for_status()
-        reviewer_vs_recipes_data = reviewer_vs_recipes_resp.json()
+        reviewer_vs_recipes_data = fetch_backend_json("reviewer-vs-recipes", ttl=120)
         logger.info("Reviewer vs recipes fetched", count=len(reviewer_vs_recipes_data))
-    except requests.RequestException as exc:
-        st.error(f"Erreur lors de la corrélation reviewers / recettes : {exc}")
-        logger.error("Failed to fetch reviewer vs recipes", error=str(exc))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la corrélation reviewers / recettes : {exc.details}")
+        logger.error("Failed to fetch reviewer vs recipes", error=str(exc), endpoint=exc.endpoint)
         reviewer_vs_recipes_data = []
 
     if reviewer_vs_recipes_data:
@@ -482,13 +474,11 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     st.subheader("Chronologie des avis publiés")
 
     try:
-        trend_resp = requests.get(f"{BASE_URL}/mange_ta_main/review-trend")
-        trend_resp.raise_for_status()
-        trend_data = trend_resp.json()
+        trend_data = fetch_backend_json("review-trend", ttl=300)
         logger.info("Review trend fetched", count=len(trend_data))
-    except requests.RequestException as exc:
-        st.error(f"Erreur lors de la récupération de la chronologie : {exc}")
-        logger.error("Failed to fetch review trend", error=str(exc))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la récupération de la chronologie : {exc.details}")
+        logger.error("Failed to fetch review trend", error=str(exc), endpoint=exc.endpoint)
         trend_data = []
 
     if trend_data:
@@ -567,13 +557,11 @@ def render_reviews(logger=struct_logger) -> None:  # pragma: no cover - Streamli
     st.subheader("Relation entre volume d'avis et note moyenne")
 
     try:
-        scatter_resp = requests.get(f"{BASE_URL}/mange_ta_main/reviews-vs-rating")
-        scatter_resp.raise_for_status()
-        scatter_data = scatter_resp.json()
+        scatter_data = fetch_backend_json("reviews-vs-rating", ttl=300)
         logger.info("Reviews vs rating fetched", count=len(scatter_data))
-    except requests.RequestException as exc:
-        st.error(f"Erreur lors de la récupération des corrélations : {exc}")
-        logger.error("Failed to fetch reviews vs rating", error=str(exc))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la récupération des corrélations : {exc.details}")
+        logger.error("Failed to fetch reviews vs rating", error=str(exc), endpoint=exc.endpoint)
         scatter_data = []
 
     if scatter_data:

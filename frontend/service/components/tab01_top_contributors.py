@@ -1,8 +1,8 @@
 import pandas as pd
-import requests
 import streamlit as st
-from domain import BASE_URL
 from logger import struct_logger
+
+from ..src.http_client import BackendAPIError, fetch_backend_json
 
 
 def render_top_contributors(
@@ -21,35 +21,42 @@ def render_top_contributors(
     st.subheader("Contributeurs avec le plus de recettes")
 
     try:
-        response = requests.get(f"{BASE_URL}/mange_ta_main/most-recipes-contributors")
-        response.raise_for_status()
-        data = response.json()
+        data = fetch_backend_json("most-recipes-contributors", ttl=120)
         struct_logger.info("Most active contributors fetched", count=len(data))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la récupération des données : {exc.details}")
+        struct_logger.error("Failed to fetch most active", error=str(exc), endpoint=exc.endpoint)
+        data = []
 
-        if data:
-            df = pd.DataFrame(data)
-            df.columns = ["Contributeur ID", "Nombre de Recettes"]
+    if not data:
+        st.warning("Aucune donnée disponible")
+        return
 
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total Contributeurs", len(df))
-            with col2:
-                st.metric("Top Contributeur", f"{df.iloc[0]['Nombre de Recettes']} recettes")
-            with col3:
-                avg_recipes = df["Nombre de Recettes"].mean()
-                st.metric("Moyenne", f"{avg_recipes:.1f} recettes")
+    df = pd.DataFrame(data)
+    if df.empty or df.shape[1] < 2:
+        st.warning("Format de données inattendu pour les contributeurs.")
+        return
 
-            top10 = df.head(10).copy()
-            top10["Rank"] = range(1, 11)
-            st.bar_chart(top10.set_index("Rank")["Nombre de Recettes"])
+    try:
+        df.columns = ["Contributeur ID", "Nombre de Recettes"]
+    except ValueError:
+        st.warning("Format de données inattendu pour les contributeurs.")
+        return
 
-            st.dataframe(df.head(20), width="stretch", hide_index=True)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Contributeurs", len(df))
+    with col2:
+        st.metric("Top Contributeur", f"{df.iloc[0]['Nombre de Recettes']} recettes")
+    with col3:
+        avg_recipes = df["Nombre de Recettes"].mean()
+        st.metric("Moyenne", f"{avg_recipes:.1f} recettes")
 
-            csv = df.to_csv(index=False)
-            st.download_button("📥 Télécharger CSV", csv, "contributeurs_actifs.csv", "text/csv")
-        else:
-            st.warning("Aucune donnée disponible")
+    top10 = df.head(10).copy()
+    top10["Rank"] = range(1, 11)
+    st.bar_chart(top10.set_index("Rank")["Nombre de Recettes"])
 
-    except requests.RequestException as e:
-        st.error(f"Erreur lors de la récupération des données : {e}")
-        struct_logger.error("Failed to fetch most active", error=str(e))
+    st.dataframe(df.head(20), width="stretch", hide_index=True)
+
+    csv = df.to_csv(index=False)
+    st.download_button("📥 Télécharger CSV", csv, "contributeurs_actifs.csv", "text/csv")

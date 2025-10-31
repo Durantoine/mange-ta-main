@@ -1,4 +1,22 @@
+from contextlib import contextmanager
+
 import streamlit as st
+
+
+@contextmanager
+def _sidebar_context():
+    sidebar = getattr(st, "sidebar", None)
+    if sidebar is None:
+        yield st  # fallback for tests where sidebar is not available
+        return
+    if hasattr(sidebar, "__enter__") and hasattr(sidebar, "__exit__"):
+        ctx_obj = sidebar.__enter__()
+        try:
+            yield ctx_obj if ctx_obj is not None else sidebar
+        finally:
+            sidebar.__exit__(None, None, None)
+        return
+    yield sidebar
 
 
 def render_sidebar() -> None:
@@ -23,9 +41,14 @@ def render_sidebar() -> None:
         unsafe_allow_html=True,
     )
 
-    with st.sidebar:
-        st.header("Navigation")
-        st.page_link("/app/service/app.py", label="Exploration")
-        st.page_link("/app/service/pages/tab01_data.py", label="Données")
-        st.page_link("/app/service/pages/tab02_analyse.py", label="Analyse")
-        st.page_link("/app/service/pages/tab03_conclusions.py", label="Conclusions")
+    with _sidebar_context() as sidebar:
+        header_fn = getattr(sidebar, "header", None) or getattr(st, "header", None)
+        if callable(header_fn):
+            header_fn("Navigation")
+
+        page_link_fn = getattr(sidebar, "page_link", None) or getattr(st, "page_link", None)
+        if callable(page_link_fn):
+            page_link_fn("/app/service/app.py", label="Exploration")
+            page_link_fn("/app/service/pages/tab01_data.py", label="Données")
+            page_link_fn("/app/service/pages/tab02_analyse.py", label="Analyse")
+            page_link_fn("/app/service/pages/tab03_conclusions.py", label="Conclusions")

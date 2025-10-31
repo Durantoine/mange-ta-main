@@ -18,6 +18,7 @@ from ..service.components.tab06_top10_analyse import render_top10_vs_global
 from ..service.components.tab07_tags import SEGMENT_ORDER, render_top_tags_by_segment
 from ..service.domain import BASE_URL
 from ..service.logger import struct_logger
+from ..service.src.http_client import BackendAPIError
 
 
 def test_base_url_is_non_empty_string():
@@ -80,7 +81,7 @@ def test_render_top_contributors_with_data(top_contributors_payload, make_respon
     fake_response = make_response(top_contributors_payload)
     module_path = render_top_contributors.__module__
     with (
-        patch(f"{module_path}.requests.get", return_value=fake_response) as mock_get,
+        patch(f"{module_path}.fetch_backend_json", return_value=fake_response) as mock_fetch,
         patch(f"{module_path}.st") as st_mock,
     ):
 
@@ -92,9 +93,9 @@ def test_render_top_contributors_with_data(top_contributors_payload, make_respon
         render_top_contributors(show_title=True)
 
         # Assert: network called once on expected endpoint
-        assert mock_get.call_count == 1
-        called_url = mock_get.call_args[0][0]
-        assert called_url.endswith("/mange_ta_main/most-recipes-contributors")
+        mock_fetch.assert_called_once()
+        assert mock_fetch.call_args.kwargs["ttl"] == 120
+        assert mock_fetch.call_args.args[0] == "most-recipes-contributors"
 
         # Assert: basic Streamlit render pipeline executed
         st_mock.title.assert_called_once()
@@ -117,7 +118,7 @@ def test_render_top_contributors_no_data(make_response):
     fake_response = make_response([])
     module_path = render_top_contributors.__module__
     with (
-        patch(f"{module_path}.requests.get", return_value=fake_response),
+        patch(f"{module_path}.fetch_backend_json", return_value=fake_response),
         patch(f"{module_path}.st") as st_mock,
     ):
         render_top_contributors(show_title=False)
@@ -134,8 +135,8 @@ def test_render_duration_recipe_with_data(
     module_path = render_duration_recipe.__module__
     with (
         patch(
-            f"{module_path}.requests.get", side_effect=[fake_resp_dist, fake_resp_corr]
-        ) as mock_get,
+            f"{module_path}.fetch_backend_json", side_effect=[fake_resp_dist, fake_resp_corr]
+        ) as mock_fetch,
         patch(f"{module_path}.st") as st_mock,
     ):
 
@@ -149,10 +150,9 @@ def test_render_duration_recipe_with_data(
         render_duration_recipe()
 
         # Assert: two endpoints called
-        assert mock_get.call_count == 2
-        urls = [call_args[0][0] for call_args in mock_get.call_args_list]
-        assert urls[0].endswith("/mange_ta_main/duration-distribution")
-        assert urls[1].endswith("/mange_ta_main/duration-vs-recipe-count")
+        assert mock_fetch.call_count == 2
+        endpoints = [call.args[0] for call in mock_fetch.call_args_list]
+        assert endpoints == ["duration-distribution", "duration-vs-recipe-count"]
 
         # Streamlit interactions occur
         st_mock.header.assert_called()
@@ -177,8 +177,8 @@ def test_render_user_rating_with_data(
     module_path = render_user_rating.__module__
     with (
         patch(
-            f"{module_path}.requests.get", side_effect=[fake_resp_dist, fake_resp_corr]
-        ) as mock_get,
+            f"{module_path}.fetch_backend_json", side_effect=[fake_resp_dist, fake_resp_corr]
+        ) as mock_fetch,
         patch(f"{module_path}.st") as st_mock,
     ):
 
@@ -188,10 +188,9 @@ def test_render_user_rating_with_data(
 
         render_user_rating()
 
-        assert mock_get.call_count == 2
-        urls = [call_args[0][0] for call_args in mock_get.call_args_list]
-        assert urls[0].endswith("/mange_ta_main/rating-distribution")
-        assert urls[1].endswith("/mange_ta_main/rating-vs-recipes")
+        assert mock_fetch.call_count == 2
+        endpoints = [call.args[0] for call in mock_fetch.call_args_list]
+        assert endpoints == ["rating-distribution", "rating-vs-recipes"]
 
         st_mock.header.assert_called()
         st_mock.subheader.assert_called()
@@ -207,7 +206,7 @@ def test_render_top10_vs_global_with_data(top10_vs_global_payload, make_response
     fake_resp = make_response(top10_vs_global_payload)
     module_path = render_top10_vs_global.__module__
     with (
-        patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get,
+        patch(f"{module_path}.fetch_backend_json", return_value=fake_resp) as mock_fetch,
         patch(f"{module_path}.st") as st_mock,
     ):
 
@@ -216,9 +215,8 @@ def test_render_top10_vs_global_with_data(top10_vs_global_payload, make_response
 
         render_top10_vs_global()
 
-        mock_get.assert_called_once()
-        called_url = mock_get.call_args[0][0]
-        assert called_url.endswith("/mange_ta_main/top-10-percent-contributors")
+        mock_fetch.assert_called_once()
+        assert mock_fetch.call_args.args[0] == "top-10-percent-contributors"
 
         assert st_mock.metric.call_count >= 2
         assert st_mock.altair_chart.call_count >= 1
@@ -231,7 +229,7 @@ def test_render_top_tags_by_segment_with_data(tags_by_segment_payload, make_resp
     fake_resp = make_response(tags_by_segment_payload)
     module_path = render_top_tags_by_segment.__module__
     with (
-        patch(f"{module_path}.requests.get", return_value=fake_resp) as mock_get,
+        patch(f"{module_path}.fetch_backend_json", return_value=fake_resp) as mock_fetch,
         patch(f"{module_path}.st") as st_mock,
     ):
 
@@ -240,9 +238,8 @@ def test_render_top_tags_by_segment_with_data(tags_by_segment_payload, make_resp
 
         render_top_tags_by_segment()
 
-        mock_get.assert_called_once()
-        called_url = mock_get.call_args[0][0]
-        assert called_url.endswith("/mange_ta_main/top-tags-by-segment")
+        mock_fetch.assert_called_once()
+        assert mock_fetch.call_args.args[0] == "top-tags-by-segment"
 
         # Should render charts and table, and offer a CSV download
         assert st_mock.altair_chart.call_count >= 1
@@ -353,10 +350,10 @@ def test_tab01_data_logs_request_exception(monkeypatch, caplog):
     monkeypatch.setitem(sys.modules, "streamlit", fake_st)
     monkeypatch.setitem(sys.modules, "components.sidebar", fake_sidebar)
 
-    def _raise_request(*args, **kwargs):
-        raise requests.exceptions.RequestException("boom")
+    def _raise_backend(*args, **kwargs):
+        raise BackendAPIError(endpoint="http://fake", details="boom")
 
-    monkeypatch.setattr("requests.get", _raise_request)
+    monkeypatch.setattr(f"{module_name}.fetch_backend_json", _raise_backend)
 
     with caplog.at_level(logging.ERROR):
         imported = importlib.import_module(module_name)

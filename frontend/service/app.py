@@ -1,9 +1,17 @@
 import streamlit as st
-from components.sidebar import render_sidebar
-from components.tab01_top_contributors import render_top_contributors
-from components.tab02_duration_recipe import render_duration_recipe
-from components.tab03_reviews import render_reviews
-from components.tab04_rating import render_user_rating
+
+try:
+    from .components.sidebar import render_sidebar
+    from .components.tab01_top_contributors import render_top_contributors
+    from .components.tab02_duration_recipe import render_duration_recipe
+    from .components.tab03_reviews import render_reviews
+    from .components.tab04_rating import render_user_rating
+except ImportError:  # pragma: no cover - fallback when executed as script
+    from components.sidebar import render_sidebar
+    from components.tab01_top_contributors import render_top_contributors
+    from components.tab02_duration_recipe import render_duration_recipe
+    from components.tab03_reviews import render_reviews
+    from components.tab04_rating import render_user_rating
 
 st.cache_data.clear()
 st.cache_resource.clear()

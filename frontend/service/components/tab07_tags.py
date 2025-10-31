@@ -1,9 +1,11 @@
+import textwrap
+
 import altair as alt
 import pandas as pd
-import requests
 import streamlit as st
-from domain import BASE_URL
 from logger import struct_logger
+
+from ..src.http_client import BackendAPIError, fetch_backend_json
 
 SEGMENT_ORDER = [
     "Super Cookers",
@@ -93,83 +95,82 @@ def render_top_tags_by_segment(
     y_title = "Occurrences" if value_col == "count" else "Part (%)"
 
     try:
-        response = requests.get(f"{BASE_URL}/mange_ta_main/top-tags-by-segment")
-        response.raise_for_status()
-        data = response.json()
+        data = fetch_backend_json("top-tags-by-segment", ttl=300)
         logger.info("Top tags by segment fetched", count=len(data))
-    except requests.RequestException as e:
-        st.error(f"Erreur lors de la récupération des données : {e}")
-        logger.error("Failed to fetch top tags by segment", error=str(e))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la récupération des données : {exc.details}")
+        logger.error("Failed to fetch top tags by segment", error=str(exc), endpoint=exc.endpoint)
         return
-    else:
-        if not data:
-            st.warning("Aucune donnée disponible")
-            return
 
-        df = pd.DataFrame(data)
-        required_cols = {"segment", "persona", "tag", "count", "share_pct"}
-        if not required_cols.issubset(df.columns):
-            st.error("Données inattendues reçues pour les tags par segment.")
-            logger.error("Unexpected columns for top-tags-by-segment", cols=list(df.columns))
-            return
+    if not data:
+        st.warning("Aucune donnée disponible")
+        return
 
-        df["segment"] = df["segment"] + 1
+    df = pd.DataFrame(data)
+    required_cols = {"segment", "persona", "tag", "count", "share_pct"}
+    if not required_cols.issubset(df.columns):
+        st.error("Données inattendues reçues pour les tags par segment.")
+        logger.error("Unexpected columns for top-tags-by-segment", cols=list(df.columns))
+        return
 
-        df["persona"] = pd.Categorical(df["persona"], categories=SEGMENT_ORDER, ordered=True)
+    df["segment"] = df["segment"] + 1
 
-        st.subheader("📊 Top tags par persona")
+    df["persona"] = pd.Categorical(df["persona"], categories=SEGMENT_ORDER, ordered=True)
 
-        st.markdown(
-            """
-            Cette visualisation met en évidence les tags les plus utilisés par segment d’utilisateurs.
-            Les thématiques culinaires récurrentes permettent de caractériser les préférences et
-            les modes de contribution propres à chaque persona. En comparant les volumes et parts
-            d’occurrence, il devient possible d’identifier des centres d’intérêt dominants,
-            des spécificités de comportement, ainsi que des opportunités de ciblage éditorial.
-            """
-        )
+    st.subheader("📊 Top tags par persona")
 
-        cols = st.columns(2)
-        col_idx = 0
+    st.markdown(
+        """
+        Cette visualisation met en évidence les tags les plus utilisés par segment d’utilisateurs.
+        Les thématiques culinaires récurrentes permettent de caractériser les préférences et
+        les modes de contribution propres à chaque persona. En comparant les volumes et parts
+        d’occurrence, il devient possible d’identifier des centres d’intérêt dominants,
+        des spécificités de comportement, ainsi que des opportunités de ciblage éditorial.
+        """
+    )
 
-        for persona in SEGMENT_ORDER:
-            seg_df = df[df["persona"] == persona].copy()
-            if seg_df.empty:
-                continue
+    cols = st.columns(2)
+    col_idx = 0
 
-            seg_df = seg_df.sort_values(value_col, ascending=False)
+    for persona in SEGMENT_ORDER:
+        seg_df = df[df["persona"] == persona].copy()
+        if seg_df.empty:
+            continue
 
-            chart = (
-                alt.Chart(seg_df)
-                .mark_bar()
-                .encode(
-                    x=alt.X("tag:N", sort="-y", title="Tag"),
-                    y=alt.Y(f"{value_col}:Q", title=y_title),
-                    tooltip=[
-                        alt.Tooltip("segment:Q", title="Segment"),
-                        alt.Tooltip("tag:N", title="Tag"),
-                        alt.Tooltip("count:Q", title="Occurrences", format=","),
-                        alt.Tooltip("share_pct:Q", title="Part (%)", format=".2f"),
-                    ],
-                )
-                .properties(width="container", height=260, title=f"{persona}")
+        seg_df = seg_df.sort_values(value_col, ascending=False)
+
+        chart = (
+            alt.Chart(seg_df)
+            .mark_bar()
+            .encode(
+                x=alt.X("tag:N", sort="-y", title="Tag"),
+                y=alt.Y(f"{value_col}:Q", title=y_title),
+                tooltip=[
+                    alt.Tooltip("segment:Q", title="Segment"),
+                    alt.Tooltip("tag:N", title="Tag"),
+                    alt.Tooltip("count:Q", title="Occurrences", format=","),
+                    alt.Tooltip("share_pct:Q", title="Part (%)", format=".2f"),
+                ],
             )
-
-            with cols[col_idx]:
-                st.altair_chart(chart, use_container_width=True)
-            col_idx = (col_idx + 1) % 2
-
-        st.subheader("Données détaillées")
-        st.dataframe(
-            df.sort_values(["persona", value_col], ascending=[True, False]),
-            hide_index=True,
-            use_container_width=True,
+            .properties(width="container", height=260, title=f"{persona}")
         )
 
-        csv = df.to_csv(index=False)
-        st.download_button("📥 Télécharger CSV", csv, "top_tags_by_segment.csv", "text/csv")
+        with cols[col_idx]:
+            st.altair_chart(chart, use_container_width=True)
+        col_idx = (col_idx + 1) % 2
 
-        st.markdown(
+    st.subheader("Données détaillées")
+    st.dataframe(
+        df.sort_values(["persona", value_col], ascending=[True, False]),
+        hide_index=True,
+        use_container_width=True,
+    )
+
+    csv = df.to_csv(index=False)
+    st.download_button("📥 Télécharger CSV", csv, "top_tags_by_segment.csv", "text/csv")
+
+    st.markdown(
+        textwrap.dedent(
             """
             ### 🔍 Lecture générale
 
@@ -247,3 +248,4 @@ def render_top_tags_by_segment(
             Ce sont des signaux UX forts, plus que des traits culinaires profonds, qui montrent une plateforme orientée praticité et navigation fonctionnelle.
             """
         )
+    )

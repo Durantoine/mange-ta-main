@@ -1,9 +1,9 @@
 import altair as alt
 import pandas as pd
-import requests
 import streamlit as st
-from domain import BASE_URL
 from logger import struct_logger
+
+from ..src.http_client import BackendAPIError, fetch_backend_json
 
 
 def render_top10_vs_global(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
@@ -12,13 +12,11 @@ def render_top10_vs_global(logger=struct_logger) -> None:  # pragma: no cover - 
     st.caption("Comparaison des comportements des contributeurs les plus actifs")
 
     try:
-        response = requests.get(f"{BASE_URL}/mange_ta_main/top-10-percent-contributors")
-        response.raise_for_status()
-        data = response.json()
+        data = fetch_backend_json("top-10-percent-contributors", ttl=300)
         logger.info("Top 10% contributor metrics fetched", count=len(data))
-    except requests.RequestException as e:
-        st.error(f"Erreur lors de la récupération des données : {e}")
-        logger.error("Failed to fetch top 10% metrics", error=str(e))
+    except BackendAPIError as exc:
+        st.error(f"Erreur lors de la récupération des données : {exc.details}")
+        logger.error("Failed to fetch top 10% metrics", error=str(exc), endpoint=exc.endpoint)
         return
 
     if not data:

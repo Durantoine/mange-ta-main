@@ -1,5 +1,9 @@
 import streamlit as st
-from components.sidebar import render_sidebar
+
+try:
+    from ..components.sidebar import render_sidebar
+except ImportError:  # pragma: no cover - fallback for standalone execution
+    from components.sidebar import render_sidebar
 
 render_sidebar()
 

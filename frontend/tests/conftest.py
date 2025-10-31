@@ -17,7 +17,7 @@ def mock_requests_for_streamlit() -> Iterable[None]:
     fake_response.json.return_value = []
     fake_response.raise_for_status.return_value = None
 
-    with patch("requests.get", return_value=fake_response):
+    with patch("frontend.service.src.http_client.requests.get", return_value=fake_response):
         yield
 
 
@@ -27,14 +27,11 @@ def mock_requests_for_streamlit() -> Iterable[None]:
 
 
 @pytest.fixture
-def make_response() -> Callable[[Any], Mock]:
-    """Factory returning a Mock response with the provided payload."""
+def make_response() -> Callable[[Any], Any]:
+    """Factory returning the payload itself (retro-compatible helper)."""
 
-    def _factory(payload: Any) -> Mock:
-        fake_response = Mock()
-        fake_response.json.return_value = payload
-        fake_response.raise_for_status.return_value = None
-        return fake_response
+    def _factory(payload: Any) -> Any:
+        return payload
 
     return _factory
 
