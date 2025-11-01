@@ -277,6 +277,7 @@ def test_pages_imports_smoke_without_network():
     fake_st = MagicMock()
     fake_st.sidebar.__enter__.return_value = MagicMock()
     fake_st.tabs.return_value = (MagicMock(), MagicMock(), MagicMock())
+    fake_st.columns.return_value = (MagicMock(), MagicMock())  # Mock st.columns(2)
 
     with patch.dict(_sys.modules, {"streamlit": fake_st, "requests": fake_requests}):
         mod_app = _importlib.import_module("service.app")

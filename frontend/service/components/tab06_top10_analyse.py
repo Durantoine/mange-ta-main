@@ -36,6 +36,10 @@ def render_top10_vs_global(logger=struct_logger) -> None:  # pragma: no cover - 
 
     df = pd.DataFrame(data)
 
+    if df.empty:
+        st.warning("Aucune donnée disponible.")
+        return
+
     # Affichage chiffres clés
     col1, col2 = st.columns(2)
     top_count_series = df.loc[df["population"] == "top_10_percent", "contributor_count"]
