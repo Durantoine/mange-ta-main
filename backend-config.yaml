@@ -1,0 +1,9 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: mange-ta-main-backend-config
+  namespace: default
+spec:
+  timeoutSec: 300  # 5 minutes au lieu de 30 secondes
+  connectionDraining:
+    drainingTimeoutSec: 60
