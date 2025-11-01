@@ -24,10 +24,10 @@ spec:
           value: "http://mange-ta-main-back:8000"
         resources:
           requests:
-            cpu: "200m"
-            memory: "512Mi"
+            cpu: "500m"
+            memory: "1Gi"
           limits:
-            cpu: "400m"
+            cpu: "1"
             memory: "1Gi"
 
 

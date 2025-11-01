@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mange-ta-main-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: gce
+spec:
+  rules:
+    - host: mange-ta-main.duckdns.org
+      http:  
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mange-ta-main-front
+                port:
+                  number: 8501
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: mange-ta-main-back
+                port:
+                  number: 8000

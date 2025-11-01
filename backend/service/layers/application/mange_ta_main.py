@@ -8,10 +8,6 @@ import pandas as pd
 from service.layers.application.interfaces.interface import IDataAdapter
 from service.layers.infrastructure.types import DataType
 
-# ===============================
-# Constantes & Types
-# ===============================
-
 SEGMENT_INFO: Dict[int, Dict[str, Any]] = {
     0: {
         "persona": "Super Cookers",
@@ -60,8 +56,8 @@ class AnalysisType(StrEnum):
     DURATION_DISTRIBUTION = "duration_distribution"
     DURATION_VS_RECIPE_COUNT = "duration_vs_recipe_count"
     TOP_10_PERCENT_CONTRIBUTORS = "top_10_percent_contributors"
-    USER_SEGMENTS = "user_segments"  # 👈 nouveau
-    TOP_TAGS_BY_SEGMENT = "top_tags_by_segment"  # 👈 nouveau
+    USER_SEGMENTS = "user_segments"
+    TOP_TAGS_BY_SEGMENT = "top_tags_by_segment"
     RATING_DISTRIBUTION = "rating_distribution"
     RATING_VS_RECIPES = "rating_vs_recipes"
     REVIEW_OVERVIEW = "review_overview"
@@ -72,16 +68,7 @@ class AnalysisType(StrEnum):
     REVIEWER_VS_RECIPES = "reviewer_vs_recipes"
 
 
-# ===============================
-# Utilitaires
-# ===============================
-
-
 def _parse_tags_to_list(v) -> List[str]:
-    """
-    Transforme la colonne tags en liste de strings, de façon robuste.
-    Accepte: liste Python, string de liste "['a','b']", string "a,b,c".
-    """
     if isinstance(v, list):
         return [str(t).strip().lower() for t in v if str(t).strip()]
     if pd.isna(v):
@@ -91,24 +78,50 @@ def _parse_tags_to_list(v) -> List[str]:
         parsed = ast.literal_eval(s) if (s.startswith("[") and s.endswith("]")) else s
         if isinstance(parsed, list):
             return [str(t).strip().lower() for t in parsed if str(t).strip()]
-        # fallback: split simple
         return [t.strip().lower() for t in str(parsed).split(",") if t.strip()]
     except Exception:
         return [t.strip().lower() for t in s.split(",") if t.strip()]
 
 
-# ===============================
-# Fonctions
-# ===============================
+def _find_col(df: Optional[pd.DataFrame], candidates):
+    if df is None:
+        return None
+    cols = list(df.columns)
+    for c in candidates:
+        if c in cols:
+            return c
+        lc = c.lower()
+        for col in cols:
+            if col.lower() == lc:
+                return col
+    for token in candidates:
+        for col in cols:
+            if token in col.lower():
+                return col
+    return None
+
+
+def _non_empty_text_mask(series: Optional[pd.Series]) -> pd.Series:
+    if series is None:
+        return pd.Series(dtype=bool)
+    return (
+        series.fillna("").astype(str).str.replace(r"<br\\s*/?>", " ", regex=True).str.strip().ne("")
+    )
+
+
+def _word_count(series: Optional[pd.Series]) -> pd.Series:
+    if series is None or series.empty:
+        return pd.Series(dtype=float)
+    clean = series.fillna("").astype(str).str.replace(r"<br\\s*/?>", " ", regex=True).str.strip()
+    return clean.str.split().map(len).astype(float)
 
 
 def most_recipes_contributors(df_recipes: pd.DataFrame) -> pd.DataFrame:
-    """
-    Retourne le nombre de recettes par contributeur (tri décroissant).
-    Colonnes: contributor_id, 0 (count)
-    """
     number_recipes_contributors = (
-        df_recipes.groupby("contributor_id").size().sort_values(ascending=False).reset_index()
+        df_recipes.groupby("contributor_id", observed=True)
+        .size()
+        .sort_values(ascending=False)
+        .reset_index()
     )
     return number_recipes_contributors
 
@@ -116,18 +129,20 @@ def most_recipes_contributors(df_recipes: pd.DataFrame) -> pd.DataFrame:
 def best_ratings_contributors(
     df_recipes: pd.DataFrame, df_interactions: pd.DataFrame
 ) -> pd.DataFrame:
-    """
-    Contributeurs avec meilleure note moyenne (>=5 recettes).
-    Colonnes: contributor_id, avg_rating, num_recipes
-    """
     avg_ratings = (
-        df_interactions.groupby("recipe_id")["rating"].mean().reset_index(name="avg_rating")
+        df_interactions.groupby("recipe_id", observed=True)["rating"]
+        .mean()
+        .reset_index(name="avg_rating")
     )
 
-    df = df_recipes.merge(avg_ratings, how="left", left_on="id", right_on="recipe_id")
+    df = df_recipes[["id", "contributor_id"]].merge(
+        avg_ratings, how="left", left_on="id", right_on="recipe_id"
+    )
 
-    contributor_counts = df.groupby("contributor_id")["id"].count().reset_index(name="num_recipes")
-    contributor_avg = df.groupby("contributor_id")["avg_rating"].mean().reset_index()
+    contributor_counts = (
+        df.groupby("contributor_id", observed=True)["id"].count().reset_index(name="num_recipes")
+    )
+    contributor_avg = df.groupby("contributor_id", observed=True)["avg_rating"].mean().reset_index()
 
     contributor_stats = contributor_avg.merge(contributor_counts, on="contributor_id")
     contributor_stats = contributor_stats[contributor_stats["num_recipes"] >= 5]
@@ -147,15 +162,15 @@ def average_duration_distribution(
     labels: Optional[Sequence[str]] = None,
     group_cols: Optional[Sequence[str]] = None,
 ) -> pd.DataFrame:
-    """
-    Répartition (histogramme) des durées de recettes (global ou par groupe).
-    Colonnes: (group_cols), duration_bin, count, share, avg_duration_in_bin, cum_share
-    """
-    df = df_recipes.copy()
+    cols_needed = [duration_col]
+    group_cols_list = list(group_cols) if group_cols else []
+    if group_cols_list:
+        cols_needed.extend(group_cols_list)
+
+    df = df_recipes[cols_needed].copy()
     df[duration_col] = pd.to_numeric(df[duration_col], errors="coerce")
     df = df.dropna(subset=[duration_col])
 
-    # Bins
     resolved_bins: Union[int, Sequence[float]]
     resolved_labels: Optional[Sequence[str]] = labels
     if bins is None:
@@ -173,12 +188,10 @@ def average_duration_distribution(
     else:
         resolved_bins = bins
 
-    # Si bins est un entier -> classes égales
     if isinstance(resolved_bins, int):
         vmin, vmax = df[duration_col].min(), df[duration_col].max()
         resolved_bins = np.linspace(vmin, vmax, resolved_bins + 1).tolist()
 
-    # Découpage
     df["duration_bin"] = pd.cut(
         df[duration_col],
         bins=resolved_bins,
@@ -187,8 +200,6 @@ def average_duration_distribution(
         right=False,
     )
 
-    # Agrégats
-    group_cols_list = list(group_cols) if group_cols else []
     group_keys = group_cols_list + ["duration_bin"]
 
     agg = (
@@ -197,7 +208,6 @@ def average_duration_distribution(
         .reset_index()
     )
 
-    # Parts
     if group_cols_list:
         totals = (
             agg.groupby(group_cols_list, observed=False)["count"]
@@ -211,7 +221,6 @@ def average_duration_distribution(
 
     out["share"] = (out["count"] / out["total_count"] * 100).round(2)
 
-    # Part cumulée
     out = out.sort_values(group_cols_list + ["duration_bin"]).reset_index(drop=True)
     if group_cols_list:
         out["cum_share"] = out.groupby(group_cols_list, observed=False)["share"].cumsum().round(2)
@@ -228,17 +237,13 @@ def duration_vs_recipe_count(
     df_recipes: pd.DataFrame,
     duration_col: str = "minutes",
 ) -> pd.DataFrame:
-    """
-    Agrège: nombre de recettes par contributeur, durée moyenne/médiane.
-    Colonnes: contributor_id, recipe_count, avg_duration, median_duration
-    """
-    df = df_recipes.copy()
+    df = df_recipes[["contributor_id", "id", duration_col]].copy()
     df = df.dropna(subset=["contributor_id"])
     df[duration_col] = pd.to_numeric(df[duration_col], errors="coerce")
     df = df.dropna(subset=[duration_col])
 
     agg = (
-        df.groupby("contributor_id")
+        df.groupby("contributor_id", observed=True)
         .agg(
             recipe_count=("id", "size"),
             avg_duration=(duration_col, "mean"),
@@ -260,24 +265,15 @@ def top_10_percent_contributors(
     df_interactions: pd.DataFrame,
     duration_col: str = "minutes",
 ) -> pd.DataFrame:
-    """
-    Compare Top 10% de contributeurs vs global sur:
-      - durée moyenne des recettes
-      - note moyenne
-      - nombre moyen de commentaires
-    Colonnes: population, avg_duration_minutes, avg_rating, avg_comments, contributor_count
-    """
-    df = df_recipes.copy()
+    df = df_recipes[["contributor_id", "id", duration_col]].copy()
     df[duration_col] = pd.to_numeric(df[duration_col], errors="coerce")
 
-    # Recettes par contributeur & seuil Top10%
     contrib_count = df.groupby("contributor_id")["id"].count().reset_index(name="num_recipes")
     threshold = contrib_count["num_recipes"].quantile(0.90)
 
     top_contributors = contrib_count[contrib_count["num_recipes"] >= threshold]["contributor_id"]
     df_top = df[df["contributor_id"].isin(top_contributors)]
 
-    # TOP 10%
     avg_duration_top = df_top[duration_col].mean()
     avg_rating_top = (
         df_interactions[df_interactions["recipe_id"].isin(df_top["id"])]
@@ -292,7 +288,6 @@ def top_10_percent_contributors(
         .mean()
     )
 
-    # GLOBAL
     avg_duration_global = df[duration_col].mean()
     avg_rating_global = df_interactions.groupby("recipe_id")["rating"].mean().mean()
     avg_comments_global = df_interactions.groupby("recipe_id")["rating"].count().mean()
@@ -333,25 +328,16 @@ def compute_user_segments(
     df_interactions: pd.DataFrame,
     duration_col: str = "minutes",
 ) -> pd.DataFrame:
-    """
-    Calcule pour chaque contributeur:
-      - avg_minutes, avg_rating, avg_reviews
-      - segment (0..5) assigné au plus proche centroïde (SEGMENT_INFO)
-      - persona (libellé)
-    Retour: contributor_id, avg_minutes, avg_rating, avg_reviews, segment, persona
-    """
     df_r = df_recipes[["id", "contributor_id", duration_col]].copy()
     df_r[duration_col] = pd.to_numeric(df_r[duration_col], errors="coerce")
 
     df_i = df_interactions[["recipe_id", "rating"]].copy()
     df_i["rating"] = pd.to_numeric(df_i["rating"], errors="coerce")
 
-    # Moyenne minutes par contributeur
     g_minutes = (
         df_r.groupby("contributor_id", dropna=True)[duration_col].mean().rename("avg_minutes")
     )
 
-    # Note moyenne par recette, puis moyenne par contributeur
     recipe_avg_rating = df_i.groupby("recipe_id")["rating"].mean().rename("recipe_avg_rating")
     g_rating = (
         df_r.merge(recipe_avg_rating, left_on="id", right_index=True, how="left")
@@ -360,7 +346,6 @@ def compute_user_segments(
         .rename("avg_rating")
     )
 
-    # Nombre d'avis par recette, puis moyenne par contributeur
     recipe_review_count = df_i.groupby("recipe_id")["rating"].count().rename("review_count")
     g_reviews = (
         df_r.merge(recipe_review_count, left_on="id", right_index=True, how="left")
@@ -387,26 +372,21 @@ def compute_user_segments(
             ]
         )
 
-    # Matrices utilisateurs (N x 3) et centroïdes (K x 3)
     U = df_users[["avg_minutes", "avg_rating", "avg_reviews"]].to_numpy(dtype=float)
     centroids_df = pd.DataFrame.from_dict(SEGMENT_INFO, orient="index")
     C = centroids_df[["ref_avg_minutes", "ref_avg_rating", "ref_avg_reviews"]].to_numpy(dtype=float)
 
-    # Distances euclidiennes (vectorisé): (N, K)
     distances = np.sqrt(((U[:, None, :] - C[None, :, :]) ** 2).sum(axis=2))
 
-    # Assignation au centroïde le plus proche (0..K-1) — correspond à l'index de centroids_df (0..5)
     seg_idx = distances.argmin(axis=1)
     df_users["segment"] = seg_idx
 
-    # Ajout du libellé de persona
     df_users = df_users.merge(
         centroids_df.reset_index().rename(columns={"index": "segment"})[["segment", "persona"]],
         on="segment",
         how="left",
     )
 
-    # Finitions
     df_users["avg_minutes"] = df_users["avg_minutes"].round(2)
     df_users["avg_rating"] = df_users["avg_rating"].round(2)
     df_users["avg_reviews"] = df_users["avg_reviews"].round(2)
@@ -429,34 +409,24 @@ def top_tags_by_segment_from_users(
     tags_col: str = "tags",
     top_k: int = 5,
 ) -> pd.DataFrame:
-    """
-    Renvoie, pour chaque segment (issu de df_user_segments), les top-K tags les plus utilisés.
-    Colonnes: segment, persona, tag, count, share_pct
-    """
-    # Join recettes ↔ segments utilisateurs via contributor_id
-    df_r = df_recipes[["id", "contributor_id", tags_col]].copy()
-    df_r = df_r.merge(
+    df_r = df_recipes[["id", "contributor_id", tags_col]].merge(
         df_user_segments[["contributor_id", "segment", "persona"]],
         on="contributor_id",
         how="inner",
     )
 
-    # Parse tags -> liste
     df_r[tags_col] = df_r[tags_col].apply(_parse_tags_to_list)
 
-    # Explode
     df_tags = df_r.explode(tags_col).dropna(subset=[tags_col])
     if df_tags.empty:
         return pd.DataFrame(columns=["segment", "persona", "tag", "count", "share_pct"])
 
-    # Comptage
     counts = (
         df_tags.groupby(["segment", "persona", tags_col], dropna=False, observed=False)
         .size()
         .reset_index(name="count")
     )
 
-    # Part par segment
     totals = (
         counts.groupby(["segment", "persona"], observed=False)["count"]
         .sum()
@@ -465,7 +435,6 @@ def top_tags_by_segment_from_users(
     counts = counts.merge(totals, on=["segment", "persona"], how="left")
     counts["share_pct"] = (counts["count"] / counts["segment_total"] * 100).round(2)
 
-    # Top-K par segment
     counts = counts.sort_values(["segment", "count"], ascending=[True, False])
     topk = counts.groupby("segment").head(top_k).reset_index(drop=True)
 
@@ -475,42 +444,6 @@ def top_tags_by_segment_from_users(
         .sort_values(["segment", "count"], ascending=[True, False])
         .reset_index(drop=True)
     )
-
-
-def _find_col(df: Optional[pd.DataFrame], candidates):
-    """Outil permettant de sélectionner une colonne parmi plusieurs candidats."""
-    if df is None:
-        return None
-    cols = list(df.columns)
-    for c in candidates:
-        if c in cols:
-            return c
-        lc = c.lower()
-        for col in cols:
-            if col.lower() == lc:
-                return col
-    for token in candidates:
-        for col in cols:
-            if token in col.lower():
-                return col
-    return None
-
-
-def _non_empty_text_mask(series: Optional[pd.Series]) -> pd.Series:
-    """Retourne un masque booléen indiquant les textes non vides (après trim)."""
-    if series is None:
-        return pd.Series(dtype=bool)
-    return (
-        series.fillna("").astype(str).str.replace(r"<br\\s*/?>", " ", regex=True).str.strip().ne("")
-    )
-
-
-def _word_count(series: Optional[pd.Series]) -> pd.Series:
-    """Compte les mots (séparateur espace) dans une série de textes."""
-    if series is None or series.empty:
-        return pd.Series(dtype=float)
-    clean = series.fillna("").astype(str).str.replace(r"<br\\s*/?>", " ", regex=True).str.strip()
-    return clean.str.split().map(len).astype(float)
 
 
 def rating_distribution(
@@ -624,7 +557,7 @@ def rating_vs_recipe_count(
         )
 
     recipe_counts = (
-        df_recipes.groupby(contrib_col)
+        df_recipes.groupby(contrib_col, observed=True)
         .size()
         .reset_index(name="recipe_count")
         .rename(columns={contrib_col: "contributor_id"})
@@ -704,7 +637,12 @@ def review_overview(
     ):
         return pd.DataFrame(columns=["metric", "value"])
 
-    df_int = df_interactions.copy()
+    cols_needed = [recipe_id_interactions, user_col, review_col]
+    if rating_col:
+        cols_needed.append(rating_col)
+
+    df_int = df_interactions[cols_needed].copy()
+
     mask_reviews = _non_empty_text_mask(df_int[review_col])
     total_interactions = len(df_int)
     total_reviews = int(mask_reviews.sum())
@@ -790,7 +728,7 @@ def review_distribution_per_recipe(
             columns=["reviews_bin", "recipe_count", "share_pct", "avg_reviews_in_bin"]
         )
 
-    df_int = df_interactions.copy()
+    df_int = df_interactions[[recipe_id_interactions, review_col]].copy()
     mask_reviews = _non_empty_text_mask(df_int[review_col])
 
     recipes_frame = (
@@ -901,7 +839,13 @@ def reviewer_activity(
             ]
         )
 
-    df_int = df_interactions.copy()
+    cols_needed = [user_col, review_col]
+    if rating_col:
+        cols_needed.append(rating_col)
+    if date_col:
+        cols_needed.append(date_col)
+
+    df_int = df_interactions[cols_needed].copy()
     mask_reviews = _non_empty_text_mask(df_int[review_col])
     df_reviews = df_int.loc[mask_reviews].copy()
 
@@ -989,7 +933,13 @@ def review_temporal_trend(
             columns=["period", "reviews_count", "unique_reviewers", "avg_rating_given"]
         )
 
-    df_int = df_interactions.copy()
+    cols_needed = [date_col, review_col]
+    if user_col:
+        cols_needed.append(user_col)
+    if rating_col:
+        cols_needed.append(rating_col)
+
+    df_int = df_interactions[cols_needed].copy()
     df_int[date_col] = pd.to_datetime(df_int[date_col], errors="coerce")
     df_int = df_int.dropna(subset=[date_col])
 
@@ -1071,7 +1021,7 @@ def reviews_vs_rating(
             ]
         )
 
-    df_int = df_interactions.copy()
+    df_int = df_interactions[[recipe_id_interactions, review_col, rating_col]].copy()
     mask_reviews = _non_empty_text_mask(df_int[review_col])
 
     review_counts = (
@@ -1152,7 +1102,13 @@ def reviewer_reviews_vs_recipes(
             ]
         )
 
-    df_reviews = df_interactions.copy()
+    cols_needed = [user_col]
+    if review_col:
+        cols_needed.append(review_col)
+    if rating_col:
+        cols_needed.append(rating_col)
+
+    df_reviews = df_interactions[cols_needed].copy()
     if review_col:
         mask_reviews = _non_empty_text_mask(df_reviews[review_col])
         df_reviews = df_reviews.loc[mask_reviews]
@@ -1207,11 +1163,6 @@ def reviewer_reviews_vs_recipes(
     return result[["user_id", "reviews_count", "recipes_published", "avg_rating_given"]]
 
 
-# ===============================
-# Orchestrateur
-# ===============================
-
-
 class DataAnylizer:
     def __init__(self, csv_adapter: IDataAdapter):
         self.df_recipes = csv_adapter.load(DataType.RECIPES)
@@ -1240,13 +1191,11 @@ class DataAnylizer:
                 )
 
             case AnalysisType.USER_SEGMENTS:
-                # Table des utilisateurs avec attribution de segment
                 return compute_user_segments(
                     self.df_recipes, self.df_interactions, duration_col="minutes"
                 )
 
             case AnalysisType.TOP_TAGS_BY_SEGMENT:
-                # Calcule d'abord les segments utilisateurs, puis les top tags
                 df_users = compute_user_segments(
                     self.df_recipes, self.df_interactions, duration_col="minutes"
                 )
@@ -1259,33 +1208,24 @@ class DataAnylizer:
 
             case AnalysisType.RATING_VS_RECIPES:
                 return rating_vs_recipe_count(self.df_recipes, self.df_interactions)
+
             case AnalysisType.REVIEW_OVERVIEW:
-                return review_overview(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
+                return review_overview(self.df_recipes, self.df_interactions)
+
             case AnalysisType.REVIEW_DISTRIBUTION:
-                return review_distribution_per_recipe(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
+                return review_distribution_per_recipe(self.df_recipes, self.df_interactions)
+
             case AnalysisType.REVIEWER_ACTIVITY:
-                return reviewer_activity(
-                    self.df_interactions,
-                )
+                return reviewer_activity(self.df_interactions)
+
             case AnalysisType.REVIEW_TEMPORAL_TREND:
-                return review_temporal_trend(
-                    self.df_interactions,
-                )
+                return review_temporal_trend(self.df_interactions)
+
             case AnalysisType.REVIEWS_VS_RATING:
-                return reviews_vs_rating(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
+                return reviews_vs_rating(self.df_recipes, self.df_interactions)
+
             case AnalysisType.REVIEWER_VS_RECIPES:
-                return reviewer_reviews_vs_recipes(
-                    self.df_recipes,
-                    self.df_interactions,
-                )
+                return reviewer_reviews_vs_recipes(self.df_recipes, self.df_interactions)
+
             case _:
                 raise ValueError(f"Analyse non supportée : {analysis_type}")

@@ -33,11 +33,11 @@ spec:
           periodSeconds: 30
         resources:
           requests:
-            cpu: "500m"
-            memory: "1Gi"
+            cpu: "1.5"
+            memory: "5Gi"
           limits:
-            cpu: "1"
-            memory: "3Gi"
+            cpu: "3"
+            memory: "5Gi"
 
 ---
 
@@ -64,8 +64,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: mange-ta-main-back
-  minReplicas: 2
-  maxReplicas: 5
+  minReplicas: 1
+  maxReplicas: 3
   metrics:
   - type: Resource
     resource:
