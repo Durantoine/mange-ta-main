@@ -10,6 +10,7 @@ constrained environments.
 
 from __future__ import annotations
 
+import importlib
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Optional, Sequence, Tuple, cast
 
@@ -17,6 +18,13 @@ import requests
 import streamlit as st
 
 from ..domain import BASE_URL
+
+try:  # pragma: no cover - optional dependency for faster JSON parsing
+    _orjson_runtime = importlib.import_module("orjson")
+except ModuleNotFoundError:  # pragma: no cover - optional
+    _orjson_runtime = None
+
+orjson = cast(Any, _orjson_runtime)
 
 DEFAULT_TIMEOUT = 10.0
 DEFAULT_TTL = 60
@@ -37,8 +45,7 @@ class BackendAPIError(RuntimeError):
 def _make_params_tuple(params: Mapping[str, Any]) -> Tuple[Tuple[str, str], ...]:
     """Normalise query parameters for caching."""
     processed: Sequence[Tuple[str, str]] = [
-        (str(key), str(value))
-        for key, value in sorted(params.items(), key=lambda item: item[0])
+        (str(key), str(value)) for key, value in sorted(params.items(), key=lambda item: item[0])
     ]
     return tuple(processed)
 
@@ -75,17 +82,17 @@ def fetch_backend_json(
     ) -> Any:
         response = requests.get(url, params=dict(params_items), timeout=timeout)
         response.raise_for_status()
+        if orjson is not None:
+            return orjson.loads(response.content)
         return response.json()
 
     _request = _request_impl
-    cache_enabled = ttl is not None and ttl > 0
+    cache_enabled = ttl > 0
     cache_fn = getattr(st, "cache_data", None) if cache_enabled else None
     if cache_fn is not None and cache_fn.__class__.__module__ != "unittest.mock":
         try:
             decorator = cast(Callable[..., CacheDecorator], cache_fn)
-            cached = decorator(show_spinner=False, ttl=ttl, max_entries=16)(
-                _request_impl
-            )
+            cached = decorator(show_spinner=False, ttl=ttl, max_entries=16)(_request_impl)
             cached_module = getattr(cached, "__class__", object).__module__
             if cached_module != "unittest.mock":
                 _request = cached

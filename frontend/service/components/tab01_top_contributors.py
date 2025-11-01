@@ -7,9 +7,7 @@ try:  # pragma: no cover - runtime fallback when executed as script
 except ImportError:  # pragma: no cover - streamlit run context
     try:
         from src.http_client import BackendAPIError, fetch_backend_json
-    except (
-        ImportError
-    ):  # pragma: no cover - fallback when src is namespaced under service
+    except ImportError:  # pragma: no cover - fallback when src is namespaced under service
         from service.src.http_client import BackendAPIError, fetch_backend_json
 
 
@@ -33,9 +31,7 @@ def render_top_contributors(
         struct_logger.info("Most active contributors fetched", count=len(data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération des données : {exc.details}")
-        struct_logger.error(
-            "Failed to fetch most active", error=str(exc), endpoint=exc.endpoint
-        )
+        struct_logger.error("Failed to fetch most active", error=str(exc), endpoint=exc.endpoint)
         data = []
 
     if not data:
@@ -69,6 +65,4 @@ def render_top_contributors(
     st.dataframe(df.head(20), width="stretch", hide_index=True)
 
     csv = df.to_csv(index=False)
-    st.download_button(
-        "📥 Télécharger CSV", csv, "contributeurs_actifs.csv", "text/csv"
-    )
+    st.download_button("📥 Télécharger CSV", csv, "contributeurs_actifs.csv", "text/csv")

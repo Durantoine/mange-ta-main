@@ -1,37 +1,52 @@
+import gc
+import importlib
+import json
+from typing import Any, Iterable, Sequence, Tuple, cast
+
 import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
 from logger import struct_logger
-from typing import Iterable, Sequence, Tuple
+from pandas import Series
+from pandas.api.types import is_float_dtype, is_integer_dtype, is_object_dtype
+
+try:
+    _orjson_runtime = importlib.import_module("orjson")
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    _orjson_runtime = None
+
+orjson = cast(Any, _orjson_runtime)
 
 try:  # pragma: no cover - runtime fallback when executed as script
     from ..src.http_client import BackendAPIError, fetch_backend_json
 except ImportError:  # pragma: no cover - streamlit run context
     try:
         from src.http_client import BackendAPIError, fetch_backend_json
-    except (
-        ImportError
-    ):  # pragma: no cover - fallback when src is namespaced under service
+    except ImportError:  # pragma: no cover - fallback when src is namespaced under service
         from service.src.http_client import BackendAPIError, fetch_backend_json
 
 
-MAX_CHART_POINTS = 50_000
-MAX_TABLE_ROWS = 5_000
-MAX_DOWNLOAD_ROWS = 25_000
+CATEGORY_THRESHOLD = 500
+MAX_JSON_RECORDS = 1_000
+MAX_CHART_POINTS = 2_000
+MAX_TABLE_ROWS = 200
 
 
-def _arrow_dataframe(
-    data: Iterable[dict],
+def _arrow_dataframe(  # pragma: no cover - deterministic conversion helper
+    data: Iterable[dict[str, Any]],
     expected_cols: Sequence[str] | None = None,
 ) -> pd.DataFrame:
     """Create a DataFrame backed by Arrow types when possible to reduce RAM usage."""
-    if not data:
+    records = list(data)
+    if not records:
         return pd.DataFrame(columns=list(expected_cols or []))
+
+    df = pd.DataFrame(records)
     try:
-        df = pd.DataFrame(data, dtype_backend="pyarrow")
+        df = df.convert_dtypes(dtype_backend="pyarrow")
     except TypeError:  # pragma: no cover - safety net if pandas<2.0 happens
-        df = pd.DataFrame(data)
+        df = df.convert_dtypes()
     if expected_cols:
         for col in expected_cols:
             if col not in df.columns:
@@ -40,19 +55,86 @@ def _arrow_dataframe(
     return df
 
 
-def _limit_for_chart(
-    df: pd.DataFrame, columns: Sequence[str], max_rows: int
-) -> Tuple[pd.DataFrame, bool]:
-    view = df.loc[:, list(columns)]
-    if max_rows > 0 and len(view) > max_rows:
-        return view.sample(max_rows, random_state=42), True
-    return view, False
+def _optimise_dataframe(  # pragma: no cover - dtype tuning helper
+    df: pd.DataFrame, categorical_threshold: int = CATEGORY_THRESHOLD
+) -> pd.DataFrame:
+    """Downcast numeric columns and convert low-cardinality strings to categories."""
+    if df.empty:
+        return df
+
+    df = df.convert_dtypes()
+
+    for col in df.columns:
+        series = df[col]
+        dtype = series.dtype
+        if is_integer_dtype(dtype):
+            try:
+                df[col] = series.astype(pd.Int32Dtype())
+            except (TypeError, ValueError, OverflowError):
+                df[col] = series.astype(pd.Int64Dtype())
+        elif is_float_dtype(dtype):
+            try:
+                df[col] = series.astype(pd.Float32Dtype())
+            except (TypeError, ValueError):
+                df[col] = series.astype(pd.Float64Dtype())
+        elif is_object_dtype(dtype):
+            unique_count = series.nunique(dropna=True)
+            if unique_count and (
+                unique_count <= categorical_threshold or unique_count <= len(series) * 0.4
+            ):
+                try:
+                    df[col] = series.astype("category")
+                except (TypeError, ValueError):
+                    pass
+
+    return df
 
 
-def _limit_for_table(df: pd.DataFrame, max_rows: int) -> Tuple[pd.DataFrame, bool]:
-    if max_rows > 0 and len(df) > max_rows:
-        return df.head(max_rows), True
-    return df, False
+def _safe_int_cast(  # pragma: no cover - dtype helper
+    series: Series, dtype: pd.api.extensions.ExtensionDtype | None = None
+) -> Series:
+    """Cast to a nullable integer dtype with fallback to ``Int64`` on overflow."""
+    target_dtype = dtype or pd.Int32Dtype()
+    try:
+        return series.astype(target_dtype)
+    except (TypeError, ValueError, OverflowError):
+        return series.astype(pd.Int64Dtype())
+
+
+def _safe_float_cast(  # pragma: no cover - dtype helper
+    series: Series, dtype: pd.api.extensions.ExtensionDtype | None = None
+) -> Series:
+    """Cast to a float dtype, keeping a ``Float64`` fallback when needed."""
+    target_dtype = dtype or pd.Float32Dtype()
+    try:
+        return series.astype(target_dtype)
+    except (TypeError, ValueError):
+        return series.astype(pd.Float64Dtype())
+
+
+def _trim_records(  # pragma: no cover - deterministic slicing helper
+    data: Iterable[dict[str, Any]], limit: int = MAX_JSON_RECORDS
+) -> Tuple[list[dict[str, Any]], bool]:
+    records = list(data)
+    if limit > 0 and len(records) > limit:
+        return records[:limit], True
+    return records, False
+
+
+def _limit_frame(  # pragma: no cover - view helper
+    df: pd.DataFrame, limit: int, message: str | None = None
+) -> pd.DataFrame:
+    if limit > 0 and len(df) > limit:
+        if message:
+            st.caption(message)
+        return df.head(limit)
+    return df
+
+
+def _encode_json(payload: Iterable[dict[str, Any]]) -> bytes:  # pragma: no cover - I/O helper
+    if orjson is not None:
+        return orjson.dumps(payload)
+    return json.dumps(list(payload), ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
 
 def render_user_rating(
@@ -87,30 +169,22 @@ def render_user_rating(
         logger.info("Rating distribution fetched", count=len(data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération des données : {exc.details}")
-        logger.error(
-            "Failed to fetch rating distribution", error=str(exc), endpoint=exc.endpoint
-        )
+        logger.error("Failed to fetch rating distribution", error=str(exc), endpoint=exc.endpoint)
         data = []
 
     if not data:
         st.warning("Aucune donnée disponible")
     else:
+        data, dist_trimmed = _trim_records(data)
         df = _arrow_dataframe(data)
 
         bin_col = (
-            next((c for c in df.columns if "rating" in c and "bin" in c), None)
-            or df.columns[0]
+            next((c for c in df.columns if "rating" in c and "bin" in c), None) or df.columns[0]
         )
-        count_col = next(
-            (c for c in df.columns if c in ("count", "contributors_count", "n")), None
-        )
+        count_col = next((c for c in df.columns if c in ("count", "contributors_count", "n")), None)
         share_col = next((c for c in df.columns if "share" in c or "%" in c), None)
-        avg_in_bin_col = next(
-            (c for c in df.columns if "avg" in c and "rating" in c), None
-        )
-        cum_share_col = next(
-            (c for c in df.columns if "cum" in c and "share" in c), None
-        )
+        avg_in_bin_col = next((c for c in df.columns if "avg" in c and "rating" in c), None)
+        cum_share_col = next((c for c in df.columns if "cum" in c and "share" in c), None)
 
         rename_map = {bin_col: "Tranche (note)"}
         if count_col:
@@ -141,19 +215,34 @@ def render_user_rating(
 
         if "Tranche (note)" in df_display.columns:
             try:
-                df_display["__sort_key"] = df_display["Tranche (note)"].apply(
-                    extract_start_value
-                )
-                df_display = df_display.sort_values("__sort_key").drop(
-                    columns="__sort_key"
-                )
+                df_display["__sort_key"] = df_display["Tranche (note)"].apply(extract_start_value)
+                df_display = df_display.sort_values("__sort_key").drop(columns="__sort_key")
             except Exception:
                 pass
 
         if "Nombre de Contributeurs" not in df_display.columns:
             df_display["Nombre de Contributeurs"] = 0
+        if "Nombre de Contributeurs" in df_display.columns:
+            df_display["Nombre de Contributeurs"] = _safe_int_cast(
+                pd.to_numeric(df_display["Nombre de Contributeurs"], errors="coerce")
+            )
+        if "Part (%)" in df_display.columns:
+            df_display["Part (%)"] = _safe_float_cast(
+                pd.to_numeric(df_display["Part (%)"], errors="coerce")
+            )
+        if "Note Moyenne (bin)" in df_display.columns:
+            df_display["Note Moyenne (bin)"] = _safe_float_cast(
+                pd.to_numeric(df_display["Note Moyenne (bin)"], errors="coerce")
+            )
+        if "Part Cumulée (%)" in df_display.columns:
+            df_display["Part Cumulée (%)"] = _safe_float_cast(
+                pd.to_numeric(df_display["Part Cumulée (%)"], errors="coerce")
+            )
 
-        total_contrib = int(df_display["Nombre de Contributeurs"].sum())
+        df_display = _optimise_dataframe(df_display)
+
+        contrib_series = df_display["Nombre de Contributeurs"]
+        total_contrib = int(contrib_series.dropna().sum()) if contrib_series.notna().any() else 0
         nb_classes = df_display.shape[0]
         top_bin = (
             df_display.sort_values("Nombre de Contributeurs", ascending=False).iloc[0]
@@ -180,22 +269,28 @@ def render_user_rating(
 
         st.subheader("Visualisation")
 
+        chart_base = _limit_frame(
+            df_display,
+            MAX_CHART_POINTS,
+            message=(
+                f"Graphique limité aux {MAX_CHART_POINTS:,} classes de notes."
+                if df_display.shape[0] > MAX_CHART_POINTS
+                else None
+            ),
+        )
+
         if view_mode == "Nombre de contributeurs":
-            bar_source = df_display[
-                ["Tranche (note)", "Nombre de Contributeurs"]
-            ].set_index("Tranche (note)")
-        else:
-            bar_source = df_display[["Tranche (note)", "Part (%)"]].set_index(
+            bar_source = chart_base[["Tranche (note)", "Nombre de Contributeurs"]].set_index(
                 "Tranche (note)"
             )
+        else:
+            bar_source = chart_base[["Tranche (note)", "Part (%)"]].set_index("Tranche (note)")
 
         st.bar_chart(bar_source)
 
-        if "Part Cumulée (%)" in df_display.columns:
+        if "Part Cumulée (%)" in chart_base.columns:
             st.line_chart(
-                df_display[["Tranche (note)", "Part Cumulée (%)"]].set_index(
-                    "Tranche (note)"
-                )
+                chart_base[["Tranche (note)", "Part Cumulée (%)"]].set_index("Tranche (note)")
             )
             st.caption("Part cumulée des contributeurs jusqu'à chaque tranche (en %).")
 
@@ -211,35 +306,36 @@ def render_user_rating(
             ]
             if c in df_display.columns
         ]
-        table_df, table_trimmed = _limit_for_table(
-            df_display[display_cols], MAX_TABLE_ROWS
+        table_df = _limit_frame(
+            df_display[display_cols],
+            MAX_TABLE_ROWS,
+            message=(
+                f"Table limitée aux {MAX_TABLE_ROWS:,} premières classes pour maîtriser la mémoire."
+                if df_display.shape[0] > MAX_TABLE_ROWS
+                else None
+            ),
         )
         st.dataframe(table_df, width="stretch", hide_index=True)
-        if table_trimmed:
-            st.caption(
-                f"Table limitée aux {MAX_TABLE_ROWS:,} premières lignes (données complètes via l'API)."
-            )
 
-        if len(df_display) <= MAX_DOWNLOAD_ROWS:
-            csv = df_display.to_csv(index=False)
-            st.download_button(
-                "📥 Télécharger CSV",
-                csv,
-                "repartition_notes_contributeurs.csv",
-                "text/csv",
+        download_json = _encode_json(data)
+        st.download_button(
+            "📥 Télécharger JSON",
+            download_json,
+            "repartition_notes_contributeurs.json",
+            "application/json",
+        )
+        if dist_trimmed:
+            st.caption(
+                f"Distribution tronquée aux {MAX_JSON_RECORDS:,} premières classes pour réduire la consommation mémoire."
             )
-        else:
-            st.info(
-                "Dataset volumineux : utilisez directement l'API backend pour récupérer l'intégralité de la distribution."
-            )
+        del download_json, df_display, table_df, chart_base
+        gc.collect()
 
     try:
         corr_data = fetch_backend_json("rating-vs-recipes", ttl=0, timeout=30.0)
         logger.info("Rating vs recipe count fetched", count=len(corr_data))
     except BackendAPIError as exc:
-        st.error(
-            f"Erreur lors de la récupération de la corrélation note / volume : {exc.details}"
-        )
+        st.error(f"Erreur lors de la récupération de la corrélation note / volume : {exc.details}")
         logger.error(
             "Failed to fetch rating vs recipe count",
             error=str(exc),
@@ -254,6 +350,7 @@ def render_user_rating(
         st.warning("Aucune donnée disponible pour la corrélation.")
         return
 
+    corr_data, corr_trimmed = _trim_records(corr_data)
     corr_df = _arrow_dataframe(corr_data)
     rating_cols = {
         "avg_rating",
@@ -263,51 +360,53 @@ def render_user_rating(
         "avg",
     }
     rating_col = next(
-        (
-            c
-            for c in corr_df.columns
-            if c in rating_cols or ("rating" in c and "avg" in c)
-        ),
+        (c for c in corr_df.columns if c in rating_cols or ("rating" in c and "avg" in c)),
         None,
     )
-    if rating_col is None or not {"contributor_id", "recipe_count"}.issubset(
-        corr_df.columns
-    ):
+    if rating_col is None or not {"contributor_id", "recipe_count"}.issubset(corr_df.columns):
         st.error(
             "Données inattendues reçues pour la corrélation. Colonnes attendues : contributor_id, recipe_count, avg_rating"
         )
-        logger.error(
-            "Unexpected columns for rating-vs-recipes", cols=list(corr_df.columns)
-        )
+        logger.error("Unexpected columns for rating-vs-recipes", cols=list(corr_df.columns))
         return
 
-    corr_df["recipe_count"] = pd.to_numeric(corr_df["recipe_count"], errors="coerce")
-    corr_df[rating_col] = pd.to_numeric(corr_df[rating_col], errors="coerce")
+    corr_df["recipe_count"] = _safe_int_cast(
+        pd.to_numeric(corr_df["recipe_count"], errors="coerce")
+    )
+    corr_df[rating_col] = _safe_float_cast(pd.to_numeric(corr_df[rating_col], errors="coerce"))
     corr_df = corr_df.rename(columns={rating_col: "avg_rating"})
-    if "median_rating" not in corr_df.columns:
-        corr_df["median_rating"] = np.nan
+    if "median_rating" in corr_df.columns:
+        corr_df["median_rating"] = _safe_float_cast(
+            pd.to_numeric(corr_df["median_rating"], errors="coerce")
+        )
+    else:
+        corr_df["median_rating"] = _safe_float_cast(pd.Series(np.nan, index=corr_df.index))
     corr_df = corr_df.dropna(subset=["recipe_count", "avg_rating"])
 
     if corr_df.empty or corr_df["recipe_count"].nunique() <= 1:
         st.info("Pas assez de contributeurs différents pour tracer une régression.")
     else:
-        x = corr_df["recipe_count"]
-        y = corr_df["avg_rating"]
+        x = corr_df["recipe_count"].astype("Float64")
+        y = corr_df["avg_rating"].astype("Float64")
         slope, intercept = np.polyfit(x, y, 1)
         corr_coef = np.corrcoef(x, y)[0, 1]
 
         corr_df = corr_df.sort_values("recipe_count")
-        corr_df["predicted_avg_rating"] = slope * corr_df["recipe_count"] + intercept
+        predicted = slope * x + intercept
+        corr_df["predicted_avg_rating"] = _safe_float_cast(
+            pd.Series(predicted, index=corr_df.index)
+        )
 
-        chart_cols = [
-            "contributor_id",
-            "recipe_count",
-            "avg_rating",
-            "median_rating",
-            "predicted_avg_rating",
-        ]
-        chart_df, chart_trimmed = _limit_for_chart(
-            corr_df, chart_cols, MAX_CHART_POINTS
+        corr_df = _optimise_dataframe(corr_df)
+
+        chart_df = _limit_frame(
+            corr_df,
+            MAX_CHART_POINTS,
+            message=(
+                f"Nuage limité à {MAX_CHART_POINTS:,} contributeurs pour limiter la mémoire."
+                if len(corr_df) > MAX_CHART_POINTS
+                else None
+            ),
         )
 
         scatter = (
@@ -337,13 +436,7 @@ def render_user_rating(
             f"Régression linéaire : note moyenne ≈ {slope:.3f} × recettes + {intercept:.3f} "
             f"(corrélation r = {corr_coef:.3f})."
         )
-        if chart_trimmed:
-            st.caption(
-                f"Visualisation limitée à {MAX_CHART_POINTS:,} enregistrements pour éviter les pics mémoire."
-            )
-
-    table_df, table_trimmed = _limit_for_table(
-        corr_df.rename(
+        table_df = corr_df.rename(
             columns={
                 "contributor_id": "Contributeur",
                 "recipe_count": "Nombre de recettes",
@@ -351,15 +444,30 @@ def render_user_rating(
                 "median_rating": "Note médiane",
                 "predicted_avg_rating": "Note prédite",
             }
-        ),
-        MAX_TABLE_ROWS,
-    )
-    st.dataframe(
-        table_df,
-        width="stretch",
-        hide_index=True,
-    )
-    if table_trimmed:
-        st.caption(
-            f"Table réduite aux {MAX_TABLE_ROWS:,} premiers contributeurs pour préserver les ressources."
         )
+        table_df = _limit_frame(
+            table_df,
+            MAX_TABLE_ROWS,
+            message=(
+                f"Table limitée aux {MAX_TABLE_ROWS:,} contributeurs pour limiter la mémoire."
+                if len(table_df) > MAX_TABLE_ROWS
+                else None
+            ),
+        )
+        st.dataframe(
+            table_df,
+            width="stretch",
+            hide_index=True,
+        )
+
+        download_json = _encode_json(corr_data)
+        st.download_button(
+            "📥 Exporter corrélation (JSON)",
+            download_json,
+            "rating_vs_recipes.json",
+            "application/json",
+        )
+        if corr_trimmed:
+            st.caption(f"Corrélation calculée sur les {MAX_JSON_RECORDS:,} premiers contributeurs.")
+        del table_df, corr_df, chart_df, download_json
+        gc.collect()

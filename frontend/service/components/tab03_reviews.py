@@ -1,38 +1,53 @@
-from typing import Iterable, Optional, Sequence, Tuple
+import gc
+import importlib
+import json
+from typing import Any, Iterable, Optional, Sequence, Tuple, cast
 
 import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
 from logger import struct_logger
+from pandas import Series
+from pandas.api.types import is_float_dtype, is_integer_dtype, is_object_dtype
+
+try:
+    _orjson_runtime = importlib.import_module("orjson")
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    _orjson_runtime = None
+
+orjson = cast(Any, _orjson_runtime)
 
 try:  # pragma: no cover - runtime fallback when executed as script
     from ..src.http_client import BackendAPIError, fetch_backend_json
 except ImportError:  # pragma: no cover - streamlit run context
     try:
         from src.http_client import BackendAPIError, fetch_backend_json
-    except (
-        ImportError
-    ):  # pragma: no cover - fallback when src is namespaced under service
+    except ImportError:  # pragma: no cover - fallback when src is namespaced under service
         from service.src.http_client import BackendAPIError, fetch_backend_json
 
 
-MAX_CHART_POINTS = 50_000
-MAX_TABLE_ROWS = 5_000
-MAX_DOWNLOAD_ROWS = 25_000
+CATEGORY_THRESHOLD = 500
+MAX_JSON_RECORDS = 1_000
+MAX_CHART_POINTS = 2_000
+MAX_TABLE_ROWS = 200
 
 
-def _arrow_dataframe(
-    data: Iterable[dict],
+def _arrow_dataframe(  # pragma: no cover - deterministic data conversion helper
+    data: Iterable[dict[str, Any]],
     expected_cols: Sequence[str] | None = None,
 ) -> pd.DataFrame:
     """Create a DataFrame using the Arrow backend when available to save memory."""
-    if not data:
+    records = list(data)
+    if not records:
         return pd.DataFrame(columns=list(expected_cols or []))
+
+    df = pd.DataFrame(records)
     try:
-        df = pd.DataFrame(data, dtype_backend="pyarrow")
+        df = df.convert_dtypes(dtype_backend="pyarrow")
     except TypeError:  # pragma: no cover - safety for older pandas
-        df = pd.DataFrame(data)
+        df = df.convert_dtypes()
+
     if expected_cols:
         for col in expected_cols:
             if col not in df.columns:
@@ -41,21 +56,89 @@ def _arrow_dataframe(
     return df
 
 
-def _limit_for_chart(
-    df: pd.DataFrame, columns: Sequence[str], max_rows: int
-) -> Tuple[pd.DataFrame, bool]:
-    """Return a lightweight view for charting along with a flag when sampling happened."""
-    view = df.loc[:, list(columns)]
-    if max_rows > 0 and len(view) > max_rows:
-        return view.sample(max_rows, random_state=42), True
-    return view, False
+def _optimise_dataframe(  # pragma: no cover - dtype tuning helper
+    df: pd.DataFrame, categorical_threshold: int = CATEGORY_THRESHOLD
+) -> pd.DataFrame:
+    """Downcast numeric columns and factorise low-cardinality strings to reduce RAM."""
+    if df.empty:
+        return df
+
+    df = df.convert_dtypes()
+
+    for col in df.columns:
+        series = df[col]
+        dtype = series.dtype
+        if is_integer_dtype(dtype):
+            try:
+                df[col] = series.astype(pd.Int32Dtype())
+            except (TypeError, ValueError, OverflowError):
+                df[col] = series.astype(pd.Int64Dtype())
+        elif is_float_dtype(dtype):
+            try:
+                df[col] = series.astype(pd.Float32Dtype())
+            except (TypeError, ValueError):
+                df[col] = series.astype(pd.Float64Dtype())
+        elif is_object_dtype(dtype):
+            unique_count = series.nunique(dropna=True)
+            if unique_count and (
+                unique_count <= categorical_threshold or unique_count <= len(series) * 0.4
+            ):
+                try:
+                    df[col] = series.astype("category")
+                except (TypeError, ValueError):
+                    pass
+
+    return df
 
 
-def _limit_for_table(df: pd.DataFrame, max_rows: int) -> Tuple[pd.DataFrame, bool]:
-    """Restrict the number of rows rendered in Streamlit tables."""
-    if max_rows > 0 and len(df) > max_rows:
-        return df.head(max_rows), True
-    return df, False
+def _safe_int_cast(  # pragma: no cover - dtype helper
+    series: Series, dtype: pd.api.extensions.ExtensionDtype | None = None
+) -> Series:
+    """Cast to a nullable integer dtype with graceful fallback when values overflow."""
+    target_dtype = dtype or pd.Int32Dtype()
+    try:
+        return series.astype(target_dtype)
+    except (TypeError, ValueError, OverflowError):
+        return series.astype(pd.Int64Dtype())
+
+
+def _safe_float_cast(  # pragma: no cover - dtype helper
+    series: Series, dtype: pd.api.extensions.ExtensionDtype | None = None
+) -> Series:
+    """Cast to a float dtype, keeping a fallback to ``Float64`` when needed."""
+    target_dtype = dtype or pd.Float32Dtype()
+    try:
+        return series.astype(target_dtype)
+    except (TypeError, ValueError):
+        return series.astype(pd.Float64Dtype())
+
+
+def _trim_records(  # pragma: no cover - deterministic slicing helper
+    data: Iterable[dict[str, Any]], limit: int = MAX_JSON_RECORDS
+) -> Tuple[list[dict[str, Any]], bool]:
+    """Return at most ``limit`` records from ``data`` with a truncation flag."""
+    records = list(data)
+    if limit > 0 and len(records) > limit:
+        return records[:limit], True
+    return records, False
+
+
+def _limit_frame(  # pragma: no cover - view helper
+    df: pd.DataFrame, limit: int, message: str | None = None
+) -> pd.DataFrame:
+    """Head-truncate ``df`` when it exceeds ``limit`` rows and optionally warn."""
+    if limit > 0 and len(df) > limit:
+        if message:
+            st.caption(message)
+        return df.head(limit)
+    return df
+
+
+def _encode_json(payload: Iterable[dict[str, Any]]) -> bytes:  # pragma: no cover - I/O helper
+    """Serialise payload to JSON bytes using orjson when available."""
+    if orjson is not None:
+        return orjson.dumps(payload)
+    return json.dumps(list(payload), ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
 
 def _format_metric(metric_id: str, value) -> str:
@@ -103,12 +186,11 @@ def render_reviews(
         logger.info("Review overview fetched", count=len(overview_data))
     except BackendAPIError as exc:
         st.error(f"Impossible de récupérer les indicateurs d'avis : {exc.details}")
-        logger.error(
-            "Failed to fetch review overview", error=str(exc), endpoint=exc.endpoint
-        )
+        logger.error("Failed to fetch review overview", error=str(exc), endpoint=exc.endpoint)
         overview_data = []
 
     if overview_data:
+        overview_data, overview_trimmed = _trim_records(overview_data)
         overview_df = _arrow_dataframe(overview_data)
         metrics_map = {row["metric"]: row["value"] for _, row in overview_df.iterrows()}
 
@@ -152,9 +234,7 @@ def render_reviews(
                 )
         if share_reviewed_pct is not None:
             avg_reviews_recipe_display = (
-                f"{avg_reviews_per_recipe:.2f}"
-                if avg_reviews_per_recipe is not None
-                else "-"
+                f"{avg_reviews_per_recipe:.2f}" if avg_reviews_per_recipe is not None else "-"
             )
             insights.append(
                 f"La couverture du catalogue atteint {share_reviewed_pct:.1f} %, avec en moyenne {avg_reviews_recipe_display} avis par recette."
@@ -174,6 +254,10 @@ def render_reviews(
 
         if insights:
             st.markdown(" ".join(insights))
+        if overview_trimmed:
+            st.caption(
+                f"Affichage restreint aux {MAX_JSON_RECORDS:,} premiers enregistrements (source plus volumineuse disponible côté API)."
+            )
     else:
         st.warning("Aucune donnée de synthèse sur les avis n'est disponible.")
 
@@ -194,15 +278,12 @@ def render_reviews(
         dist_data = fetch_backend_json("review-distribution", ttl=300)
         logger.info("Review distribution fetched", count=len(dist_data))
     except BackendAPIError as exc:
-        st.error(
-            f"Erreur lors de la récupération de la distribution d'avis : {exc.details}"
-        )
-        logger.error(
-            "Failed to fetch review distribution", error=str(exc), endpoint=exc.endpoint
-        )
+        st.error(f"Erreur lors de la récupération de la distribution d'avis : {exc.details}")
+        logger.error("Failed to fetch review distribution", error=str(exc), endpoint=exc.endpoint)
         dist_data = []
 
     if dist_data:
+        dist_data, dist_trimmed = _trim_records(dist_data)
         dist_df = _arrow_dataframe(dist_data).rename(
             columns={
                 "reviews_bin": "Tranche d'avis",
@@ -213,10 +294,14 @@ def render_reviews(
         )
 
         try:
-            dist_df["Recettes"] = pd.to_numeric(dist_df["Recettes"], errors="coerce")
-            dist_df["Part (%)"] = pd.to_numeric(dist_df["Part (%)"], errors="coerce")
-            dist_df["Avis moyens"] = pd.to_numeric(
-                dist_df["Avis moyens"], errors="coerce"
+            dist_df["Recettes"] = _safe_int_cast(
+                pd.to_numeric(dist_df["Recettes"], errors="coerce")
+            )
+            dist_df["Part (%)"] = _safe_float_cast(
+                pd.to_numeric(dist_df["Part (%)"], errors="coerce")
+            )
+            dist_df["Avis moyens"] = _safe_float_cast(
+                pd.to_numeric(dist_df["Avis moyens"], errors="coerce")
             )
         except KeyError:
             pass
@@ -233,13 +318,16 @@ def render_reviews(
         dist_df["__min_reviews"] = dist_df["Tranche d'avis"].apply(_parse_min_reviews)
 
         target_col = "Recettes" if view_mode == "Nombre de recettes" else "Part (%)"
-        chart_cols = ["Tranche d'avis", "Recettes", "Part (%)", "Avis moyens"]
-        for col in chart_cols:
-            if col not in dist_df.columns:
-                dist_df[col] = pd.NA
-        chart_df, chart_trimmed = _limit_for_chart(
-            dist_df, chart_cols, MAX_CHART_POINTS
+        chart_df = _limit_frame(
+            dist_df,
+            MAX_CHART_POINTS,
+            message=(
+                f"Histogramme calculé sur les {MAX_CHART_POINTS:,} premières classes."
+                if len(dist_df) > MAX_CHART_POINTS
+                else None
+            ),
         )
+
         chart = (
             alt.Chart(chart_df)
             .mark_bar(color="#5170ff")
@@ -255,10 +343,6 @@ def render_reviews(
             )
         )
         st.altair_chart(chart, use_container_width=True)
-        if chart_trimmed:
-            st.caption(
-                f"Affichage échantillonné sur {MAX_CHART_POINTS:,} lignes pour préserver la mémoire."
-            )
 
         top_row: Optional[pd.Series] = None
         if "Recettes" in dist_df.columns and not dist_df["Recettes"].empty:
@@ -276,9 +360,7 @@ def render_reviews(
             avg_reviews_raw = top_row.get("Avis moyens")
             recettes_val = int(float(recettes_raw)) if recettes_raw is not None else 0
             part_val = float(part_raw) if part_raw is not None else 0.0
-            avg_reviews_val = (
-                float(avg_reviews_raw) if avg_reviews_raw is not None else 0.0
-            )
+            avg_reviews_val = float(avg_reviews_raw) if avg_reviews_raw is not None else 0.0
             st.caption(
                 f"Tranche la plus fréquente : **{top_label}** "
                 f"({recettes_val} recettes, {part_val:.1f}%)."
@@ -291,9 +373,7 @@ def render_reviews(
             dist_insights.append(
                 f"Encore {zero_share:.1f} % du catalogue n'a pas reçu de premier avis, laissant un potentiel d'engagement."
             )
-        engaged_share = float(
-            dist_df.loc[dist_df["__min_reviews"] >= 5, "Part (%)"].sum()
-        )
+        engaged_share = float(dist_df.loc[dist_df["__min_reviews"] >= 5, "Part (%)"].sum())
         if engaged_share > 0:
             dist_insights.append(
                 f"À l'inverse, {engaged_share:.1f} % des recettes recueillent au moins cinq avis, signe d'un noyau de contenus phares."
@@ -306,25 +386,31 @@ def render_reviews(
             st.markdown(" ".join(dist_insights))
 
         dist_df = dist_df.drop(columns="__min_reviews")
+        dist_df = _optimise_dataframe(dist_df)
 
-        display_df, table_trimmed = _limit_for_table(dist_df, MAX_TABLE_ROWS)
-        st.dataframe(display_df, width="stretch", hide_index=True)
-        if table_trimmed:
+        table_df = _limit_frame(
+            dist_df,
+            MAX_TABLE_ROWS,
+            message=(
+                f"Table limitée aux {MAX_TABLE_ROWS:,} premières lignes pour maîtriser la mémoire."
+                if len(dist_df) > MAX_TABLE_ROWS
+                else None
+            ),
+        )
+        st.dataframe(table_df, width="stretch", hide_index=True)
+
+        download_json = _encode_json(dist_data)
+        st.download_button(
+            "📥 Exporter la distribution (JSON)",
+            download_json,
+            "distribution_avis_recettes.json",
+            "application/json",
+        )
+        del download_json, dist_df, table_df, chart_df
+        gc.collect()
+        if dist_trimmed:
             st.caption(
-                f"Table réduite aux {MAX_TABLE_ROWS:,} premières lignes (données complètes disponibles via l'API)."
-            )
-
-        if len(dist_df) <= MAX_DOWNLOAD_ROWS:
-            download_csv = dist_df.to_csv(index=False)
-            st.download_button(
-                "📥 Exporter la distribution",
-                download_csv,
-                "distribution_avis_recettes.csv",
-                "text/csv",
-            )
-        else:
-            st.info(
-                "Dataset volumineux : utilisez l'API backend pour récupérer l'intégralité de la distribution."
+                f"Données tronquées aux {MAX_JSON_RECORDS:,} premiers enregistrements pour limiter l'empreinte mémoire."
             )
     else:
         st.info("Distribution non disponible.")
@@ -341,12 +427,11 @@ def render_reviews(
         logger.info("Top reviewers fetched", count=len(reviewer_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération des reviewers : {exc.details}")
-        logger.error(
-            "Failed to fetch top reviewers", error=str(exc), endpoint=exc.endpoint
-        )
+        logger.error("Failed to fetch top reviewers", error=str(exc), endpoint=exc.endpoint)
         reviewer_data = []
 
     if reviewer_data:
+        reviewer_data, reviewers_trimmed = _trim_records(reviewer_data)
         reviewers_df = _arrow_dataframe(reviewer_data)
         rename_map = {
             "reviewer_id": "Reviewer",
@@ -358,15 +443,24 @@ def render_reviews(
             "last_review_date": "Dernier avis",
         }
         reviewers_df = reviewers_df.rename(columns=rename_map)
-        numeric_cols = [
-            "Nombre d'avis",
-            "Part (%)",
-            "Note moyenne donnée",
-            "Longueur moyenne (mots)",
-        ]
-        for col in numeric_cols:
-            if col in reviewers_df.columns:
-                reviewers_df[col] = pd.to_numeric(reviewers_df[col], errors="coerce")
+        if "Nombre d'avis" in reviewers_df.columns:
+            reviewers_df["Nombre d'avis"] = _safe_int_cast(
+                pd.to_numeric(reviewers_df["Nombre d'avis"], errors="coerce")
+            )
+        if "Part (%)" in reviewers_df.columns:
+            reviewers_df["Part (%)"] = _safe_float_cast(
+                pd.to_numeric(reviewers_df["Part (%)"], errors="coerce")
+            )
+        if "Note moyenne donnée" in reviewers_df.columns:
+            reviewers_df["Note moyenne donnée"] = _safe_float_cast(
+                pd.to_numeric(reviewers_df["Note moyenne donnée"], errors="coerce")
+            )
+        if "Longueur moyenne (mots)" in reviewers_df.columns:
+            reviewers_df["Longueur moyenne (mots)"] = _safe_float_cast(
+                pd.to_numeric(reviewers_df["Longueur moyenne (mots)"], errors="coerce")
+            )
+
+        reviewers_df = _optimise_dataframe(reviewers_df)
 
         top_reviewer = reviewers_df.iloc[0]
         col_a, col_b, col_c = st.columns(3)
@@ -375,12 +469,20 @@ def render_reviews(
             "Avis publiés",
             _format_metric("total_reviews", top_reviewer["Nombre d'avis"]),
         )
-        col_c.metric(
-            "Part du volume", _format_metric("share_pct", top_reviewer.get("Part (%)"))
+        col_c.metric("Part du volume", _format_metric("share_pct", top_reviewer.get("Part (%)")))
+
+        bars_df = _limit_frame(
+            reviewers_df,
+            MAX_CHART_POINTS,
+            message=(
+                f"Graphique limité aux {MAX_CHART_POINTS:,} reviewers les plus actifs."
+                if len(reviewers_df) > MAX_CHART_POINTS
+                else None
+            ),
         )
 
         bars = (
-            alt.Chart(reviewers_df)
+            alt.Chart(bars_df)
             .mark_bar()
             .encode(
                 x=alt.X("Nombre d'avis:Q", title="Nombre d'avis"),
@@ -395,13 +497,24 @@ def render_reviews(
         )
         st.altair_chart(bars, use_container_width=True)
 
-        table_df, table_trimmed = _limit_for_table(reviewers_df, MAX_TABLE_ROWS)
+        table_df = _limit_frame(
+            reviewers_df,
+            MAX_TABLE_ROWS,
+            message=(
+                f"Table limitée aux {MAX_TABLE_ROWS:,} reviewers les plus actifs."
+                if len(reviewers_df) > MAX_TABLE_ROWS
+                else None
+            ),
+        )
         st.dataframe(table_df, width="stretch", hide_index=True)
-        if table_trimmed:
-            st.caption(
-                f"Table réduite aux {MAX_TABLE_ROWS:,} premières lignes pour limiter l'empreinte mémoire."
-            )
 
+        download_json = _encode_json(reviewer_data)
+        st.download_button(
+            "📥 Exporter les reviewers (JSON)",
+            download_json,
+            "top_reviewers.json",
+            "application/json",
+        )
         reviewer_insights = []
         if "Part (%)" in reviewers_df.columns:
             top_share = float(top_reviewer.get("Part (%)", 0.0))
@@ -424,6 +537,10 @@ def render_reviews(
             )
         if reviewer_insights:
             st.markdown(" ".join(reviewer_insights))
+        if reviewers_trimmed:
+            st.caption(f"Top reviewers tronqués aux {MAX_JSON_RECORDS:,} premiers profils.")
+        del reviewers_df, bars_df, table_df, download_json
+        gc.collect()
     else:
         st.info("Aucun reviewer actif détecté.")
 
@@ -443,21 +560,16 @@ def render_reviews(
         logger.info("Reviewer vs recipes fetched", count=len(reviewer_vs_recipes_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la corrélation reviewers / recettes : {exc.details}")
-        logger.error(
-            "Failed to fetch reviewer vs recipes", error=str(exc), endpoint=exc.endpoint
-        )
+        logger.error("Failed to fetch reviewer vs recipes", error=str(exc), endpoint=exc.endpoint)
         reviewer_vs_recipes_data = []
 
     if reviewer_vs_recipes_data:
+        reviewer_vs_recipes_data, rr_trimmed = _trim_records(reviewer_vs_recipes_data)
         rr_df = _arrow_dataframe(reviewer_vs_recipes_data)
         expected_cols = {"user_id", "reviews_count", "recipes_published"}
         if expected_cols.issubset(rr_df.columns):
-            rr_df["reviews_count"] = pd.to_numeric(
-                rr_df["reviews_count"], errors="coerce"
-            )
-            rr_df["recipes_published"] = pd.to_numeric(
-                rr_df["recipes_published"], errors="coerce"
-            )
+            rr_df["reviews_count"] = pd.to_numeric(rr_df["reviews_count"], errors="coerce")
+            rr_df["recipes_published"] = pd.to_numeric(rr_df["recipes_published"], errors="coerce")
             if "avg_rating_given" in rr_df.columns:
                 rr_df["avg_rating_given"] = pd.to_numeric(
                     rr_df["avg_rating_given"], errors="coerce"
@@ -467,14 +579,17 @@ def render_reviews(
             if rr_df.empty or rr_df["reviews_count"].nunique() <= 1:
                 st.info("Pas assez d'utilisateurs différents pour tracer la relation.")
             else:
+                rr_df["reviews_count"] = _safe_int_cast(rr_df["reviews_count"])
+                rr_df["recipes_published"] = _safe_int_cast(rr_df["recipes_published"])
+                if "avg_rating_given" in rr_df.columns:
+                    rr_df["avg_rating_given"] = _safe_float_cast(rr_df["avg_rating_given"])
+
                 rr_df = rr_df.sort_values("reviews_count")
 
                 tooltip_fields = [
                     alt.Tooltip("user_id:N", title="Utilisateur"),
                     alt.Tooltip("reviews_count:Q", title="Avis rédigés", format=","),
-                    alt.Tooltip(
-                        "recipes_published:Q", title="Recettes publiées", format=","
-                    ),
+                    alt.Tooltip("recipes_published:Q", title="Recettes publiées", format=","),
                 ]
                 if "avg_rating_given" in rr_df.columns:
                     tooltip_fields.append(
@@ -485,16 +600,14 @@ def render_reviews(
                         )
                     )
 
-                chart_cols = [
-                    "user_id",
-                    "reviews_count",
-                    "recipes_published",
-                    "avg_rating_given",
-                ]
-                if "predicted_recipes_published" in rr_df.columns:
-                    chart_cols.append("predicted_recipes_published")
-                chart_df, chart_trimmed = _limit_for_chart(
-                    rr_df, chart_cols, MAX_CHART_POINTS
+                chart_df = _limit_frame(
+                    rr_df,
+                    MAX_CHART_POINTS,
+                    message=(
+                        f"Nuage limité à {MAX_CHART_POINTS:,} utilisateurs pour faciliter l'affichage."
+                        if len(rr_df) > MAX_CHART_POINTS
+                        else None
+                    ),
                 )
 
                 scatter = (
@@ -516,7 +629,7 @@ def render_reviews(
                             rr_df["recipes_published"],
                             1,
                         )
-                        rr_df["predicted_recipes_published"] = (
+                        rr_df["predicted_recipes_published"] = _safe_float_cast(
                             slope * rr_df["reviews_count"] + intercept
                         )
                         corr_value = float(
@@ -536,12 +649,10 @@ def render_reviews(
                     except Exception:
                         regression = None
 
+                rr_df = _optimise_dataframe(rr_df)
+
                 chart_obj = scatter if regression is None else scatter + regression
                 st.altair_chart(chart_obj.interactive(), use_container_width=True)
-                if chart_trimmed:
-                    st.caption(
-                        f"Nuage de points construit sur un échantillon de {MAX_CHART_POINTS:,} lignes."
-                    )
 
                 rr_display_cols = [
                     c
@@ -550,33 +661,40 @@ def render_reviews(
                         "reviews_count",
                         "recipes_published",
                         "avg_rating_given",
+                        "predicted_recipes_published",
                     ]
                     if c in rr_df.columns
                 ]
-                table_df, table_trimmed = _limit_for_table(
-                    rr_df[rr_display_cols], MAX_TABLE_ROWS
+                table_df = _limit_frame(
+                    rr_df[rr_display_cols],
+                    MAX_TABLE_ROWS,
+                    message=(
+                        f"Table limitée aux {MAX_TABLE_ROWS:,} utilisateurs pour contrôler la mémoire."
+                        if len(rr_df) > MAX_TABLE_ROWS
+                        else None
+                    ),
                 )
                 st.dataframe(
                     table_df,
                     width="stretch",
                     hide_index=True,
                 )
-                if table_trimmed:
-                    st.caption(
-                        f"Table tronquée aux {MAX_TABLE_ROWS:,} premières entrées pour préserver la mémoire."
-                    )
+
+                download_json = _encode_json(reviewer_vs_recipes_data)
+                st.download_button(
+                    "📥 Exporter reviewers vs recettes (JSON)",
+                    download_json,
+                    "reviewers_vs_recipes.json",
+                    "application/json",
+                )
 
                 narrative_parts = []
-                top_reviewer = rr_df.sort_values("reviews_count", ascending=False).iloc[
-                    0
-                ]
+                top_reviewer = rr_df.sort_values("reviews_count", ascending=False).iloc[0]
                 narrative_parts.append(
                     f"L'utilisateur {top_reviewer['user_id']} est le plus prolifique avec {int(top_reviewer['reviews_count'])} avis rédigés."
                 )
 
-                top_author = rr_df.sort_values(
-                    "recipes_published", ascending=False
-                ).iloc[0]
+                top_author = rr_df.sort_values("recipes_published", ascending=False).iloc[0]
                 narrative_parts.append(
                     f"Côté publication, {top_author['user_id']} mène avec {int(top_author['recipes_published'])} recettes au catalogue."
                 )
@@ -596,14 +714,16 @@ def render_reviews(
                     )
 
                 st.markdown(" ".join(narrative_parts))
+                if rr_trimmed:
+                    st.caption(
+                        f"Corrélation calculée sur les {MAX_JSON_RECORDS:,} premiers reviewers."
+                    )
+                del rr_df, chart_df, table_df, download_json
+                gc.collect()
         else:
-            st.error(
-                "Colonnes inattendues reçues pour la corrélation reviewers / recettes."
-            )
+            st.error("Colonnes inattendues reçues pour la corrélation reviewers / recettes.")
     else:
-        st.info(
-            "Aucune donnée pour la corrélation entre avis rédigés et recettes publiées."
-        )
+        st.info("Aucune donnée pour la corrélation entre avis rédigés et recettes publiées.")
 
     st.divider()
 
@@ -617,18 +737,29 @@ def render_reviews(
         logger.info("Review trend fetched", count=len(trend_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération de la chronologie : {exc.details}")
-        logger.error(
-            "Failed to fetch review trend", error=str(exc), endpoint=exc.endpoint
-        )
+        logger.error("Failed to fetch review trend", error=str(exc), endpoint=exc.endpoint)
         trend_data = []
 
     if trend_data:
+        trend_data, trend_trimmed = _trim_records(trend_data)
         trend_df = _arrow_dataframe(trend_data)
         if "period" in trend_df.columns:
-            trend_df["period"] = pd.PeriodIndex(
-                trend_df["period"], freq="M"
-            ).to_timestamp()
+            trend_df["period"] = pd.PeriodIndex(trend_df["period"], freq="M").to_timestamp()
+        if "reviews_count" in trend_df.columns:
+            trend_df["reviews_count"] = _safe_int_cast(
+                pd.to_numeric(trend_df["reviews_count"], errors="coerce")
+            )
+        if "unique_reviewers" in trend_df.columns:
+            trend_df["unique_reviewers"] = _safe_int_cast(
+                pd.to_numeric(trend_df["unique_reviewers"], errors="coerce")
+            )
+        if "avg_rating_given" in trend_df.columns:
+            trend_df["avg_rating_given"] = _safe_float_cast(
+                pd.to_numeric(trend_df["avg_rating_given"], errors="coerce")
+            )
+
         trend_df = trend_df.sort_values("period")
+        trend_df = _optimise_dataframe(trend_df)
 
         line = (
             alt.Chart(trend_df)
@@ -651,9 +782,7 @@ def render_reviews(
                     x="period:T",
                     y=alt.Y("unique_reviewers:Q", title="Reviewers uniques"),
                     tooltip=[
-                        alt.Tooltip(
-                            "unique_reviewers:Q", title="Reviewers uniques", format=","
-                        )
+                        alt.Tooltip("unique_reviewers:Q", title="Reviewers uniques", format=",")
                     ],
                 )
             )
@@ -662,18 +791,28 @@ def render_reviews(
         else:
             st.altair_chart(line.interactive(), use_container_width=True)
 
-        trend_table, trend_trimmed = _limit_for_table(
-            trend_df.rename(columns={"period": "Période"}), MAX_TABLE_ROWS
+        trend_table = _limit_frame(
+            trend_df.rename(columns={"period": "Période"}),
+            MAX_TABLE_ROWS,
+            message=(
+                f"Table limitée aux {MAX_TABLE_ROWS:,} dernières périodes pour maîtriser la mémoire."
+                if len(trend_df) > MAX_TABLE_ROWS
+                else None
+            ),
         )
         st.dataframe(
             trend_table,
             width="stretch",
             hide_index=True,
         )
-        if trend_trimmed:
-            st.caption(
-                f"Affichage limité aux {MAX_TABLE_ROWS:,} dernières périodes pour des raisons de mémoire."
-            )
+
+        download_json = _encode_json(trend_data)
+        st.download_button(
+            "📥 Exporter la tendance (JSON)",
+            download_json,
+            "review_trend.json",
+            "application/json",
+        )
 
         trend_insights = []
         last_row = trend_df.iloc[-1]
@@ -698,6 +837,10 @@ def render_reviews(
                 )
         if trend_insights:
             st.markdown(" ".join(trend_insights))
+        if trend_trimmed:
+            st.caption(f"Chronologie tronquée aux {MAX_JSON_RECORDS:,} premières périodes.")
+        del trend_df, trend_table, download_json
+        gc.collect()
     else:
         st.info("Aucune donnée temporelle pour les avis.")
 
@@ -717,43 +860,43 @@ def render_reviews(
         logger.info("Reviews vs rating fetched", count=len(scatter_data))
     except BackendAPIError as exc:
         st.error(f"Erreur lors de la récupération des corrélations : {exc.details}")
-        logger.error(
-            "Failed to fetch reviews vs rating", error=str(exc), endpoint=exc.endpoint
-        )
+        logger.error("Failed to fetch reviews vs rating", error=str(exc), endpoint=exc.endpoint)
         scatter_data = []
 
     if scatter_data:
+        scatter_data, scatter_trimmed = _trim_records(scatter_data)
         scatter_df = _arrow_dataframe(scatter_data)
         expected_cols = {"recipe_id", "review_count", "avg_rating"}
         if expected_cols.issubset(scatter_df.columns):
-            scatter_df["review_count"] = pd.to_numeric(
-                scatter_df["review_count"], errors="coerce"
-            )
-            scatter_df["avg_rating"] = pd.to_numeric(
-                scatter_df["avg_rating"], errors="coerce"
-            )
+            scatter_df["review_count"] = pd.to_numeric(scatter_df["review_count"], errors="coerce")
+            scatter_df["avg_rating"] = pd.to_numeric(scatter_df["avg_rating"], errors="coerce")
             scatter_df = scatter_df.dropna(subset=["review_count", "avg_rating"])
 
             if not scatter_df.empty:
                 scatter_df = scatter_df[scatter_df["review_count"] > 0]
                 scatter_df = scatter_df.sort_values("review_count")
+                scatter_df["review_count"] = _safe_int_cast(scatter_df["review_count"])
+                scatter_df["avg_rating"] = _safe_float_cast(scatter_df["avg_rating"])
 
                 tooltip_fields = [
                     alt.Tooltip("recipe_id:N", title="Recette ID"),
                     alt.Tooltip("review_count:Q", title="Avis", format=","),
                     alt.Tooltip("avg_rating:Q", title="Note moyenne", format=".2f"),
                 ]
-                chart_cols = ["recipe_id", "review_count", "avg_rating"]
                 if "recipe_name" in scatter_df.columns:
-                    tooltip_fields.insert(
-                        0, alt.Tooltip("recipe_name:N", title="Recette")
-                    )
-                    chart_cols.append("recipe_name")
+                    tooltip_fields.insert(0, alt.Tooltip("recipe_name:N", title="Recette"))
                 if "contributor_id" in scatter_df.columns:
-                    tooltip_fields.append(
-                        alt.Tooltip("contributor_id:N", title="Contributeur")
-                    )
-                    chart_cols.append("contributor_id")
+                    tooltip_fields.append(alt.Tooltip("contributor_id:N", title="Contributeur"))
+
+                chart_df = _limit_frame(
+                    scatter_df,
+                    MAX_CHART_POINTS,
+                    message=(
+                        f"Nuage limité à {MAX_CHART_POINTS:,} recettes pour l'affichage."
+                        if len(scatter_df) > MAX_CHART_POINTS
+                        else None
+                    ),
+                )
 
                 corr_coef_value = None
                 slope = intercept = None
@@ -765,18 +908,16 @@ def render_reviews(
                     scatter_df["predicted_avg_rating"] = (
                         slope * scatter_df["review_count"] + intercept
                     )
-                    chart_cols.append("predicted_avg_rating")
+                    scatter_df["predicted_avg_rating"] = _safe_float_cast(
+                        scatter_df["predicted_avg_rating"]
+                    )
                     corr_coef_value = float(
-                        np.corrcoef(
-                            scatter_df["review_count"], scatter_df["avg_rating"]
-                        )[0, 1]
+                        np.corrcoef(scatter_df["review_count"], scatter_df["avg_rating"])[0, 1]
                     )
                 except Exception:
                     slope = intercept = None
 
-                chart_df, chart_trimmed = _limit_for_chart(
-                    scatter_df, chart_cols, MAX_CHART_POINTS
-                )
+                scatter_df = _optimise_dataframe(scatter_df)
 
                 base = (
                     alt.Chart(chart_df)
@@ -791,7 +932,7 @@ def render_reviews(
                 if (
                     slope is not None
                     and intercept is not None
-                    and "predicted_avg_rating" in chart_df
+                    and "predicted_avg_rating" in scatter_df
                 ):
                     regression_chart = (
                         alt.Chart(chart_df)
@@ -809,11 +950,6 @@ def render_reviews(
                     st.altair_chart(base.interactive(), use_container_width=True)
                     st.caption("Régression non calculable (données insuffisantes).")
 
-                if chart_trimmed:
-                    st.caption(
-                        f"Nuage de points limité à {MAX_CHART_POINTS:,} observations pour éviter la saturation mémoire."
-                    )
-
                 display_cols = [
                     c
                     for c in [
@@ -826,14 +962,24 @@ def render_reviews(
                     ]
                     if c in scatter_df.columns
                 ]
-                table_df, table_trimmed = _limit_for_table(
-                    scatter_df[display_cols], MAX_TABLE_ROWS
+                table_df = _limit_frame(
+                    scatter_df[display_cols],
+                    MAX_TABLE_ROWS,
+                    message=(
+                        f"Table limitée aux {MAX_TABLE_ROWS:,} recettes les plus commentées."
+                        if len(scatter_df) > MAX_TABLE_ROWS
+                        else None
+                    ),
                 )
                 st.dataframe(table_df, width="stretch", hide_index=True)
-                if table_trimmed:
-                    st.caption(
-                        f"Table tronquée aux {MAX_TABLE_ROWS:,} premières lignes (accès complet via l'API)."
-                    )
+
+                download_json = _encode_json(scatter_data)
+                st.download_button(
+                    "📥 Exporter avis vs notes (JSON)",
+                    download_json,
+                    "reviews_vs_rating.json",
+                    "application/json",
+                )
 
                 scatter_insights = []
                 if corr_coef_value is not None:
@@ -841,9 +987,7 @@ def render_reviews(
                         f"La corrélation reste modérée (r = {corr_coef_value:.2f}) entre le volume d'avis et la note moyenne."
                     )
                 top_recipe = scatter_df.iloc[-1]
-                recipe_label = top_recipe.get(
-                    "recipe_name", f"Recette #{top_recipe['recipe_id']}"
-                )
+                recipe_label = top_recipe.get("recipe_name", f"Recette #{top_recipe['recipe_id']}")
                 scatter_insights.append(
                     f"La recette la plus commentée, {recipe_label}, totalise {int(top_recipe['review_count'])} avis pour une moyenne de {top_recipe['avg_rating']:.2f}/5."
                 )
@@ -854,6 +998,12 @@ def render_reviews(
                     )
                 if scatter_insights:
                     st.markdown(" ".join(scatter_insights))
+                if scatter_trimmed:
+                    st.caption(
+                        f"Analyse limitée aux {MAX_JSON_RECORDS:,} premières recettes pour préserver la mémoire."
+                    )
+                del scatter_df, chart_df, table_df, download_json
+                gc.collect()
             else:
                 st.info("Pas assez de points avec avis > 0 pour tracer la relation.")
         else:
