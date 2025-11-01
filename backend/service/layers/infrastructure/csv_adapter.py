@@ -68,6 +68,8 @@ class CSVAdapter(IDataAdapter):
             df = df.astype(object).where(pd.notna(df), None)
 
             if not raw:
+                # Pre-convert numeric columns before optimization
+                df = self._preconvert_types(df, data_type)
                 df = self._optimize_memory(df)
 
             self._cache[cache_key] = df
@@ -88,6 +90,28 @@ class CSVAdapter(IDataAdapter):
         return path
 
     @staticmethod
+    def _preconvert_types(df: pd.DataFrame, data_type: DataType) -> pd.DataFrame:
+        """Pre-convert known numeric columns to avoid repeated conversions later."""
+        if df.empty:
+            return df
+
+        if data_type == DataType.RECIPES:
+            # Pre-convert numeric columns for recipes
+            if 'minutes' in df.columns:
+                df['minutes'] = pd.to_numeric(df['minutes'], errors='coerce')
+            if 'n_steps' in df.columns:
+                df['n_steps'] = pd.to_numeric(df['n_steps'], errors='coerce')
+            if 'n_ingredients' in df.columns:
+                df['n_ingredients'] = pd.to_numeric(df['n_ingredients'], errors='coerce')
+
+        elif data_type == DataType.INTERACTIONS:
+            # Pre-convert numeric columns for interactions
+            if 'rating' in df.columns:
+                df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
+
+        return df
+
+    @staticmethod
     def _optimize_memory(df: pd.DataFrame) -> pd.DataFrame:
         if df.empty:
             return df
@@ -106,8 +130,17 @@ class CSVAdapter(IDataAdapter):
                 num_unique = df[col].nunique()
                 num_total = len(df[col])
 
-                if num_unique / num_total < 0.5:
+                # Lower threshold from 0.5 to 0.3 for more aggressive categorization
+                if num_unique / num_total < 0.3:
                     df[col] = df[col].astype('category')
+                # Convert long strings to 'string' dtype (more memory efficient)
+                elif isinstance(df[col].iloc[0] if len(df[col]) > 0 else None, str):
+                    try:
+                        avg_len = df[col].astype(str).str.len().mean()
+                        if avg_len > 100:
+                            df[col] = df[col].astype('string')
+                    except (AttributeError, TypeError):
+                        pass
 
             elif col_type in ['int64', 'int32']:
                 df[col] = pd.to_numeric(df[col], downcast='integer')

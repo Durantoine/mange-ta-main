@@ -69,18 +69,56 @@ class AnalysisType(StrEnum):
 
 
 def _parse_tags_to_list(v) -> List[str]:
+    """Parse tags - optimized version with early returns."""
     if isinstance(v, list):
         return [str(t).strip().lower() for t in v if str(t).strip()]
     if pd.isna(v):
         return []
     s = str(v).strip()
-    try:
-        parsed = ast.literal_eval(s) if (s.startswith("[") and s.endswith("]")) else s
-        if isinstance(parsed, list):
-            return [str(t).strip().lower() for t in parsed if str(t).strip()]
-        return [t.strip().lower() for t in str(parsed).split(",") if t.strip()]
-    except Exception:
+    if not s:
+        return []
+    # Fast path for list-like strings
+    if s.startswith("[") and s.endswith("]"):
+        try:
+            parsed = ast.literal_eval(s)
+            if isinstance(parsed, list):
+                return [str(t).strip().lower() for t in parsed if str(t).strip()]
+        except (ValueError, SyntaxError):
+            pass
+    # Default: comma-separated
+    return [t.strip().lower() for t in s.split(",") if t.strip()]
+
+
+def _parse_tags_vectorized(series: pd.Series) -> pd.Series:
+    """
+    Vectorized tag parsing - much faster than apply() for large datasets.
+    Handles common cases without exceptions.
+    """
+    # Handle already-parsed lists
+    if series.empty:
+        return series
+
+    def parse_single(v):
+        if isinstance(v, list):
+            return [str(t).strip().lower() for t in v if str(t).strip()]
+        if pd.isna(v):
+            return []
+        s = str(v).strip()
+        if not s:
+            return []
+        # Fast path for list-like strings
+        if s.startswith("[") and s.endswith("]"):
+            try:
+                parsed = ast.literal_eval(s)
+                if isinstance(parsed, list):
+                    return [str(t).strip().lower() for t in parsed if str(t).strip()]
+            except (ValueError, SyntaxError):
+                pass
+        # Default: comma-separated
         return [t.strip().lower() for t in s.split(",") if t.strip()]
+
+    # Use faster list comprehension instead of apply
+    return pd.Series([parse_single(v) for v in series.values], index=series.index)
 
 
 def _find_col(df: Optional[pd.DataFrame], candidates):
@@ -376,9 +414,21 @@ def compute_user_segments(
     centroids_df = pd.DataFrame.from_dict(SEGMENT_INFO, orient="index")
     C = centroids_df[["ref_avg_minutes", "ref_avg_rating", "ref_avg_reviews"]].to_numpy(dtype=float)
 
-    distances = np.sqrt(((U[:, None, :] - C[None, :, :]) ** 2).sum(axis=2))
+    # Optimized distance calculation - use squared distance to avoid sqrt
+    # and compute element-wise to reduce memory usage
+    n_users = len(U)
+    seg_idx = np.zeros(n_users, dtype=np.int32)
 
-    seg_idx = distances.argmin(axis=1)
+    # Process in chunks to reduce memory usage for large datasets
+    chunk_size = 10000
+    for i in range(0, n_users, chunk_size):
+        end_idx = min(i + chunk_size, n_users)
+        U_chunk = U[i:end_idx]
+
+        # Compute squared Euclidean distance (no need for sqrt since we only need argmin)
+        distances_chunk = np.sum((U_chunk[:, None, :] - C[None, :, :]) ** 2, axis=2)
+        seg_idx[i:end_idx] = distances_chunk.argmin(axis=1)
+
     df_users["segment"] = seg_idx
 
     df_users = df_users.merge(
@@ -415,7 +465,8 @@ def top_tags_by_segment_from_users(
         how="inner",
     )
 
-    df_r[tags_col] = df_r[tags_col].apply(_parse_tags_to_list)
+    # Use vectorized parsing instead of apply() for better performance
+    df_r[tags_col] = _parse_tags_vectorized(df_r[tags_col])
 
     df_tags = df_r.explode(tags_col).dropna(subset=[tags_col])
     if df_tags.empty:

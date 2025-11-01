@@ -6,18 +6,28 @@ from domain import BASE_URL
 from logger import struct_logger
 
 
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def fetch_top10_data():
+    """Fetch top 10% contributor data with caching."""
+    try:
+        response = requests.get(f"{BASE_URL}/mange_ta_main/top-10-percent-contributors")
+        response.raise_for_status()
+        data = response.json()
+        struct_logger.info("Top 10% contributor metrics fetched", count=len(data))
+        return data
+    except requests.RequestException as e:
+        struct_logger.error("Failed to fetch top 10% metrics", error=str(e))
+        raise
+
+
 def render_top10_vs_global(logger=struct_logger) -> None:  # pragma: no cover - Streamlit UI glue
     st.header("🏅 Utilisateurs Top 10% vs Global")
     st.caption("Comparaison des comportements des contributeurs les plus actifs")
 
     try:
-        response = requests.get(f"{BASE_URL}/mange_ta_main/top-10-percent-contributors")
-        response.raise_for_status()
-        data = response.json()
-        logger.info("Top 10% contributor metrics fetched", count=len(data))
+        data = fetch_top10_data()
     except requests.RequestException as e:
         st.error(f"Erreur lors de la récupération des données : {e}")
-        logger.error("Failed to fetch top 10% metrics", error=str(e))
         return
 
     if not data:

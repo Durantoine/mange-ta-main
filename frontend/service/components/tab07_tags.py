@@ -15,6 +15,20 @@ SEGMENT_ORDER = [
 ]
 
 
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def fetch_tags_by_segment_data():
+    """Fetch top tags by segment data with caching."""
+    try:
+        response = requests.get(f"{BASE_URL}/mange_ta_main/top-tags-by-segment")
+        response.raise_for_status()
+        data = response.json()
+        struct_logger.info("Top tags by segment fetched", count=len(data))
+        return data
+    except requests.RequestException as e:
+        struct_logger.error("Failed to fetch top tags by segment", error=str(e))
+        raise
+
+
 def render_top_tags_by_segment(
     logger=struct_logger,
 ) -> None:  # pragma: no cover - Streamlit UI glue
@@ -81,13 +95,9 @@ def render_top_tags_by_segment(
     y_title = "Occurrences" if value_col == "count" else "Part (%)"
 
     try:
-        response = requests.get(f"{BASE_URL}/mange_ta_main/top-tags-by-segment")
-        response.raise_for_status()
-        data = response.json()
-        logger.info("Top tags by segment fetched", count=len(data))
+        data = fetch_tags_by_segment_data()
     except requests.RequestException as e:
         st.error(f"Erreur lors de la récupération des données : {e}")
-        logger.error("Failed to fetch top tags by segment", error=str(e))
         return
     else:
         if not data:
