@@ -5,4 +5,4 @@ services:
       target: prod
       platforms:
         - linux/amd64
-    image: durantoine/mange-ta-main-front:10
+    image: durantoine/mange-ta-main-front:11

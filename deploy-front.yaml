@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: docker.io/durantoine/mange-ta-main-front:10
+        image: docker.io/durantoine/mange-ta-main-front:11
         imagePullPolicy: Always
         ports:
         - containerPort: 8501
@@ -25,10 +25,10 @@ spec:
         resources:
           requests:
             cpu: "500m"
-            memory: "1Gi"
+            memory: "2Gi"
           limits:
             cpu: "1"
-            memory: "1Gi"
+            memory: "3Gi"
 
 
 ---
