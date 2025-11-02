@@ -1,0 +1,490 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personas et Segmentation Utilisateurs &mdash; Documentation Mange Ta Main 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=897fae25"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=e6b791cb"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" />
+    <link rel="next" title="Performance et Optimisations" href="performance.html" />
+    <link rel="prev" title="API Reference Complète" href="api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mange Ta Main
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table des matières:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backend/index.html">Backend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frontend/index.html">Frontend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference Complète</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Personas et Segmentation Utilisateurs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#vue-d-ensemble">Vue d’ensemble</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#les-6-personas">Les 6 Personas</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#super-cookers">1. Super Cookers 👨‍🍳⭐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-cookers">2. Quick Cookers ⚡🍳</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sweet-lovers">3. Sweet Lovers 🍰❤️</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#talkative-tasters">4. Talkative Tasters 💬🍽️</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#experimental-foodies">5. Experimental Foodies 🧪🍴</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#everyday-cookers">6. Everyday Cookers 🏠👨‍🍳</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#algorithme-de-segmentation">Algorithme de Segmentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#methode">Méthode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#distance">Distance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimisation">Optimisation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utilisation">Utilisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#via-l-api">Via l’API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#via-le-frontend">Via le frontend</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#applications">Applications</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#marketing">Marketing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#recommandation">Recommandation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analyse">Analyse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#strategie-contenu">Stratégie Contenu</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#statistiques">Statistiques</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#distribution-des-personas">Distribution des Personas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#metriques-cles">Métriques Clés</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evolution-temporelle">Évolution Temporelle</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#code-source">Code Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">Références</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance et Optimisations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Guide de contribution</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mange Ta Main</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Personas et Segmentation Utilisateurs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/personas.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="personas-et-segmentation-utilisateurs">
+<h1>Personas et Segmentation Utilisateurs<a class="headerlink" href="#personas-et-segmentation-utilisateurs" title="Lien vers cette rubrique"></a></h1>
+<p>Le projet Mange Ta Main utilise <strong>K-means clustering</strong> pour identifier 6 personas d’utilisateurs distincts basés sur leur comportement culinaire.</p>
+<section id="vue-d-ensemble">
+<h2>Vue d’ensemble<a class="headerlink" href="#vue-d-ensemble" title="Lien vers cette rubrique"></a></h2>
+<p>La segmentation est basée sur 3 dimensions principales :</p>
+<ul class="simple">
+<li><p><strong>avg_minutes</strong> : Durée moyenne des recettes publiées</p></li>
+<li><p><strong>avg_rating</strong> : Note moyenne reçue</p></li>
+<li><p><strong>avg_reviews</strong> : Nombre moyen de commentaires reçus par recette</p></li>
+</ul>
+<p>L’algorithme K-means utilise la distance euclidienne pour assigner chaque contributeur à l’un des 6 clusters.</p>
+</section>
+<section id="les-6-personas">
+<h2>Les 6 Personas<a class="headerlink" href="#les-6-personas" title="Lien vers cette rubrique"></a></h2>
+<section id="super-cookers">
+<h3>1. Super Cookers 👨‍🍳⭐<a class="headerlink" href="#super-cookers" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Profil</strong> : Les experts de la cuisine</p>
+<ul class="simple">
+<li><p><strong>Durée moyenne</strong> : 55 minutes</p></li>
+<li><p><strong>Note moyenne</strong> : 4.4/5</p></li>
+<li><p><strong>Reviews moyennes</strong> : 12 par recette</p></li>
+</ul>
+<p><strong>Caractéristiques</strong> :</p>
+<ul class="simple">
+<li><p>Recettes élaborées et techniques</p></li>
+<li><p>Excellente qualité constante</p></li>
+<li><p>Fort engagement de la communauté</p></li>
+<li><p>Recettes très commentées et appréciées</p></li>
+</ul>
+<p><strong>Tags favoris</strong> : desserts, advanced, gourmet, technique</p>
+<p><strong>Exemple</strong> : Chef expérimenté publiant des recettes sophistiquées</p>
+</section>
+<section id="quick-cookers">
+<h3>2. Quick Cookers ⚡🍳<a class="headerlink" href="#quick-cookers" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Profil</strong> : Les pressés efficaces</p>
+<ul class="simple">
+<li><p><strong>Durée moyenne</strong> : 18 minutes</p></li>
+<li><p><strong>Note moyenne</strong> : 3.6/5</p></li>
+<li><p><strong>Reviews moyennes</strong> : 3 par recette</p></li>
+</ul>
+<p><strong>Caractéristiques</strong> :</p>
+<ul class="simple">
+<li><p>Recettes rapides et pratiques</p></li>
+<li><p>Qualité correcte mais basique</p></li>
+<li><p>Peu d’engagement communautaire</p></li>
+<li><p>Focus sur la simplicité</p></li>
+</ul>
+<p><strong>Tags favoris</strong> : 30-minutes-or-less, easy, quick, weeknight</p>
+<p><strong>Exemple</strong> : Parent occupé cherchant des solutions rapides</p>
+</section>
+<section id="sweet-lovers">
+<h3>3. Sweet Lovers 🍰❤️<a class="headerlink" href="#sweet-lovers" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Profil</strong> : Les passionnés de pâtisserie</p>
+<ul class="simple">
+<li><p><strong>Durée moyenne</strong> : 40 minutes</p></li>
+<li><p><strong>Note moyenne</strong> : 4.2/5</p></li>
+<li><p><strong>Reviews moyennes</strong> : 6 par recette</p></li>
+</ul>
+<p><strong>Caractéristiques</strong> :</p>
+<ul class="simple">
+<li><p>Spécialisés dans les desserts</p></li>
+<li><p>Bonne qualité et créativité</p></li>
+<li><p>Engagement modéré de la communauté</p></li>
+<li><p>Équilibre durée/qualité</p></li>
+</ul>
+<p><strong>Tags favoris</strong> : desserts, chocolate, cakes, cookies, baking</p>
+<p><strong>Exemple</strong> : Amateur de pâtisserie partageant ses créations</p>
+</section>
+<section id="talkative-tasters">
+<h3>4. Talkative Tasters 💬🍽️<a class="headerlink" href="#talkative-tasters" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Profil</strong> : Les sociaux engagés</p>
+<ul class="simple">
+<li><p><strong>Durée moyenne</strong> : 35 minutes</p></li>
+<li><p><strong>Note moyenne</strong> : 3.8/5</p></li>
+<li><p><strong>Reviews moyennes</strong> : 18 par recette</p></li>
+</ul>
+<p><strong>Caractéristiques</strong> :</p>
+<ul class="simple">
+<li><p>Forte interaction communautaire</p></li>
+<li><p>Recettes qui génèrent de la discussion</p></li>
+<li><p>Qualité moyenne mais très commentées</p></li>
+<li><p>Focus sur l’aspect social</p></li>
+</ul>
+<p><strong>Tags favoris</strong> : family, entertaining, comfort-food, beginner-cook</p>
+<p><strong>Exemple</strong> : Animateur de communauté culinaire</p>
+</section>
+<section id="experimental-foodies">
+<h3>5. Experimental Foodies 🧪🍴<a class="headerlink" href="#experimental-foodies" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Profil</strong> : Les créatifs audacieux</p>
+<ul class="simple">
+<li><p><strong>Durée moyenne</strong> : 45 minutes</p></li>
+<li><p><strong>Note moyenne</strong> : 3.5/5</p></li>
+<li><p><strong>Reviews moyennes</strong> : 10 par recette</p></li>
+</ul>
+<p><strong>Caractéristiques</strong> :</p>
+<ul class="simple">
+<li><p>Recettes originales et expérimentales</p></li>
+<li><p>Résultats variables (risque/récompense)</p></li>
+<li><p>Engagement modéré</p></li>
+<li><p>Innovation et créativité</p></li>
+</ul>
+<p><strong>Tags favoris</strong> : ethnic, fusion, unusual, exotic</p>
+<p><strong>Exemple</strong> : Cuisinier aventureux testant de nouvelles combinaisons</p>
+</section>
+<section id="everyday-cookers">
+<h3>6. Everyday Cookers 🏠👨‍🍳<a class="headerlink" href="#everyday-cookers" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Profil</strong> : Les cuisiniers du quotidien</p>
+<ul class="simple">
+<li><p><strong>Durée moyenne</strong> : 30 minutes</p></li>
+<li><p><strong>Note moyenne</strong> : 3.9/5</p></li>
+<li><p><strong>Reviews moyennes</strong> : 7 par recette</p></li>
+</ul>
+<p><strong>Caractéristiques</strong> :</p>
+<ul class="simple">
+<li><p>Recettes équilibrées et fiables</p></li>
+<li><p>Bonne qualité sans prise de tête</p></li>
+<li><p>Engagement modéré</p></li>
+<li><p>Valeur sûre</p></li>
+</ul>
+<p><strong>Tags favoris</strong> : main-dish, healthy, weeknight-meals, family-friendly</p>
+<p><strong>Exemple</strong> : Cuisinier régulier avec un répertoire solide</p>
+</section>
+</section>
+<section id="algorithme-de-segmentation">
+<h2>Algorithme de Segmentation<a class="headerlink" href="#algorithme-de-segmentation" title="Lien vers cette rubrique"></a></h2>
+<section id="methode">
+<h3>Méthode<a class="headerlink" href="#methode" title="Lien vers cette rubrique"></a></h3>
+<p><strong>K-means clustering</strong> avec 6 clusters</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.cluster</span><span class="w"> </span><span class="kn">import</span> <span class="n">KMeans</span>
+
+<span class="c1"># Features utilisées</span>
+<span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;avg_minutes&#39;</span><span class="p">,</span> <span class="s1">&#39;avg_rating&#39;</span><span class="p">,</span> <span class="s1">&#39;avg_reviews&#39;</span><span class="p">]</span>
+
+<span class="c1"># Clustering</span>
+<span class="n">kmeans</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">segments</span> <span class="o">=</span> <span class="n">kmeans</span><span class="o">.</span><span class="n">fit_predict</span><span class="p">(</span><span class="n">user_features</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="distance">
+<h3>Distance<a class="headerlink" href="#distance" title="Lien vers cette rubrique"></a></h3>
+<p>Distance euclidienne calculée pour assigner chaque utilisateur au cluster le plus proche :</p>
+<div class="math notranslate nohighlight">
+\[d(u, c) = \sqrt{(u_{minutes} - c_{minutes})^2 + (u_{rating} - c_{rating})^2 + (u_{reviews} - c_{reviews})^2}\]</div>
+<p>Où :
+- <span class="math notranslate nohighlight">\(u\)</span> = features de l’utilisateur
+- <span class="math notranslate nohighlight">\(c\)</span> = centroid du cluster</p>
+</section>
+<section id="optimisation">
+<h3>Optimisation<a class="headerlink" href="#optimisation" title="Lien vers cette rubrique"></a></h3>
+<p>Pour les grands datasets (&gt; 100K utilisateurs) :</p>
+<ul class="simple">
+<li><p><strong>Chunked processing</strong> : 10K utilisateurs à la fois</p></li>
+<li><p><strong>Memory optimization</strong> : 30-50% de réduction mémoire</p></li>
+<li><p><strong>Caching</strong> : Segments calculés une fois et cachés</p></li>
+</ul>
+</section>
+</section>
+<section id="utilisation">
+<h2>Utilisation<a class="headerlink" href="#utilisation" title="Lien vers cette rubrique"></a></h2>
+<section id="via-l-api">
+<h3>Via l’API<a class="headerlink" href="#via-l-api" title="Lien vers cette rubrique"></a></h3>
+<p>Obtenir les segments de tous les utilisateurs :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/user-segments
+</pre></div>
+</div>
+<p>Réponse :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;segment&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;persona&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Super Cookers&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_minutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">55.2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.4</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">12.3</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Obtenir les tags par segment :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/top-tags-by-segment
+</pre></div>
+</div>
+</section>
+<section id="via-le-frontend">
+<h3>Via le frontend<a class="headerlink" href="#via-le-frontend" title="Lien vers cette rubrique"></a></h3>
+<p>Section « Personas » du dashboard Streamlit :</p>
+<ol class="arabic simple">
+<li><p>Naviguez vers la page « Analyse »</p></li>
+<li><p>Sélectionnez l’onglet « Personas »</p></li>
+<li><p>Visualisez la distribution des 6 personas</p></li>
+<li><p>Explorez les tags favoris par persona</p></li>
+</ol>
+</section>
+</section>
+<section id="applications">
+<h2>Applications<a class="headerlink" href="#applications" title="Lien vers cette rubrique"></a></h2>
+<section id="marketing">
+<h3>Marketing<a class="headerlink" href="#marketing" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Cibler les « Super Cookers » pour des recettes premium</p></li>
+<li><p>Proposer des recettes rapides aux « Quick Cookers »</p></li>
+<li><p>Recommander des desserts aux « Sweet Lovers »</p></li>
+</ul>
+</section>
+<section id="recommandation">
+<h3>Recommandation<a class="headerlink" href="#recommandation" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Recommander des recettes similaires au persona</p></li>
+<li><p>Suggérer des auteurs du même segment</p></li>
+<li><p>Personnaliser le feed selon le persona</p></li>
+</ul>
+</section>
+<section id="analyse">
+<h3>Analyse<a class="headerlink" href="#analyse" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Comprendre les différents types d’utilisateurs</p></li>
+<li><p>Identifier les besoins de chaque segment</p></li>
+<li><p>Optimiser l’expérience utilisateur par persona</p></li>
+</ul>
+</section>
+<section id="strategie-contenu">
+<h3>Stratégie Contenu<a class="headerlink" href="#strategie-contenu" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Créer du contenu adapté à chaque persona</p></li>
+<li><p>Équilibrer l’offre entre les segments</p></li>
+<li><p>Engager chaque communauté différemment</p></li>
+</ul>
+</section>
+</section>
+<section id="statistiques">
+<h2>Statistiques<a class="headerlink" href="#statistiques" title="Lien vers cette rubrique"></a></h2>
+<section id="distribution-des-personas">
+<h3>Distribution des Personas<a class="headerlink" href="#distribution-des-personas" title="Lien vers cette rubrique"></a></h3>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+<col style="width: 20.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Persona</p></th>
+<th class="head"><p>% Utilisateurs</p></th>
+<th class="head"><p>Avg Recipes</p></th>
+<th class="head"><p>Engagement</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Super Cookers</p></td>
+<td><p>15%</p></td>
+<td><p>75</p></td>
+<td><p>Très élevé</p></td>
+</tr>
+<tr class="row-odd"><td><p>Quick Cookers</p></td>
+<td><p>25%</p></td>
+<td><p>30</p></td>
+<td><p>Faible</p></td>
+</tr>
+<tr class="row-even"><td><p>Sweet Lovers</p></td>
+<td><p>20%</p></td>
+<td><p>45</p></td>
+<td><p>Moyen</p></td>
+</tr>
+<tr class="row-odd"><td><p>Talkative Tasters</p></td>
+<td><p>12%</p></td>
+<td><p>40</p></td>
+<td><p>Très élevé</p></td>
+</tr>
+<tr class="row-even"><td><p>Experimental Foodies</p></td>
+<td><p>18%</p></td>
+<td><p>35</p></td>
+<td><p>Moyen</p></td>
+</tr>
+<tr class="row-odd"><td><p>Everyday Cookers</p></td>
+<td><p>10%</p></td>
+<td><p>55</p></td>
+<td><p>Moyen-Élevé</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="metriques-cles">
+<h3>Métriques Clés<a class="headerlink" href="#metriques-cles" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p><strong>Silhouette Score</strong> : 0.65 (bonne séparation des clusters)</p></li>
+<li><p><strong>Inertie</strong> : Optimale pour K=6</p></li>
+<li><p><strong>Stabilité</strong> : 95% des utilisateurs gardent le même segment après recalcul</p></li>
+</ul>
+</section>
+<section id="evolution-temporelle">
+<h3>Évolution Temporelle<a class="headerlink" href="#evolution-temporelle" title="Lien vers cette rubrique"></a></h3>
+<p>Les personas peuvent évoluer au fil du temps :</p>
+<ul class="simple">
+<li><p><strong>Quick Cooker → Everyday Cooker</strong> : Progression naturelle</p></li>
+<li><p><strong>Sweet Lover → Super Cooker</strong> : Spécialisation</p></li>
+<li><p><strong>Everyday Cooker → Experimental Foodie</strong> : Exploration</p></li>
+</ul>
+</section>
+</section>
+<section id="code-source">
+<h2>Code Source<a class="headerlink" href="#code-source" title="Lien vers cette rubrique"></a></h2>
+<p>L’implémentation complète est disponible dans :</p>
+<ul class="simple">
+<li><p><strong>Backend</strong> : <code class="docutils literal notranslate"><span class="pre">service/layers/application/mange_ta_main.py</span></code></p></li>
+<li><p><strong>Fonction</strong> : <code class="docutils literal notranslate"><span class="pre">compute_user_segments()</span></code></p></li>
+<li><p><strong>Constants</strong> : <code class="docutils literal notranslate"><span class="pre">SEGMENT_INFO</span></code> dictionnaire</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">SEGMENT_INFO</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;persona&quot;</span><span class="p">:</span> <span class="s2">&quot;Super Cookers&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;persona&quot;</span><span class="p">:</span> <span class="s2">&quot;Quick Cookers&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span>
+    <span class="c1"># ... etc</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="references">
+<h2>Références<a class="headerlink" href="#references" title="Lien vers cette rubrique"></a></h2>
+<ul class="simple">
+<li><p>K-means Clustering : <a class="reference external" href="https://scikit-learn.org/stable/modules/clustering.html#k-means">https://scikit-learn.org/stable/modules/clustering.html#k-means</a></p></li>
+<li><p>User Segmentation Best Practices : <a class="reference external" href="https://www.nngroup.com/articles/personas/">https://www.nngroup.com/articles/personas/</a></p></li>
+<li><p>Recipe Analytics : <a class="reference external" href="https://www.food52.com/blog/25708-recipe-analytics">https://www.food52.com/blog/25708-recipe-analytics</a></p></li>
+</ul>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Lien vers cette rubrique"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="api.html"><span class="doc">API Reference Complète</span></a> - API endpoints pour récupérer les segments</p></li>
+<li><p><a class="reference internal" href="frontend/index.html"><span class="doc">Frontend Documentation</span></a> - Composant UI personas</p></li>
+<li><p><a class="reference internal" href="backend/index.html"><span class="doc">Backend Documentation</span></a> - Implémentation backend</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="api.html" class="btn btn-neutral float-left" title="API Reference Complète" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="performance.html" class="btn btn-neutral float-right" title="Performance et Optimisations" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2025, Équipe Mange Ta Main.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>API Reference &mdash; Documentation Mange Ta Main 0.1.0</title>
+  <title>API Reference Complète &mdash; Documentation Mange Ta Main 0.1.0</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -20,7 +20,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Recherche" href="search.html" />
-    <link rel="next" title="Guide de contribution" href="contributing.html" />
+    <link rel="next" title="Personas et Segmentation Utilisateurs" href="personas.html" />
     <link rel="prev" title="Frontend Documentation" href="frontend/index.html" /> 
 </head>
 
@@ -50,44 +50,71 @@
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="backend/index.html">Backend Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="frontend/index.html">Frontend Documentation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference Complète</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#base-url">Base URL</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#endpoints">Endpoints</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#health-check">Health Check</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#recipes">Recipes</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#recuperer-les-recettes">Récupérer les recettes</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#recuperer-une-recette-specifique">Récupérer une recette spécifique</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#vue-d-ensemble">Vue d’ensemble</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gestion-des-donnees">1. Gestion des données</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-health">GET /mange_ta_main/health</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-load-data">GET /mange_ta_main/load-data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#post-mange-ta-main-clean-raw-data">POST /mange_ta_main/clean-raw-data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-debug-memory">GET /mange_ta_main/debug/memory</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#statistics">Statistics</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#statistiques-globales">Statistiques globales</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#statistiques-des-contributeurs">Statistiques des contributeurs</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#statistiques-des-tags">Statistiques des tags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analyse-des-contributeurs">2. Analyse des contributeurs</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-most-recipes-contributors">GET /mange_ta_main/most-recipes-contributors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-best-ratings-contributors">GET /mange_ta_main/best-ratings-contributors</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#personas">Personas</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#analyse-des-personas">Analyse des personas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analyse-duree-des-recettes">3. Analyse durée des recettes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-duration-distribution">GET /mange_ta_main/duration-distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-duration-vs-recipe-count">GET /mange_ta_main/duration-vs-recipe-count</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#top-performers-et-segmentation">4. Top performers et segmentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-top-10-percent-contributors">GET /mange_ta_main/top-10-percent-contributors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-user-segments">GET /mange_ta_main/user-segments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-top-tags-by-segment">GET /mange_ta_main/top-tags-by-segment</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#modeles-de-donnees">Modèles de données</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#recipe">Recipe</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user">User</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#review">Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analyse-des-ratings">5. Analyse des ratings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-rating-distribution">GET /mange_ta_main/rating-distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-rating-vs-recipes">GET /mange_ta_main/rating-vs-recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#analyse-des-reviews">6. Analyse des reviews</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-review-overview">GET /mange_ta_main/review-overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-review-distribution">GET /mange_ta_main/review-distribution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-top-reviewers">GET /mange_ta_main/top-reviewers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-review-trend">GET /mange_ta_main/review-trend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-reviews-vs-rating">GET /mange_ta_main/reviews-vs-rating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#get-mange-ta-main-reviewer-vs-recipes">GET /mange_ta_main/reviewer-vs-recipes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#format-de-reponse">Format de réponse</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gestion-des-valeurs-speciales">Gestion des valeurs spéciales</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#gestion-des-erreurs">Gestion des erreurs</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#format-des-erreurs">Format des erreurs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#codes-d-erreur-courants">Codes d’erreur courants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#format-standard">Format standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#codes-http">Codes HTTP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exemples-d-erreurs">Exemples d’erreurs</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#rate-limiting">Rate Limiting</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#authentification">Authentification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#versioning">Versioning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#openapi-swagger">OpenAPI / Swagger</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#optimisations">Optimisations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#limites">Limites</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation-interactive">Documentation interactive</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#swagger-ui">Swagger UI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#redoc">ReDoc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#openapi-json">OpenAPI JSON</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="personas.html">Personas et Segmentation Utilisateurs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance et Optimisations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Guide de contribution</a></li>
 </ul>
 
@@ -105,7 +132,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">API Reference</li>
+      <li class="breadcrumb-item active">API Reference Complète</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/api.rst.txt" rel="nofollow"> Afficher la source de la page</a>
       </li>
@@ -115,312 +142,559 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="api-reference">
-<h1>API Reference<a class="headerlink" href="#api-reference" title="Lien vers cette rubrique"></a></h1>
-<p>Documentation complète de l’API REST du backend.</p>
+  <section id="api-reference-complete">
+<h1>API Reference Complète<a class="headerlink" href="#api-reference-complete" title="Lien vers cette rubrique"></a></h1>
+<p>Documentation complète de l’API REST du backend avec <strong>19 endpoints réels</strong>.</p>
 <section id="base-url">
 <h2>Base URL<a class="headerlink" href="#base-url" title="Lien vers cette rubrique"></a></h2>
-<p>En développement local : <code class="docutils literal notranslate"><span class="pre">http://localhost:8000</span></code></p>
-<p>En production : <code class="docutils literal notranslate"><span class="pre">https://your-domain.com</span></code></p>
-</section>
-<section id="endpoints">
-<h2>Endpoints<a class="headerlink" href="#endpoints" title="Lien vers cette rubrique"></a></h2>
-<section id="health-check">
-<h3>Health Check<a class="headerlink" href="#health-check" title="Lien vers cette rubrique"></a></h3>
-<p>Vérifier que l’API est en ligne.</p>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /health</span>
-</pre></div>
-</div>
-<p><strong>Réponse</strong> :</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p><strong>Codes de statut</strong> :</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> : L’API fonctionne correctement</p></li>
+<li><p>Développement : <code class="docutils literal notranslate"><span class="pre">http://localhost:8000</span></code></p></li>
+<li><p>Production : <code class="docutils literal notranslate"><span class="pre">https://your-domain.com</span></code></p></li>
+<li><p>Préfixe : <code class="docutils literal notranslate"><span class="pre">/mange_ta_main</span></code></p></li>
 </ul>
 </section>
-<section id="recipes">
-<h3>Recipes<a class="headerlink" href="#recipes" title="Lien vers cette rubrique"></a></h3>
-<section id="recuperer-les-recettes">
-<h4>Récupérer les recettes<a class="headerlink" href="#recuperer-les-recettes" title="Lien vers cette rubrique"></a></h4>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/recipes</span>
+<section id="vue-d-ensemble">
+<h2>Vue d’ensemble<a class="headerlink" href="#vue-d-ensemble" title="Lien vers cette rubrique"></a></h2>
+<p>L’API expose <strong>19 endpoints</strong> (18 GET + 1 POST) organisés en <strong>6 catégories</strong> :</p>
+<ol class="arabic simple">
+<li><p><strong>Gestion des données</strong> (4 endpoints) - Chargement, nettoyage, debug</p></li>
+<li><p><strong>Analyse contributeurs</strong> (2 endpoints) - Top contributeurs par recettes/notes</p></li>
+<li><p><strong>Analyse durée</strong> (2 endpoints) - Distribution et corrélations</p></li>
+<li><p><strong>Top performers</strong> (3 endpoints) - Segmentation utilisateurs, personas</p></li>
+<li><p><strong>Analyse ratings</strong> (2 endpoints) - Distribution et corrélations</p></li>
+<li><p><strong>Analyse reviews</strong> (6 endpoints) - Statistiques et tendances temporelles</p></li>
+</ol>
+<p>—</p>
+</section>
+<section id="gestion-des-donnees">
+<h2>1. Gestion des données<a class="headerlink" href="#gestion-des-donnees" title="Lien vers cette rubrique"></a></h2>
+<section id="get-mange-ta-main-health">
+<h3>GET /mange_ta_main/health<a class="headerlink" href="#get-mange-ta-main-health" title="Lien vers cette rubrique"></a></h3>
+<p>Vérifier que l’API est opérationnelle.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p><strong>Paramètres de requête</strong> :</p>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/health
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-load-data">
+<h3>GET /mange_ta_main/load-data<a class="headerlink" href="#get-mange-ta-main-load-data" title="Lien vers cette rubrique"></a></h3>
+<p>Charger un dataset (recettes ou interactions).</p>
+<p><strong>Paramètres</strong> :</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">limit</span></code> (optionnel, int) : Nombre maximum de recettes à retourner</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">offset</span></code> (optionnel, int) : Décalage pour la pagination</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">sort_by</span></code> (optionnel, str) : Champ pour trier (ex: « rating », « duration »)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">order</span></code> (optionnel, str) : Ordre de tri (« asc » ou « desc »)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_type</span></code> (query, string, <strong>requis</strong>) : <code class="docutils literal notranslate"><span class="pre">recipes</span></code> ou <code class="docutils literal notranslate"><span class="pre">interactions</span></code></p></li>
 </ul>
-<p><strong>Exemple de requête</strong> :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;http://localhost:8000/api/v1/recipes?limit=10&amp;offset=0&amp;sort_by=rating&amp;order=desc&quot;</span>
+<p><strong>Réponse</strong> : Array d’objets (format varie selon le type)</p>
+<p><strong>Recettes</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">137739</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;arriba   baked winter squash mexican style&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;minutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">55</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;submitted&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2005-09-16&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[&#39;60-minutes-or-less&#39;, &#39;time-to-make&#39;, &#39;course&#39;]&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;nutrition&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[51.5, 0.0, 13.0, 0.0, 2.0, 0.0, 4.0]&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;n_steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[&#39;make a choice&#39;]&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;delicious...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;ingredients&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;[&#39;winter squash&#39;, &#39;mexican seasoning&#39;]&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;n_ingredients&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Interactions</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;recipe_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">137739</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;date&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2002-01-01&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;review&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Great recipe!&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span><span class="s2">&quot;http://localhost:8000/mange_ta_main/load-data?data_type=recipes&quot;</span>
+curl<span class="w"> </span><span class="s2">&quot;http://localhost:8000/mange_ta_main/load-data?data_type=interactions&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="post-mange-ta-main-clean-raw-data">
+<h3>POST /mange_ta_main/clean-raw-data<a class="headerlink" href="#post-mange-ta-main-clean-raw-data" title="Lien vers cette rubrique"></a></h3>
+<p>Déclencher le nettoyage et la normalisation des données brutes.</p>
+<p><strong>Body (optionnel)</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;force&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>Réponse</strong> :</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poulet rôti&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;viande&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;four&quot;</span><span class="p">],</span>
-<span class="w">      </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user123&quot;</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;offset&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Data cleaned successfully&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p><strong>Codes de statut</strong> :</p>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:8000/mange_ta_main/clean-raw-data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;force&quot;: false}&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-debug-memory">
+<h3>GET /mange_ta_main/debug/memory<a class="headerlink" href="#get-mange-ta-main-debug-memory" title="Lien vers cette rubrique"></a></h3>
+<p>Obtenir les statistiques d’utilisation mémoire du processus.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;memory_mb&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">450.5</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;peak_memory_mb&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">520.3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-11-02T16:00:00Z&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/debug/memory
+</pre></div>
+</div>
+<p>—</p>
+</section>
+</section>
+<section id="analyse-des-contributeurs">
+<h2>2. Analyse des contributeurs<a class="headerlink" href="#analyse-des-contributeurs" title="Lien vers cette rubrique"></a></h2>
+<section id="get-mange-ta-main-most-recipes-contributors">
+<h3>GET /mange_ta_main/most-recipes-contributors<a class="headerlink" href="#get-mange-ta-main-most-recipes-contributors" title="Lien vers cette rubrique"></a></h3>
+<p>Obtenir les contributeurs ayant publié le plus de recettes.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;total_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">450</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/most-recipes-contributors
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-best-ratings-contributors">
+<h3>GET /mange_ta_main/best-ratings-contributors<a class="headerlink" href="#get-mange-ta-main-best-ratings-contributors" title="Lien vers cette rubrique"></a></h3>
+<p>Obtenir les contributeurs avec les meilleures notes moyennes.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.8</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;total_ratings&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4850</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/best-ratings-contributors
+</pre></div>
+</div>
+<p>—</p>
+</section>
+</section>
+<section id="analyse-duree-des-recettes">
+<h2>3. Analyse durée des recettes<a class="headerlink" href="#analyse-duree-des-recettes" title="Lien vers cette rubrique"></a></h2>
+<section id="get-mange-ta-main-duration-distribution">
+<h3>GET /mange_ta_main/duration-distribution<a class="headerlink" href="#get-mange-ta-main-duration-distribution" title="Lien vers cette rubrique"></a></h3>
+<p>Distribution des recettes par tranches de durée.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Tranches de durée</strong> : 0-15, 15-30, 30-45, 45-60, 60-90, 90-120, 120+ minutes</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;duration_bin&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0-15 min&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">25.5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;cumulative_percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">25.5</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;duration_bin&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;15-30 min&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">40.8</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;cumulative_percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">66.3</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/duration-distribution
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-duration-vs-recipe-count">
+<h3>GET /mange_ta_main/duration-vs-recipe-count<a class="headerlink" href="#get-mange-ta-main-duration-vs-recipe-count" title="Lien vers cette rubrique"></a></h3>
+<p>Corrélation entre durée moyenne et nombre de recettes par contributeur.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_minutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">45.5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/duration-vs-recipe-count
+</pre></div>
+</div>
+<p>—</p>
+</section>
+</section>
+<section id="top-performers-et-segmentation">
+<h2>4. Top performers et segmentation<a class="headerlink" href="#top-performers-et-segmentation" title="Lien vers cette rubrique"></a></h2>
+<section id="get-mange-ta-main-top-10-percent-contributors">
+<h3>GET /mange_ta_main/top-10-percent-contributors<a class="headerlink" href="#get-mange-ta-main-top-10-percent-contributors" title="Lien vers cette rubrique"></a></h3>
+<p>Statistiques détaillées des 10% meilleurs contributeurs.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">789</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.7</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;total_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1500</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;percentile&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">95.5</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/top-10-percent-contributors
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-user-segments">
+<h3>GET /mange_ta_main/user-segments<a class="headerlink" href="#get-mange-ta-main-user-segments" title="Lien vers cette rubrique"></a></h3>
+<p>Segmentation des utilisateurs en 6 personas via K-means clustering.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Les 6 personas</strong> :</p>
+<ol class="arabic simple" start="0">
+<li><p><strong>Super Cookers</strong> - Recettes longues (55 min), excellentes notes (4.4), très commentées (12)</p></li>
+<li><p><strong>Quick Cookers</strong> - Recettes rapides (18 min), notes moyennes (3.6), peu commentées (3)</p></li>
+<li><p><strong>Sweet Lovers</strong> - Recettes moyennes (40 min), bonnes notes (4.2), moyennement commentées (6)</p></li>
+<li><p><strong>Talkative Tasters</strong> - Recettes moyennes (35 min), notes correctes (3.8), très commentées (18)</p></li>
+<li><p><strong>Experimental Foodies</strong> - Recettes moyennes-longues (45 min), notes moyennes (3.5), commentées (10)</p></li>
+<li><p><strong>Everyday Cookers</strong> - Recettes courtes-moyennes (30 min), bonnes notes (3.9), moyennement commentées (7)</p></li>
+</ol>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;segment&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;persona&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Super Cookers&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_minutes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">55.2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.4</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">12.3</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/user-segments
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-top-tags-by-segment">
+<h3>GET /mange_ta_main/top-tags-by-segment<a class="headerlink" href="#get-mange-ta-main-top-tags-by-segment" title="Lien vers cette rubrique"></a></h3>
+<p>Top 5 tags les plus utilisés par chaque persona.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;segment&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;persona&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Super Cookers&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;tag&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;desserts&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1500</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;rank&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/top-tags-by-segment
+</pre></div>
+</div>
+<p>—</p>
+</section>
+</section>
+<section id="analyse-des-ratings">
+<h2>5. Analyse des ratings<a class="headerlink" href="#analyse-des-ratings" title="Lien vers cette rubrique"></a></h2>
+<section id="get-mange-ta-main-rating-distribution">
+<h3>GET /mange_ta_main/rating-distribution<a class="headerlink" href="#get-mange-ta-main-rating-distribution" title="Lien vers cette rubrique"></a></h3>
+<p>Distribution des notes moyennes des contributeurs.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;rating_bin&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4.0-4.5&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">35.5</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/rating-distribution
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-rating-vs-recipes">
+<h3>GET /mange_ta_main/rating-vs-recipes<a class="headerlink" href="#get-mange-ta-main-rating-vs-recipes" title="Lien vers cette rubrique"></a></h3>
+<p>Corrélation entre note moyenne et nombre de recettes.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/rating-vs-recipes
+</pre></div>
+</div>
+<p>—</p>
+</section>
+</section>
+<section id="analyse-des-reviews">
+<h2>6. Analyse des reviews<a class="headerlink" href="#analyse-des-reviews" title="Lien vers cette rubrique"></a></h2>
+<section id="get-mange-ta-main-review-overview">
+<h3>GET /mange_ta_main/review-overview<a class="headerlink" href="#get-mange-ta-main-review-overview" title="Lien vers cette rubrique"></a></h3>
+<p>Statistiques globales sur les reviews.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;total_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150000</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;avg_review_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">250.5</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;reviews_with_text&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">120000</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;reviews_with_text_percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">80.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;avg_reviews_per_recipe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">7.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/review-overview
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-review-distribution">
+<h3>GET /mange_ta_main/review-distribution<a class="headerlink" href="#get-mange-ta-main-review-distribution" title="Lien vers cette rubrique"></a></h3>
+<p>Distribution du nombre de reviews par recette.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;review_count_bin&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0-5 reviews&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;recipe_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">45.5</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/review-distribution
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-top-reviewers">
+<h3>GET /mange_ta_main/top-reviewers<a class="headerlink" href="#get-mange-ta-main-top-reviewers" title="Lien vers cette rubrique"></a></h3>
+<p>Top 20 reviewers les plus actifs.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1500</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating_given&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;rank&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/top-reviewers
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-review-trend">
+<h3>GET /mange_ta_main/review-trend<a class="headerlink" href="#get-mange-ta-main-review-trend" title="Lien vers cette rubrique"></a></h3>
+<p>Tendance temporelle des reviews (par mois).</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;year_month&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2008-01&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;review_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1200</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.1</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/review-trend
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-reviews-vs-rating">
+<h3>GET /mange_ta_main/reviews-vs-rating<a class="headerlink" href="#get-mange-ta-main-reviews-vs-rating" title="Lien vers cette rubrique"></a></h3>
+<p>Corrélation entre nombre de reviews et note moyenne d’une recette.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;recipe_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">137739</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/reviews-vs-rating
+</pre></div>
+</div>
+</section>
+<section id="get-mange-ta-main-reviewer-vs-recipes">
+<h3>GET /mange_ta_main/reviewer-vs-recipes<a class="headerlink" href="#get-mange-ta-main-reviewer-vs-recipes" title="Lien vers cette rubrique"></a></h3>
+<p>Analyse du double rôle : reviewers qui publient aussi des recettes.</p>
+<p><strong>Paramètres</strong> : Aucun</p>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_reviews_given&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;num_recipes_published&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating_received&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.3</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;avg_rating_given&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.1</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Exemple</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/reviewer-vs-recipes
+</pre></div>
+</div>
+<p>—</p>
+</section>
+</section>
+<section id="format-de-reponse">
+<h2>Format de réponse<a class="headerlink" href="#format-de-reponse" title="Lien vers cette rubrique"></a></h2>
+<p>Toutes les réponses GET (sauf health et memory) retournent un array d’objets JSON :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span><span class="nt">&quot;key1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value1&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;key2&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="nt">&quot;key1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value2&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;key2&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<section id="gestion-des-valeurs-speciales">
+<h3>Gestion des valeurs spéciales<a class="headerlink" href="#gestion-des-valeurs-speciales" title="Lien vers cette rubrique"></a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> : Succès</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> : Paramètres invalides</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code> : Erreur serveur</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NaN</span></code> → <code class="docutils literal notranslate"><span class="pre">null</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Infinity</span></code> → <code class="docutils literal notranslate"><span class="pre">null</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-Infinity</span></code> → <code class="docutils literal notranslate"><span class="pre">null</span></code></p></li>
+<li><p>Categorical data → convertie en string</p></li>
 </ul>
-</section>
-<section id="recuperer-une-recette-specifique">
-<h4>Récupérer une recette spécifique<a class="headerlink" href="#recuperer-une-recette-specifique" title="Lien vers cette rubrique"></a></h4>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/recipes/{recipe_id}</span>
-</pre></div>
-</div>
-<p><strong>Paramètres de chemin</strong> :</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">recipe_id</span></code> (int) : ID de la recette</p></li>
-</ul>
-<p><strong>Exemple de requête</strong> :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;http://localhost:8000/api/v1/recipes/123&quot;</span>
-</pre></div>
-</div>
-<p><strong>Réponse</strong> :</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poulet rôti&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;viande&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;four&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user123&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Délicieux poulet rôti au four&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;ingredients&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;poulet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;sel&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;poivre&quot;</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Préchauffer le four&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Assaisonner le poulet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Cuire 60 min&quot;</span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p><strong>Codes de statut</strong> :</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> : Succès</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> : Recette non trouvée</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code> : Erreur serveur</p></li>
-</ul>
-</section>
-</section>
-<section id="statistics">
-<h3>Statistics<a class="headerlink" href="#statistics" title="Lien vers cette rubrique"></a></h3>
-<section id="statistiques-globales">
-<h4>Statistiques globales<a class="headerlink" href="#statistiques-globales" title="Lien vers cette rubrique"></a></h4>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/statistics</span>
-</pre></div>
-</div>
-<p><strong>Réponse</strong> :</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;total_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50000</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;total_users&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;average_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;average_duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;total_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150000</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
-<section id="statistiques-des-contributeurs">
-<h4>Statistiques des contributeurs<a class="headerlink" href="#statistiques-des-contributeurs" title="Lien vers cette rubrique"></a></h4>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/statistics/contributors</span>
-</pre></div>
-</div>
-<p><strong>Réponse</strong> :</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;top_contributors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user123&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;recipe_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;average_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.7</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;total_contributors&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
-<section id="statistiques-des-tags">
-<h4>Statistiques des tags<a class="headerlink" href="#statistiques-des-tags" title="Lien vers cette rubrique"></a></h4>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/statistics/tags</span>
-</pre></div>
-</div>
-<p><strong>Réponse</strong> :</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;top_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;tag&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;végétarien&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;tag&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rapide&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4500</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">],</span>
-<span class="w">  </span><span class="nt">&quot;total_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="personas">
-<h3>Personas<a class="headerlink" href="#personas" title="Lien vers cette rubrique"></a></h3>
-<section id="analyse-des-personas">
-<h4>Analyse des personas<a class="headerlink" href="#analyse-des-personas" title="Lien vers cette rubrique"></a></h4>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/personas</span>
-</pre></div>
-</div>
-<p><strong>Réponse</strong> :</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;personas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Chef professionnel&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;characteristics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;recipe_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&gt; 50&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;average_duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&gt; 60 min&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;favorite_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;gastronomique&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;technique&quot;</span><span class="p">]</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;user_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cuisinier amateur&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;characteristics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;recipe_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt; 10&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;average_duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt; 30 min&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;favorite_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;rapide&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;facile&quot;</span><span class="p">]</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;user_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</section>
-</section>
-</section>
-<section id="modeles-de-donnees">
-<h2>Modèles de données<a class="headerlink" href="#modeles-de-donnees" title="Lien vers cette rubrique"></a></h2>
-<section id="recipe">
-<h3>Recipe<a class="headerlink" href="#recipe" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Recipe</span><span class="p">:</span>
-    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># en minutes</span>
-    <span class="n">rating</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># 0-5</span>
-    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-    <span class="n">contributor_id</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
-    <span class="n">ingredients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
-    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
-    <span class="n">updated_at</span><span class="p">:</span> <span class="n">datetime</span>
-</pre></div>
-</div>
-</section>
-<section id="user">
-<h3>User<a class="headerlink" href="#user" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">:</span>
-    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">recipe_count</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">average_rating</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
-</pre></div>
-</div>
-</section>
-<section id="review">
-<h3>Review<a class="headerlink" href="#review" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Review</span><span class="p">:</span>
-    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">recipe_id</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">rating</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
-</pre></div>
-</div>
 </section>
 </section>
 <section id="gestion-des-erreurs">
 <h2>Gestion des erreurs<a class="headerlink" href="#gestion-des-erreurs" title="Lien vers cette rubrique"></a></h2>
-<section id="format-des-erreurs">
-<h3>Format des erreurs<a class="headerlink" href="#format-des-erreurs" title="Lien vers cette rubrique"></a></h3>
-<p>Toutes les erreurs suivent ce format :</p>
+<section id="format-standard">
+<h3>Format standard<a class="headerlink" href="#format-standard" title="Lien vers cette rubrique"></a></h3>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERROR_CODE&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Description de l&#39;erreur&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
-<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">&quot;detail&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Description de l&#39;erreur&quot;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </section>
-<section id="codes-d-erreur-courants">
-<h3>Codes d’erreur courants<a class="headerlink" href="#codes-d-erreur-courants" title="Lien vers cette rubrique"></a></h3>
+<section id="codes-http">
+<h3>Codes HTTP<a class="headerlink" href="#codes-http" title="Lien vers cette rubrique"></a></h3>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">400</span></code> : Bad Request - Paramètres invalides</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">401</span></code> : Unauthorized - Authentification requise</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">403</span></code> : Forbidden - Accès refusé</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">404</span></code> : Not Found - Ressource non trouvée</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">422</span></code> : Unprocessable Entity - Validation échouée</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">500</span></code> : Internal Server Error - Erreur serveur</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">503</span></code> : Service Unavailable - Service temporairement indisponible</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> : Succès</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> : Paramètres invalides</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> : Ressource non trouvée</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">422</span> <span class="pre">Unprocessable</span> <span class="pre">Entity</span></code> : Validation échouée</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code> : Erreur serveur</p></li>
 </ul>
 </section>
-</section>
-<section id="rate-limiting">
-<h2>Rate Limiting<a class="headerlink" href="#rate-limiting" title="Lien vers cette rubrique"></a></h2>
-<p>L’API est limitée à :</p>
-<ul class="simple">
-<li><p><strong>100 requêtes par minute</strong> par IP</p></li>
-<li><p><strong>1000 requêtes par heure</strong> par IP</p></li>
-</ul>
-<p>Les headers de réponse incluent :</p>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">X-RateLimit-Limit: 100</span>
-<span class="err">X-RateLimit-Remaining: 95</span>
-<span class="err">X-RateLimit-Reset: 1623456789</span>
+<section id="exemples-d-erreurs">
+<h3>Exemples d’erreurs<a class="headerlink" href="#exemples-d-erreurs" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Paramètre invalide</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;detail&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Invalid data_type. Must be &#39;recipes&#39; or &#39;interactions&#39;&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Ressource non trouvée</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;detail&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Recipe not found&quot;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
-<section id="authentification">
-<h2>Authentification<a class="headerlink" href="#authentification" title="Lien vers cette rubrique"></a></h2>
-<p>Pour le moment, l’API est publique et ne nécessite pas d’authentification.</p>
-<p>Une authentification par token JWT sera ajoutée dans une future version.</p>
 </section>
-<section id="versioning">
-<h2>Versioning<a class="headerlink" href="#versioning" title="Lien vers cette rubrique"></a></h2>
-<p>L’API suit le versioning sémantique.</p>
-<p>La version actuelle est <code class="docutils literal notranslate"><span class="pre">v1</span></code> et tous les endpoints commencent par <code class="docutils literal notranslate"><span class="pre">/api/v1/</span></code>.</p>
-<p>Les versions obsolètes seront maintenues pendant au moins 6 mois après le déploiement
-d’une nouvelle version majeure.</p>
-</section>
-<section id="openapi-swagger">
-<h2>OpenAPI / Swagger<a class="headerlink" href="#openapi-swagger" title="Lien vers cette rubrique"></a></h2>
-<p>La documentation interactive Swagger est disponible à :</p>
+<section id="performance">
+<h2>Performance<a class="headerlink" href="#performance" title="Lien vers cette rubrique"></a></h2>
+<section id="optimisations">
+<h3>Optimisations<a class="headerlink" href="#optimisations" title="Lien vers cette rubrique"></a></h3>
 <ul class="simple">
-<li><p><strong>Swagger UI</strong> : <a class="reference external" href="http://localhost:8000/docs">http://localhost:8000/docs</a></p></li>
-<li><p><strong>ReDoc</strong> : <a class="reference external" href="http://localhost:8000/redoc">http://localhost:8000/redoc</a></p></li>
-<li><p><strong>OpenAPI JSON</strong> : <a class="reference external" href="http://localhost:8000/openapi.json">http://localhost:8000/openapi.json</a></p></li>
+<li><p><strong>Mémoire</strong> : 30-50% de réduction via chunked processing</p></li>
+<li><p><strong>Cold start</strong> : 2-3 secondes (chargement initial des données)</p></li>
+<li><p><strong>Warm requests</strong> : &lt; 100ms pour la plupart des endpoints</p></li>
+<li><p><strong>Cache</strong> : Données gardées en mémoire après première requête</p></li>
 </ul>
+</section>
+<section id="limites">
+<h3>Limites<a class="headerlink" href="#limites" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p><strong>Taille des datasets</strong> : recipes (~260 MB), interactions (~310 MB)</p></li>
+<li><p><strong>Timeout</strong> : 60 secondes par défaut</p></li>
+<li><p><strong>Rate limiting</strong> : Non implémenté (à configurer selon les besoins)</p></li>
+</ul>
+</section>
+</section>
+<section id="documentation-interactive">
+<h2>Documentation interactive<a class="headerlink" href="#documentation-interactive" title="Lien vers cette rubrique"></a></h2>
+<section id="swagger-ui">
+<h3>Swagger UI<a class="headerlink" href="#swagger-ui" title="Lien vers cette rubrique"></a></h3>
+<p>Interface Swagger disponible à : <a class="reference external" href="http://localhost:8000/docs">http://localhost:8000/docs</a></p>
+</section>
+<section id="redoc">
+<h3>ReDoc<a class="headerlink" href="#redoc" title="Lien vers cette rubrique"></a></h3>
+<p>Documentation ReDoc disponible à : <a class="reference external" href="http://localhost:8000/redoc">http://localhost:8000/redoc</a></p>
+</section>
+<section id="openapi-json">
+<h3>OpenAPI JSON<a class="headerlink" href="#openapi-json" title="Lien vers cette rubrique"></a></h3>
+<p>Schéma OpenAPI disponible à : <a class="reference external" href="http://localhost:8000/openapi.json">http://localhost:8000/openapi.json</a></p>
+</section>
 </section>
 </section>
 
@@ -429,7 +703,7 @@ d’une nouvelle version majeure.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
         <a href="frontend/index.html" class="btn btn-neutral float-left" title="Frontend Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
-        <a href="contributing.html" class="btn btn-neutral float-right" title="Guide de contribution" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="personas.html" class="btn btn-neutral float-right" title="Personas et Segmentation Utilisateurs" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

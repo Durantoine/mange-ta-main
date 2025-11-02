@@ -1,347 +1,689 @@
-API Reference
-=============
+API Reference Complète
+======================
 
-Documentation complète de l'API REST du backend.
+Documentation complète de l'API REST du backend avec **19 endpoints réels**.
 
 Base URL
 --------
 
-En développement local : ``http://localhost:8000``
+- Développement : ``http://localhost:8000``
+- Production : ``https://your-domain.com``
+- Préfixe : ``/mange_ta_main``
 
-En production : ``https://your-domain.com``
+Vue d'ensemble
+--------------
 
-Endpoints
----------
+L'API expose **19 endpoints** (18 GET + 1 POST) organisés en **6 catégories** :
 
-Health Check
-~~~~~~~~~~~~
+1. **Gestion des données** (4 endpoints) - Chargement, nettoyage, debug
+2. **Analyse contributeurs** (2 endpoints) - Top contributeurs par recettes/notes
+3. **Analyse durée** (2 endpoints) - Distribution et corrélations
+4. **Top performers** (3 endpoints) - Segmentation utilisateurs, personas
+5. **Analyse ratings** (2 endpoints) - Distribution et corrélations
+6. **Analyse reviews** (6 endpoints) - Statistiques et tendances temporelles
 
-Vérifier que l'API est en ligne.
+.. contents:: Table des matières
+   :local:
+   :depth: 2
 
-.. code-block:: http
+---
 
-   GET /health
+1. Gestion des données
+-----------------------
+
+GET /mange_ta_main/health
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Vérifier que l'API est opérationnelle.
+
+**Paramètres** : Aucun
 
 **Réponse** :
 
 .. code-block:: json
 
    {
-     "status": "healthy",
-     "version": "0.1.0"
+     "status": "healthy"
    }
 
-**Codes de statut** :
-
-- ``200 OK`` : L'API fonctionne correctement
-
-Recipes
-~~~~~~~
-
-Récupérer les recettes
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: http
-
-   GET /api/v1/recipes
-
-**Paramètres de requête** :
-
-- ``limit`` (optionnel, int) : Nombre maximum de recettes à retourner
-- ``offset`` (optionnel, int) : Décalage pour la pagination
-- ``sort_by`` (optionnel, str) : Champ pour trier (ex: "rating", "duration")
-- ``order`` (optionnel, str) : Ordre de tri ("asc" ou "desc")
-
-**Exemple de requête** :
+**Exemple** :
 
 .. code-block:: bash
 
-   curl -X GET "http://localhost:8000/api/v1/recipes?limit=10&offset=0&sort_by=rating&order=desc"
+   curl http://localhost:8000/mange_ta_main/health
+
+GET /mange_ta_main/load-data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Charger un dataset (recettes ou interactions).
+
+**Paramètres** :
+
+- ``data_type`` (query, string, **requis**) : ``recipes`` ou ``interactions``
+
+**Réponse** : Array d'objets (format varie selon le type)
+
+**Recettes** :
+
+.. code-block:: json
+
+   [
+     {
+       "id": 137739,
+       "name": "arriba   baked winter squash mexican style",
+       "minutes": 55,
+       "contributor_id": 1,
+       "submitted": "2005-09-16",
+       "tags": "['60-minutes-or-less', 'time-to-make', 'course']",
+       "nutrition": "[51.5, 0.0, 13.0, 0.0, 2.0, 0.0, 4.0]",
+       "n_steps": 11,
+       "steps": "['make a choice']",
+       "description": "delicious...",
+       "ingredients": "['winter squash', 'mexican seasoning']",
+       "n_ingredients": 7
+     }
+   ]
+
+**Interactions** :
+
+.. code-block:: json
+
+   [
+     {
+       "user_id": 1,
+       "recipe_id": 137739,
+       "date": "2002-01-01",
+       "rating": 5,
+       "review": "Great recipe!"
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl "http://localhost:8000/mange_ta_main/load-data?data_type=recipes"
+   curl "http://localhost:8000/mange_ta_main/load-data?data_type=interactions"
+
+POST /mange_ta_main/clean-raw-data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Déclencher le nettoyage et la normalisation des données brutes.
+
+**Body (optionnel)** :
+
+.. code-block:: json
+
+   {
+     "force": false
+   }
 
 **Réponse** :
 
 .. code-block:: json
 
    {
-     "recipes": [
-       {
-         "id": 1,
-         "name": "Poulet rôti",
-         "duration": 60,
-         "rating": 4.5,
-         "tags": ["viande", "four"],
-         "contributor_id": "user123"
-       }
-     ],
-     "total": 100,
-     "limit": 10,
-     "offset": 0
+     "status": "success",
+     "message": "Data cleaned successfully"
    }
 
-**Codes de statut** :
+**Exemple** :
+
+.. code-block:: bash
+
+   curl -X POST http://localhost:8000/mange_ta_main/clean-raw-data \
+     -H "Content-Type: application/json" \
+     -d '{"force": false}'
+
+GET /mange_ta_main/debug/memory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Obtenir les statistiques d'utilisation mémoire du processus.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   {
+     "memory_mb": 450.5,
+     "peak_memory_mb": 520.3,
+     "timestamp": "2025-11-02T16:00:00Z"
+   }
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/debug/memory
+
+---
+
+2. Analyse des contributeurs
+-----------------------------
+
+GET /mange_ta_main/most-recipes-contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Obtenir les contributeurs ayant publié le plus de recettes.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "contributor_id": 123,
+       "num_recipes": 150,
+       "avg_rating": 4.5,
+       "total_reviews": 450
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/most-recipes-contributors
+
+GET /mange_ta_main/best-ratings-contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Obtenir les contributeurs avec les meilleures notes moyennes.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "contributor_id": 456,
+       "avg_rating": 4.8,
+       "num_recipes": 50,
+       "num_reviews": 200,
+       "total_ratings": 4850
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/best-ratings-contributors
+
+---
+
+3. Analyse durée des recettes
+------------------------------
+
+GET /mange_ta_main/duration-distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Distribution des recettes par tranches de durée.
+
+**Paramètres** : Aucun
+
+**Tranches de durée** : 0-15, 15-30, 30-45, 45-60, 60-90, 90-120, 120+ minutes
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "duration_bin": "0-15 min",
+       "count": 5000,
+       "percentage": 25.5,
+       "cumulative_percentage": 25.5
+     },
+     {
+       "duration_bin": "15-30 min",
+       "count": 8000,
+       "percentage": 40.8,
+       "cumulative_percentage": 66.3
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/duration-distribution
+
+GET /mange_ta_main/duration-vs-recipe-count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Corrélation entre durée moyenne et nombre de recettes par contributeur.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "contributor_id": 123,
+       "avg_minutes": 45.5,
+       "num_recipes": 50
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/duration-vs-recipe-count
+
+---
+
+4. Top performers et segmentation
+----------------------------------
+
+GET /mange_ta_main/top-10-percent-contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Statistiques détaillées des 10% meilleurs contributeurs.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "contributor_id": 789,
+       "num_recipes": 200,
+       "avg_rating": 4.7,
+       "total_reviews": 1500,
+       "percentile": 95.5
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/top-10-percent-contributors
+
+GET /mange_ta_main/user-segments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Segmentation des utilisateurs en 6 personas via K-means clustering.
+
+**Paramètres** : Aucun
+
+**Les 6 personas** :
+
+0. **Super Cookers** - Recettes longues (55 min), excellentes notes (4.4), très commentées (12)
+1. **Quick Cookers** - Recettes rapides (18 min), notes moyennes (3.6), peu commentées (3)
+2. **Sweet Lovers** - Recettes moyennes (40 min), bonnes notes (4.2), moyennement commentées (6)
+3. **Talkative Tasters** - Recettes moyennes (35 min), notes correctes (3.8), très commentées (18)
+4. **Experimental Foodies** - Recettes moyennes-longues (45 min), notes moyennes (3.5), commentées (10)
+5. **Everyday Cookers** - Recettes courtes-moyennes (30 min), bonnes notes (3.9), moyennement commentées (7)
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "contributor_id": 123,
+       "segment": 0,
+       "persona": "Super Cookers",
+       "avg_minutes": 55.2,
+       "avg_rating": 4.4,
+       "avg_reviews": 12.3,
+       "num_recipes": 50
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/user-segments
+
+GET /mange_ta_main/top-tags-by-segment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Top 5 tags les plus utilisés par chaque persona.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "segment": 0,
+       "persona": "Super Cookers",
+       "tag": "desserts",
+       "count": 1500,
+       "rank": 1
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/top-tags-by-segment
+
+---
+
+5. Analyse des ratings
+-----------------------
+
+GET /mange_ta_main/rating-distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Distribution des notes moyennes des contributeurs.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "rating_bin": "4.0-4.5",
+       "count": 2500,
+       "percentage": 35.5
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/rating-distribution
+
+GET /mange_ta_main/rating-vs-recipes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Corrélation entre note moyenne et nombre de recettes.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "contributor_id": 123,
+       "avg_rating": 4.5,
+       "num_recipes": 50
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/rating-vs-recipes
+
+---
+
+6. Analyse des reviews
+-----------------------
+
+GET /mange_ta_main/review-overview
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Statistiques globales sur les reviews.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   {
+     "total_reviews": 150000,
+     "avg_review_length": 250.5,
+     "reviews_with_text": 120000,
+     "reviews_with_text_percentage": 80.0,
+     "avg_reviews_per_recipe": 7.5
+   }
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/review-overview
+
+GET /mange_ta_main/review-distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Distribution du nombre de reviews par recette.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "review_count_bin": "0-5 reviews",
+       "recipe_count": 5000,
+       "percentage": 45.5
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/review-distribution
+
+GET /mange_ta_main/top-reviewers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Top 20 reviewers les plus actifs.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "user_id": 456,
+       "num_reviews": 1500,
+       "avg_rating_given": 4.2,
+       "rank": 1
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/top-reviewers
+
+GET /mange_ta_main/review-trend
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tendance temporelle des reviews (par mois).
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "year_month": "2008-01",
+       "review_count": 1200,
+       "avg_rating": 4.1
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/review-trend
+
+GET /mange_ta_main/reviews-vs-rating
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Corrélation entre nombre de reviews et note moyenne d'une recette.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "recipe_id": 137739,
+       "num_reviews": 50,
+       "avg_rating": 4.5
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/reviews-vs-rating
+
+GET /mange_ta_main/reviewer-vs-recipes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Analyse du double rôle : reviewers qui publient aussi des recettes.
+
+**Paramètres** : Aucun
+
+**Réponse** :
+
+.. code-block:: json
+
+   [
+     {
+       "user_id": 123,
+       "num_reviews_given": 200,
+       "num_recipes_published": 50,
+       "avg_rating_received": 4.3,
+       "avg_rating_given": 4.1
+     }
+   ]
+
+**Exemple** :
+
+.. code-block:: bash
+
+   curl http://localhost:8000/mange_ta_main/reviewer-vs-recipes
+
+---
+
+Format de réponse
+-----------------
+
+Toutes les réponses GET (sauf health et memory) retournent un array d'objets JSON :
+
+.. code-block:: json
+
+   [
+     {"key1": "value1", "key2": 123},
+     {"key1": "value2", "key2": 456}
+   ]
+
+Gestion des valeurs spéciales
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``NaN`` → ``null``
+- ``Infinity`` → ``null``
+- ``-Infinity`` → ``null``
+- Categorical data → convertie en string
+
+Gestion des erreurs
+--------------------
+
+Format standard
+~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "detail": "Description de l'erreur"
+   }
+
+Codes HTTP
+~~~~~~~~~~
 
 - ``200 OK`` : Succès
 - ``400 Bad Request`` : Paramètres invalides
+- ``404 Not Found`` : Ressource non trouvée
+- ``422 Unprocessable Entity`` : Validation échouée
 - ``500 Internal Server Error`` : Erreur serveur
 
-Récupérer une recette spécifique
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: http
-
-   GET /api/v1/recipes/{recipe_id}
-
-**Paramètres de chemin** :
-
-- ``recipe_id`` (int) : ID de la recette
-
-**Exemple de requête** :
-
-.. code-block:: bash
-
-   curl -X GET "http://localhost:8000/api/v1/recipes/123"
-
-**Réponse** :
-
-.. code-block:: json
-
-   {
-     "id": 123,
-     "name": "Poulet rôti",
-     "duration": 60,
-     "rating": 4.5,
-     "tags": ["viande", "four"],
-     "contributor_id": "user123",
-     "description": "Délicieux poulet rôti au four",
-     "ingredients": ["poulet", "sel", "poivre"],
-     "steps": ["Préchauffer le four", "Assaisonner le poulet", "Cuire 60 min"]
-   }
-
-**Codes de statut** :
-
-- ``200 OK`` : Succès
-- ``404 Not Found`` : Recette non trouvée
-- ``500 Internal Server Error`` : Erreur serveur
-
-Statistics
-~~~~~~~~~~
-
-Statistiques globales
-^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: http
-
-   GET /api/v1/statistics
-
-**Réponse** :
-
-.. code-block:: json
-
-   {
-     "total_recipes": 50000,
-     "total_users": 10000,
-     "average_rating": 4.2,
-     "average_duration": 45,
-     "total_reviews": 150000
-   }
-
-Statistiques des contributeurs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: http
-
-   GET /api/v1/statistics/contributors
-
-**Réponse** :
-
-.. code-block:: json
-
-   {
-     "top_contributors": [
-       {
-         "user_id": "user123",
-         "recipe_count": 150,
-         "average_rating": 4.7
-       }
-     ],
-     "total_contributors": 10000
-   }
-
-Statistiques des tags
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: http
-
-   GET /api/v1/statistics/tags
-
-**Réponse** :
-
-.. code-block:: json
-
-   {
-     "top_tags": [
-       {
-         "tag": "végétarien",
-         "count": 5000
-       },
-       {
-         "tag": "rapide",
-         "count": 4500
-       }
-     ],
-     "total_tags": 500
-   }
-
-Personas
-~~~~~~~~
-
-Analyse des personas
-^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: http
-
-   GET /api/v1/personas
-
-**Réponse** :
-
-.. code-block:: json
-
-   {
-     "personas": [
-       {
-         "name": "Chef professionnel",
-         "characteristics": {
-           "recipe_count": "> 50",
-           "average_duration": "> 60 min",
-           "favorite_tags": ["gastronomique", "technique"]
-         },
-         "user_count": 500
-       },
-       {
-         "name": "Cuisinier amateur",
-         "characteristics": {
-           "recipe_count": "< 10",
-           "average_duration": "< 30 min",
-           "favorite_tags": ["rapide", "facile"]
-         },
-         "user_count": 5000
-       }
-     ]
-   }
-
-Modèles de données
-------------------
-
-Recipe
-~~~~~~
-
-.. code-block:: python
-
-   class Recipe:
-       id: int
-       name: str
-       duration: int  # en minutes
-       rating: float  # 0-5
-       tags: list[str]
-       contributor_id: str
-       description: str | None
-       ingredients: list[str]
-       steps: list[str]
-       created_at: datetime
-       updated_at: datetime
-
-User
-~~~~
-
-.. code-block:: python
-
-   class User:
-       id: str
-       username: str
-       recipe_count: int
-       average_rating: float
-       created_at: datetime
-
-Review
-~~~~~~
-
-.. code-block:: python
-
-   class Review:
-       id: int
-       recipe_id: int
-       user_id: str
-       rating: float
-       comment: str
-       created_at: datetime
-
-Gestion des erreurs
--------------------
-
-Format des erreurs
+Exemples d'erreurs
 ~~~~~~~~~~~~~~~~~~
 
-Toutes les erreurs suivent ce format :
+**Paramètre invalide** :
 
 .. code-block:: json
 
    {
-     "error": {
-       "code": "ERROR_CODE",
-       "message": "Description de l'erreur",
-       "details": {}
-     }
+     "detail": "Invalid data_type. Must be 'recipes' or 'interactions'"
    }
 
-Codes d'erreur courants
-~~~~~~~~~~~~~~~~~~~~~~~
+**Ressource non trouvée** :
 
-- ``400`` : Bad Request - Paramètres invalides
-- ``401`` : Unauthorized - Authentification requise
-- ``403`` : Forbidden - Accès refusé
-- ``404`` : Not Found - Ressource non trouvée
-- ``422`` : Unprocessable Entity - Validation échouée
-- ``500`` : Internal Server Error - Erreur serveur
-- ``503`` : Service Unavailable - Service temporairement indisponible
+.. code-block:: json
 
-Rate Limiting
--------------
+   {
+     "detail": "Recipe not found"
+   }
 
-L'API est limitée à :
+Performance
+-----------
 
-- **100 requêtes par minute** par IP
-- **1000 requêtes par heure** par IP
+Optimisations
+~~~~~~~~~~~~~
 
-Les headers de réponse incluent :
+- **Mémoire** : 30-50% de réduction via chunked processing
+- **Cold start** : 2-3 secondes (chargement initial des données)
+- **Warm requests** : < 100ms pour la plupart des endpoints
+- **Cache** : Données gardées en mémoire après première requête
 
-.. code-block:: http
+Limites
+~~~~~~~
 
-   X-RateLimit-Limit: 100
-   X-RateLimit-Remaining: 95
-   X-RateLimit-Reset: 1623456789
+- **Taille des datasets** : recipes (~260 MB), interactions (~310 MB)
+- **Timeout** : 60 secondes par défaut
+- **Rate limiting** : Non implémenté (à configurer selon les besoins)
 
-Authentification
-----------------
+Documentation interactive
+--------------------------
 
-Pour le moment, l'API est publique et ne nécessite pas d'authentification.
+Swagger UI
+~~~~~~~~~~
 
-Une authentification par token JWT sera ajoutée dans une future version.
+Interface Swagger disponible à : http://localhost:8000/docs
 
-Versioning
-----------
+ReDoc
+~~~~~
 
-L'API suit le versioning sémantique.
+Documentation ReDoc disponible à : http://localhost:8000/redoc
 
-La version actuelle est ``v1`` et tous les endpoints commencent par ``/api/v1/``.
+OpenAPI JSON
+~~~~~~~~~~~~
 
-Les versions obsolètes seront maintenues pendant au moins 6 mois après le déploiement
-d'une nouvelle version majeure.
-
-OpenAPI / Swagger
------------------
-
-La documentation interactive Swagger est disponible à :
-
-- **Swagger UI** : http://localhost:8000/docs
-- **ReDoc** : http://localhost:8000/redoc
-- **OpenAPI JSON** : http://localhost:8000/openapi.json
+Schéma OpenAPI disponible à : http://localhost:8000/openapi.json

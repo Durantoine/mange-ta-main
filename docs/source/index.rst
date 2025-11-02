@@ -20,6 +20,8 @@ Ce projet est une application d'analyse de recettes de cuisine, composée de :
    backend/index
    frontend/index
    api
+   personas
+   performance
    contributing
 
 Indices et tables

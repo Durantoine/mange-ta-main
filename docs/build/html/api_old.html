@@ -1,0 +1,418 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; Documentation Mange Ta Main 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=897fae25"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=e6b791cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mange Ta Main
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table des matières:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backend/index.html">Backend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frontend/index.html">Frontend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference Complète</a></li>
+<li class="toctree-l1"><a class="reference internal" href="personas.html">Personas et Segmentation Utilisateurs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance et Optimisations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Guide de contribution</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mange Ta Main</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api_old.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Lien vers cette rubrique"></a></h1>
+<p>Documentation complète de l’API REST du backend.</p>
+<section id="base-url">
+<h2>Base URL<a class="headerlink" href="#base-url" title="Lien vers cette rubrique"></a></h2>
+<p>En développement local : <code class="docutils literal notranslate"><span class="pre">http://localhost:8000</span></code></p>
+<p>En production : <code class="docutils literal notranslate"><span class="pre">https://your-domain.com</span></code></p>
+</section>
+<section id="endpoints">
+<h2>Endpoints<a class="headerlink" href="#endpoints" title="Lien vers cette rubrique"></a></h2>
+<section id="health-check">
+<h3>Health Check<a class="headerlink" href="#health-check" title="Lien vers cette rubrique"></a></h3>
+<p>Vérifier que l’API est en ligne.</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /health</span>
+</pre></div>
+</div>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.1.0&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Codes de statut</strong> :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> : L’API fonctionne correctement</p></li>
+</ul>
+</section>
+<section id="recipes">
+<h3>Recipes<a class="headerlink" href="#recipes" title="Lien vers cette rubrique"></a></h3>
+<section id="recuperer-les-recettes">
+<h4>Récupérer les recettes<a class="headerlink" href="#recuperer-les-recettes" title="Lien vers cette rubrique"></a></h4>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/recipes</span>
+</pre></div>
+</div>
+<p><strong>Paramètres de requête</strong> :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">limit</span></code> (optionnel, int) : Nombre maximum de recettes à retourner</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">offset</span></code> (optionnel, int) : Décalage pour la pagination</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sort_by</span></code> (optionnel, str) : Champ pour trier (ex: « rating », « duration »)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">order</span></code> (optionnel, str) : Ordre de tri (« asc » ou « desc »)</p></li>
+</ul>
+<p><strong>Exemple de requête</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;http://localhost:8000/api/v1/recipes?limit=10&amp;offset=0&amp;sort_by=rating&amp;order=desc&quot;</span>
+</pre></div>
+</div>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poulet rôti&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;viande&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;four&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user123&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;limit&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;offset&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Codes de statut</strong> :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> : Succès</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> : Paramètres invalides</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code> : Erreur serveur</p></li>
+</ul>
+</section>
+<section id="recuperer-une-recette-specifique">
+<h4>Récupérer une recette spécifique<a class="headerlink" href="#recuperer-une-recette-specifique" title="Lien vers cette rubrique"></a></h4>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/recipes/{recipe_id}</span>
+</pre></div>
+</div>
+<p><strong>Paramètres de chemin</strong> :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">recipe_id</span></code> (int) : ID de la recette</p></li>
+</ul>
+<p><strong>Exemple de requête</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;http://localhost:8000/api/v1/recipes/123&quot;</span>
+</pre></div>
+</div>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poulet rôti&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.5</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;viande&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;four&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;contributor_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user123&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Délicieux poulet rôti au four&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;ingredients&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;poulet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;sel&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;poivre&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;Préchauffer le four&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Assaisonner le poulet&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Cuire 60 min&quot;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Codes de statut</strong> :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> : Succès</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> : Recette non trouvée</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code> : Erreur serveur</p></li>
+</ul>
+</section>
+</section>
+<section id="statistics">
+<h3>Statistics<a class="headerlink" href="#statistics" title="Lien vers cette rubrique"></a></h3>
+<section id="statistiques-globales">
+<h4>Statistiques globales<a class="headerlink" href="#statistiques-globales" title="Lien vers cette rubrique"></a></h4>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/statistics</span>
+</pre></div>
+</div>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;total_recipes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50000</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;total_users&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;average_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;average_duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;total_reviews&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="statistiques-des-contributeurs">
+<h4>Statistiques des contributeurs<a class="headerlink" href="#statistiques-des-contributeurs" title="Lien vers cette rubrique"></a></h4>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/statistics/contributors</span>
+</pre></div>
+</div>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;top_contributors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user123&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;recipe_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;average_rating&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.7</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;total_contributors&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="statistiques-des-tags">
+<h4>Statistiques des tags<a class="headerlink" href="#statistiques-des-tags" title="Lien vers cette rubrique"></a></h4>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/statistics/tags</span>
+</pre></div>
+</div>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;top_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;tag&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;végétarien&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;tag&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rapide&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4500</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;total_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="personas">
+<h3>Personas<a class="headerlink" href="#personas" title="Lien vers cette rubrique"></a></h3>
+<section id="analyse-des-personas">
+<h4>Analyse des personas<a class="headerlink" href="#analyse-des-personas" title="Lien vers cette rubrique"></a></h4>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">GET /api/v1/personas</span>
+</pre></div>
+</div>
+<p><strong>Réponse</strong> :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;personas&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Chef professionnel&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;characteristics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;recipe_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&gt; 50&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;average_duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&gt; 60 min&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;favorite_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;gastronomique&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;technique&quot;</span><span class="p">]</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;user_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cuisinier amateur&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;characteristics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;recipe_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt; 10&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;average_duration&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt; 30 min&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;favorite_tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;rapide&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;facile&quot;</span><span class="p">]</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;user_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="modeles-de-donnees">
+<h2>Modèles de données<a class="headerlink" href="#modeles-de-donnees" title="Lien vers cette rubrique"></a></h2>
+<section id="recipe">
+<h3>Recipe<a class="headerlink" href="#recipe" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Recipe</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># en minutes</span>
+    <span class="n">rating</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># 0-5</span>
+    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">contributor_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">ingredients</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">steps</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">updated_at</span><span class="p">:</span> <span class="n">datetime</span>
+</pre></div>
+</div>
+</section>
+<section id="user">
+<h3>User<a class="headerlink" href="#user" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">recipe_count</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">average_rating</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
+</pre></div>
+</div>
+</section>
+<section id="review">
+<h3>Review<a class="headerlink" href="#review" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Review</span><span class="p">:</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">recipe_id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">rating</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">comment</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="gestion-des-erreurs">
+<h2>Gestion des erreurs<a class="headerlink" href="#gestion-des-erreurs" title="Lien vers cette rubrique"></a></h2>
+<section id="format-des-erreurs">
+<h3>Format des erreurs<a class="headerlink" href="#format-des-erreurs" title="Lien vers cette rubrique"></a></h3>
+<p>Toutes les erreurs suivent ce format :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ERROR_CODE&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Description de l&#39;erreur&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="codes-d-erreur-courants">
+<h3>Codes d’erreur courants<a class="headerlink" href="#codes-d-erreur-courants" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span></code> : Bad Request - Paramètres invalides</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span></code> : Unauthorized - Authentification requise</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span></code> : Forbidden - Accès refusé</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span></code> : Not Found - Ressource non trouvée</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">422</span></code> : Unprocessable Entity - Validation échouée</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">500</span></code> : Internal Server Error - Erreur serveur</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">503</span></code> : Service Unavailable - Service temporairement indisponible</p></li>
+</ul>
+</section>
+</section>
+<section id="rate-limiting">
+<h2>Rate Limiting<a class="headerlink" href="#rate-limiting" title="Lien vers cette rubrique"></a></h2>
+<p>L’API est limitée à :</p>
+<ul class="simple">
+<li><p><strong>100 requêtes par minute</strong> par IP</p></li>
+<li><p><strong>1000 requêtes par heure</strong> par IP</p></li>
+</ul>
+<p>Les headers de réponse incluent :</p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="err">X-RateLimit-Limit: 100</span>
+<span class="err">X-RateLimit-Remaining: 95</span>
+<span class="err">X-RateLimit-Reset: 1623456789</span>
+</pre></div>
+</div>
+</section>
+<section id="authentification">
+<h2>Authentification<a class="headerlink" href="#authentification" title="Lien vers cette rubrique"></a></h2>
+<p>Pour le moment, l’API est publique et ne nécessite pas d’authentification.</p>
+<p>Une authentification par token JWT sera ajoutée dans une future version.</p>
+</section>
+<section id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Lien vers cette rubrique"></a></h2>
+<p>L’API suit le versioning sémantique.</p>
+<p>La version actuelle est <code class="docutils literal notranslate"><span class="pre">v1</span></code> et tous les endpoints commencent par <code class="docutils literal notranslate"><span class="pre">/api/v1/</span></code>.</p>
+<p>Les versions obsolètes seront maintenues pendant au moins 6 mois après le déploiement
+d’une nouvelle version majeure.</p>
+</section>
+<section id="openapi-swagger">
+<h2>OpenAPI / Swagger<a class="headerlink" href="#openapi-swagger" title="Lien vers cette rubrique"></a></h2>
+<p>La documentation interactive Swagger est disponible à :</p>
+<ul class="simple">
+<li><p><strong>Swagger UI</strong> : <a class="reference external" href="http://localhost:8000/docs">http://localhost:8000/docs</a></p></li>
+<li><p><strong>ReDoc</strong> : <a class="reference external" href="http://localhost:8000/redoc">http://localhost:8000/redoc</a></p></li>
+<li><p><strong>OpenAPI JSON</strong> : <a class="reference external" href="http://localhost:8000/openapi.json">http://localhost:8000/openapi.json</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2025, Équipe Mange Ta Main.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
