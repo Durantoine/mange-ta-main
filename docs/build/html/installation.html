@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; Documentation Mange Ta Main 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=897fae25"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=e6b791cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" />
+    <link rel="next" title="Architecture" href="architecture.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mange Ta Main
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table des matières:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prerequis">Prérequis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-locale">Installation locale</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cloner-le-repository">1. Cloner le repository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation-du-backend">2. Installation du backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation-du-frontend">3. Installation du frontend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installer-les-dependances-de-documentation">4. Installer les dépendances de documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lancement-de-l-application">Lancement de l’application</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#backend">Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#frontend">Frontend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#avec-docker-compose">Avec Docker Compose</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#variables-d-environnement">Variables d’environnement</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Frontend</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#verification-de-l-installation">Vérification de l’installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generation-de-la-documentation">Génération de la documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backend/index.html">Backend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frontend/index.html">Frontend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Guide de contribution</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mange Ta Main</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Lien vers cette rubrique"></a></h1>
+<section id="prerequis">
+<h2>Prérequis<a class="headerlink" href="#prerequis" title="Lien vers cette rubrique"></a></h2>
+<ul class="simple">
+<li><p>Python 3.11 ou supérieur</p></li>
+<li><p>pip ou uv (gestionnaire de paquets)</p></li>
+<li><p>Docker (optionnel, pour le déploiement)</p></li>
+<li><p>Git</p></li>
+</ul>
+</section>
+<section id="installation-locale">
+<h2>Installation locale<a class="headerlink" href="#installation-locale" title="Lien vers cette rubrique"></a></h2>
+<section id="cloner-le-repository">
+<h3>1. Cloner le repository<a class="headerlink" href="#cloner-le-repository" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
+<span class="nb">cd</span><span class="w"> </span>mange-ta-main
+</pre></div>
+</div>
+</section>
+<section id="installation-du-backend">
+<h3>2. Installation du backend<a class="headerlink" href="#installation-du-backend" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev<span class="w">  </span><span class="c1"># Pour les dépendances de développement</span>
+</pre></div>
+</div>
+<p>Ou avec uv :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+</pre></div>
+</div>
+</section>
+<section id="installation-du-frontend">
+<h3>3. Installation du frontend<a class="headerlink" href="#installation-du-frontend" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+</pre></div>
+</div>
+<p>Ou avec uv :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+</pre></div>
+</div>
+</section>
+<section id="installer-les-dependances-de-documentation">
+<h3>4. Installer les dépendances de documentation<a class="headerlink" href="#installer-les-dependances-de-documentation" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dans backend/</span>
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>docs
+
+<span class="c1"># Dans frontend/</span>
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>docs
+</pre></div>
+</div>
+</section>
+</section>
+<section id="lancement-de-l-application">
+<h2>Lancement de l’application<a class="headerlink" href="#lancement-de-l-application" title="Lien vers cette rubrique"></a></h2>
+<section id="backend">
+<h3>Backend<a class="headerlink" href="#backend" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+fastapi<span class="w"> </span>dev<span class="w"> </span>service/main.py
+</pre></div>
+</div>
+<p>Le backend sera accessible sur <a class="reference external" href="http://localhost:8000">http://localhost:8000</a></p>
+</section>
+<section id="frontend">
+<h3>Frontend<a class="headerlink" href="#frontend" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+streamlit<span class="w"> </span>run<span class="w"> </span>service/app.py
+</pre></div>
+</div>
+<p>Le frontend sera accessible sur <a class="reference external" href="http://localhost:8501">http://localhost:8501</a></p>
+</section>
+<section id="avec-docker-compose">
+<h3>Avec Docker Compose<a class="headerlink" href="#avec-docker-compose" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>up
+</pre></div>
+</div>
+</section>
+</section>
+<section id="variables-d-environnement">
+<h2>Variables d’environnement<a class="headerlink" href="#variables-d-environnement" title="Lien vers cette rubrique"></a></h2>
+<section id="id1">
+<h3>Backend<a class="headerlink" href="#id1" title="Lien vers cette rubrique"></a></h3>
+<p>Créer un fichier <code class="docutils literal notranslate"><span class="pre">.env</span></code> dans le dossier <code class="docutils literal notranslate"><span class="pre">backend/</span></code> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configuration de l&#39;API</span>
+<span class="nv">API_HOST</span><span class="o">=</span><span class="m">0</span>.0.0.0
+<span class="nv">API_PORT</span><span class="o">=</span><span class="m">8000</span>
+
+<span class="c1"># Chemins des données</span>
+<span class="nv">DATA_PATH</span><span class="o">=</span>/path/to/data
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h3>Frontend<a class="headerlink" href="#id2" title="Lien vers cette rubrique"></a></h3>
+<p>Créer un fichier <code class="docutils literal notranslate"><span class="pre">.env</span></code> dans le dossier <code class="docutils literal notranslate"><span class="pre">frontend/</span></code> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># URL du backend</span>
+<span class="nv">BACKEND_URL</span><span class="o">=</span>http://localhost:8000
+</pre></div>
+</div>
+</section>
+</section>
+<section id="verification-de-l-installation">
+<h2>Vérification de l’installation<a class="headerlink" href="#verification-de-l-installation" title="Lien vers cette rubrique"></a></h2>
+<p>Pour vérifier que tout fonctionne correctement :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Lancer les tests du backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+pytest
+
+<span class="c1"># Lancer les tests du frontend</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+pytest
+</pre></div>
+</div>
+</section>
+<section id="generation-de-la-documentation">
+<h2>Génération de la documentation<a class="headerlink" href="#generation-de-la-documentation" title="Lien vers cette rubrique"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
+make<span class="w"> </span>html
+</pre></div>
+</div>
+<p>La documentation sera générée dans <code class="docutils literal notranslate"><span class="pre">docs/build/html/</span></code>.</p>
+<p>Pour voir la documentation :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># macOS</span>
+open<span class="w"> </span>docs/build/html/index.html
+
+<span class="c1"># Linux</span>
+xdg-open<span class="w"> </span>docs/build/html/index.html
+
+<span class="c1"># Windows</span>
+start<span class="w"> </span>docs/build/html/index.html
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="architecture.html" class="btn btn-neutral float-right" title="Architecture" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2025, Équipe Mange Ta Main.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

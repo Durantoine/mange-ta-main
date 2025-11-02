@@ -12,6 +12,44 @@
 
 A **multi-service project** with a **FastAPI backend** and a **Streamlit frontend**, containerized with **Docker** and using **UV** for dependency management.
 
+## 📚 Documentation
+
+**Comprehensive Sphinx documentation is available!**
+
+### 🎓 For Professors/Evaluators
+
+**Quick access**: See [docs/POUR_LE_PROF.md](docs/POUR_LE_PROF.md) for simple instructions to view the documentation.
+
+**TL;DR**:
+- If HTML docs are pre-generated: Open `docs/build/html/index.html` in your browser
+- Otherwise: Run `cd docs && make html` then open `build/html/index.html`
+
+### 🛠️ For Developers
+
+- **Quick Start**: See [docs/QUICKSTART.md](docs/QUICKSTART.md) to generate the documentation in 3 steps
+- **Full Guide**: See [DOCUMENTATION.md](DOCUMENTATION.md) for complete documentation guide
+- **Generate HTML docs**:
+  ```bash
+  # Install dependencies
+  cd backend && pip install --group docs
+  cd ../frontend && pip install --group docs
+
+  # Generate documentation
+  cd ../docs && make html
+
+  # Open in browser
+  open build/html/index.html  # macOS
+  ```
+
+### 📖 Documentation Contents
+
+The documentation includes:
+- 🏗️ Architecture overview (Clean Architecture with 4 layers)
+- 🔌 Complete API reference (all endpoints with examples)
+- 💻 Backend & Frontend module documentation (auto-generated)
+- 🤝 Contributing guide (standards, tests, workflow)
+- 📝 Docstring examples and best practices
+
 ---
 
 ## Requirements

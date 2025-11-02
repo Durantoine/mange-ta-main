@@ -1,0 +1,237 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frontend Documentation &mdash; Documentation Mange Ta Main 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=897fae25"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api.html" />
+    <link rel="prev" title="Backend Documentation" href="../backend/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Mange Ta Main
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table des matières:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../backend/index.html">Backend Documentation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Frontend Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#vue-d-ensemble">Vue d’ensemble</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#application-principale">Application principale</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pages">Pages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#page-1-donnees-brutes">Page 1 : Données brutes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#page-2-analyses">Page 2 : Analyses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#page-3-conclusions">Page 3 : Conclusions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#components">Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#sidebar">Sidebar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#top-contributors">Top Contributors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#duration-recipe">Duration Recipe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reviews">Reviews</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rating">Rating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#personnas">Personnas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#top-10-analyse">Top 10 Analyse</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tags">Tags</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#utilitaires">Utilitaires</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#io-loader">IO Loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#visualization">Visualization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analytics-users">Analytics Users</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#domain">Domain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#logger">Logger</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Guide de contribution</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Mange Ta Main</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Frontend Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/frontend/index.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="frontend-documentation">
+<h1>Frontend Documentation<a class="headerlink" href="#frontend-documentation" title="Lien vers cette rubrique"></a></h1>
+<p>Le frontend est construit avec <strong>Streamlit</strong> et fournit une interface interactive
+pour visualiser et analyser les données.</p>
+<div class="toctree-wrapper compound">
+</div>
+<section id="vue-d-ensemble">
+<h2>Vue d’ensemble<a class="headerlink" href="#vue-d-ensemble" title="Lien vers cette rubrique"></a></h2>
+<p>Le frontend offre :</p>
+<ul class="simple">
+<li><p>📊 Visualisations interactives des données</p></li>
+<li><p>📈 Graphiques et statistiques</p></li>
+<li><p>🔍 Filtres et recherche</p></li>
+<li><p>👥 Analyse de personas</p></li>
+<li><p>🏷️ Analyse de tags</p></li>
+</ul>
+</section>
+<section id="application-principale">
+<h2>Application principale<a class="headerlink" href="#application-principale" title="Lien vers cette rubrique"></a></h2>
+<p>Point d’entrée de l’application Streamlit.</p>
+</section>
+<section id="pages">
+<h2>Pages<a class="headerlink" href="#pages" title="Lien vers cette rubrique"></a></h2>
+<section id="page-1-donnees-brutes">
+<h3>Page 1 : Données brutes<a class="headerlink" href="#page-1-donnees-brutes" title="Lien vers cette rubrique"></a></h3>
+<p>Affiche les données brutes et permet l’exploration.</p>
+</section>
+<section id="page-2-analyses">
+<h3>Page 2 : Analyses<a class="headerlink" href="#page-2-analyses" title="Lien vers cette rubrique"></a></h3>
+<p>Affiche les analyses statistiques et visualisations.</p>
+</section>
+<section id="page-3-conclusions">
+<h3>Page 3 : Conclusions<a class="headerlink" href="#page-3-conclusions" title="Lien vers cette rubrique"></a></h3>
+<p>Présente les conclusions et insights.</p>
+</section>
+</section>
+<section id="components">
+<h2>Components<a class="headerlink" href="#components" title="Lien vers cette rubrique"></a></h2>
+<section id="sidebar">
+<h3>Sidebar<a class="headerlink" href="#sidebar" title="Lien vers cette rubrique"></a></h3>
+<p>Barre latérale de navigation.</p>
+</section>
+<section id="top-contributors">
+<h3>Top Contributors<a class="headerlink" href="#top-contributors" title="Lien vers cette rubrique"></a></h3>
+<p>Analyse des meilleurs contributeurs.</p>
+</section>
+<section id="duration-recipe">
+<h3>Duration Recipe<a class="headerlink" href="#duration-recipe" title="Lien vers cette rubrique"></a></h3>
+<p>Analyse des durées de préparation.</p>
+</section>
+<section id="reviews">
+<h3>Reviews<a class="headerlink" href="#reviews" title="Lien vers cette rubrique"></a></h3>
+<p>Analyse des reviews et commentaires.</p>
+</section>
+<section id="rating">
+<h3>Rating<a class="headerlink" href="#rating" title="Lien vers cette rubrique"></a></h3>
+<p>Analyse des évaluations.</p>
+</section>
+<section id="personnas">
+<h3>Personnas<a class="headerlink" href="#personnas" title="Lien vers cette rubrique"></a></h3>
+<p>Identification des personas d’utilisateurs.</p>
+</section>
+<section id="top-10-analyse">
+<h3>Top 10 Analyse<a class="headerlink" href="#top-10-analyse" title="Lien vers cette rubrique"></a></h3>
+<p>Analyse des top 10 éléments.</p>
+</section>
+<section id="tags">
+<h3>Tags<a class="headerlink" href="#tags" title="Lien vers cette rubrique"></a></h3>
+<p>Analyse des tags et catégories.</p>
+</section>
+</section>
+<section id="utilitaires">
+<h2>Utilitaires<a class="headerlink" href="#utilitaires" title="Lien vers cette rubrique"></a></h2>
+<section id="io-loader">
+<h3>IO Loader<a class="headerlink" href="#io-loader" title="Lien vers cette rubrique"></a></h3>
+<p>Chargement et sauvegarde de données.</p>
+</section>
+<section id="visualization">
+<h3>Visualization<a class="headerlink" href="#visualization" title="Lien vers cette rubrique"></a></h3>
+<p>Fonctions de visualisation.</p>
+</section>
+<section id="analytics-users">
+<span id="module-service.src.viz"></span><h3>Analytics Users<a class="headerlink" href="#analytics-users" title="Lien vers cette rubrique"></a></h3>
+<p>Fonctions d’analyse des utilisateurs.</p>
+</section>
+<section id="domain">
+<span id="module-service.src.analytics_users"></span><h3>Domain<a class="headerlink" href="#domain" title="Lien vers cette rubrique"></a></h3>
+<p>Modèles de domaine du frontend.</p>
+</section>
+<section id="logger">
+<span id="module-service.domain"></span><h3>Logger<a class="headerlink" href="#logger" title="Lien vers cette rubrique"></a></h3>
+<p>Système de logging.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="../backend/index.html" class="btn btn-neutral float-left" title="Backend Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2025, Équipe Mange Ta Main.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

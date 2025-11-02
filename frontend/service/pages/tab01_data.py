@@ -1,3 +1,14 @@
+"""Page de visualisation et export des données.
+
+Ce module fournit une interface Streamlit pour charger et explorer
+les datasets de recettes et d'interactions.
+
+Examples:
+    Pour utiliser cette page, sélectionnez simplement un dataset
+    dans le menu déroulant et les données seront automatiquement
+    chargées et affichées.
+"""
+
 import pandas as pd
 import requests
 import streamlit as st
@@ -23,15 +34,38 @@ data_type = st.selectbox("Choisir le dataset", ["recipes", "interactions"])
 
 # Utiliser st.cache_data pour éviter de recharger à chaque interaction
 @st.cache_data(ttl=3600)
-def load_dataset(dataset_type: str):
-    """Load dataset from backend with caching."""
+def load_dataset(dataset_type: str) -> pd.DataFrame | None:
+    """Charge un dataset depuis le backend avec mise en cache.
+
+    Cette fonction récupère les données depuis l'API backend et les met
+    en cache pendant 1 heure pour améliorer les performances.
+
+    Args:
+        dataset_type: Type de dataset à charger ("recipes" ou "interactions")
+
+    Returns:
+        DataFrame pandas contenant les données, ou None si aucune donnée
+
+    Raises:
+        requests.exceptions.RequestException: Si la requête échoue
+        requests.exceptions.HTTPError: Si le serveur retourne une erreur HTTP
+
+    Examples:
+        >>> df = load_dataset("recipes")
+        >>> print(df.head())
+        >>> df = load_dataset("interactions")
+        >>> print(df.shape)
+
+    Note:
+        Les données sont mises en cache pendant 1 heure (ttl=3600).
+        Pour forcer un rechargement, utilisez st.cache_data.clear().
+    """
     url = f"{BASE_URL}/mange_ta_main/load-data?data_type={dataset_type}"
     response = requests.get(url, timeout=60)
     response.raise_for_status()
     data = response.json()
     return pd.DataFrame(data) if data else None
 
-# Charger automatiquement le dataset sélectionné
 struct_logger.info("Starting data load", data_type=data_type)
 with st.spinner("Chargement du dataset..."):
     try:

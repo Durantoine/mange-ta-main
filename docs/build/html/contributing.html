@@ -1,0 +1,541 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guide de contribution &mdash; Documentation Mange Ta Main 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=897fae25"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=e6b791cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" />
+    <link rel="prev" title="API Reference" href="api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mange Ta Main
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table des matières:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backend/index.html">Backend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frontend/index.html">Frontend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Guide de contribution</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#avant-de-commencer">Avant de commencer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lire-la-documentation">1. Lire la documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#consulter-les-issues">2. Consulter les issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#discuter-de-votre-idee">3. Discuter de votre idée</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-de-l-environnement-de-developpement">Configuration de l’environnement de développement</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fork-et-clone">1. Fork et clone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creer-une-branche">2. Créer une branche</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installer-les-dependances">3. Installer les dépendances</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#standards-de-code">Standards de code</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#formatage">Formatage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#type-checking">Type checking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docstrings">Docstrings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tests">Tests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ecrire-des-tests">Écrire des tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lancer-les-tests">Lancer les tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coverage">Coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#processus-de-contribution">Processus de contribution</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#faire-vos-modifications">1. Faire vos modifications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#verifier-la-qualite">2. Vérifier la qualité</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pousser-votre-branche">3. Pousser votre branche</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creer-une-pull-request">4. Créer une Pull Request</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#review-et-feedback">5. Review et feedback</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#convention-de-commits">Convention de commits</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#types">Types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exemples">Exemples</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#structure-des-pull-requests">Structure des Pull Requests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#titre">Titre</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#checklist">Checklist</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#revue-de-code">Revue de code</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#que-regarder">Que regarder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#feedback-constructif">Feedback constructif</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#bonnes-pratiques">Bonnes pratiques</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#architecture">Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code">Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#git">Git</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#questions">Questions ?</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mange Ta Main</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Guide de contribution</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="guide-de-contribution">
+<h1>Guide de contribution<a class="headerlink" href="#guide-de-contribution" title="Lien vers cette rubrique"></a></h1>
+<p>Nous accueillons avec plaisir les contributions ! Ce guide vous aidera à contribuer au projet.</p>
+<section id="avant-de-commencer">
+<h2>Avant de commencer<a class="headerlink" href="#avant-de-commencer" title="Lien vers cette rubrique"></a></h2>
+<section id="lire-la-documentation">
+<h3>1. Lire la documentation<a class="headerlink" href="#lire-la-documentation" title="Lien vers cette rubrique"></a></h3>
+<p>Lisez la documentation complète pour comprendre l’architecture et le fonctionnement du projet.</p>
+</section>
+<section id="consulter-les-issues">
+<h3>2. Consulter les issues<a class="headerlink" href="#consulter-les-issues" title="Lien vers cette rubrique"></a></h3>
+<p>Regardez les <a class="reference external" href="https://github.com/your-org/mange-ta-main/issues">issues GitHub</a> pour trouver des tâches à réaliser.</p>
+</section>
+<section id="discuter-de-votre-idee">
+<h3>3. Discuter de votre idée<a class="headerlink" href="#discuter-de-votre-idee" title="Lien vers cette rubrique"></a></h3>
+<p>Pour les changements importants, créez d’abord une issue pour discuter de votre proposition.</p>
+</section>
+</section>
+<section id="configuration-de-l-environnement-de-developpement">
+<h2>Configuration de l’environnement de développement<a class="headerlink" href="#configuration-de-l-environnement-de-developpement" title="Lien vers cette rubrique"></a></h2>
+<section id="fork-et-clone">
+<h3>1. Fork et clone<a class="headerlink" href="#fork-et-clone" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-username/mange-ta-main.git
+<span class="nb">cd</span><span class="w"> </span>mange-ta-main
+</pre></div>
+</div>
+</section>
+<section id="creer-une-branche">
+<h3>2. Créer une branche<a class="headerlink" href="#creer-une-branche" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/ma-nouvelle-fonctionnalite
+</pre></div>
+</div>
+</section>
+<section id="installer-les-dependances">
+<h3>3. Installer les dépendances<a class="headerlink" href="#installer-les-dependances" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+
+<span class="c1"># Frontend</span>
+<span class="nb">cd</span><span class="w"> </span>../frontend
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+</pre></div>
+</div>
+</section>
+</section>
+<section id="standards-de-code">
+<h2>Standards de code<a class="headerlink" href="#standards-de-code" title="Lien vers cette rubrique"></a></h2>
+<section id="formatage">
+<h3>Formatage<a class="headerlink" href="#formatage" title="Lien vers cette rubrique"></a></h3>
+<p>Nous utilisons <strong>Ruff</strong> pour le formatage et le linting :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+ruff<span class="w"> </span>format<span class="w"> </span>service/<span class="w"> </span>tests/
+ruff<span class="w"> </span>check<span class="w"> </span>service/<span class="w"> </span>tests/
+
+<span class="c1"># Frontend</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+ruff<span class="w"> </span>format<span class="w"> </span>service/<span class="w"> </span>tests/
+ruff<span class="w"> </span>check<span class="w"> </span>service/<span class="w"> </span>tests/
+</pre></div>
+</div>
+</section>
+<section id="type-checking">
+<h3>Type checking<a class="headerlink" href="#type-checking" title="Lien vers cette rubrique"></a></h3>
+<p>Nous utilisons <strong>Pyright</strong> pour la vérification des types :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+pyright
+
+<span class="c1"># Frontend</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+pyright
+</pre></div>
+</div>
+</section>
+<section id="docstrings">
+<h3>Docstrings<a class="headerlink" href="#docstrings" title="Lien vers cette rubrique"></a></h3>
+<p>Utilisez le style <strong>Google Docstrings</strong> :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">ma_fonction</span><span class="p">(</span><span class="n">param1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">param2</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Courte description de la fonction.</span>
+
+<span class="sd">    Description plus détaillée si nécessaire.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        param1: Description du premier paramètre</span>
+<span class="sd">        param2: Description du deuxième paramètre</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Description de ce qui est retourné</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: Quand param2 est négatif</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; ma_fonction(&quot;test&quot;, 42)</span>
+<span class="sd">        True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">param2</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;param2 doit être positif&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="tests">
+<h2>Tests<a class="headerlink" href="#tests" title="Lien vers cette rubrique"></a></h2>
+<section id="ecrire-des-tests">
+<h3>Écrire des tests<a class="headerlink" href="#ecrire-des-tests" title="Lien vers cette rubrique"></a></h3>
+<p>Tous les nouveaux codes doivent inclure des tests :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># backend/tests/test_ma_fonctionnalite.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">service.layers.application.ma_fonctionnalite</span><span class="w"> </span><span class="kn">import</span> <span class="n">ma_fonction</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_ma_fonction_success</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test le cas de succès.&quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">ma_fonction</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="mi">42</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">True</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_ma_fonction_error</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Test le cas d&#39;erreur.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">ma_fonction</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="lancer-les-tests">
+<h3>Lancer les tests<a class="headerlink" href="#lancer-les-tests" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+pytest
+
+<span class="c1"># Frontend</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+pytest
+
+<span class="c1"># Avec coverage</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>service<span class="w"> </span>--cov-report<span class="o">=</span>html
+</pre></div>
+</div>
+</section>
+<section id="coverage">
+<h3>Coverage<a class="headerlink" href="#coverage" title="Lien vers cette rubrique"></a></h3>
+<p>Le projet vise une couverture de tests de <strong>80%</strong> minimum.</p>
+<p>Vérifiez la couverture :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>coverage<span class="w"> </span>report
+coverage<span class="w"> </span>html<span class="w">  </span><span class="c1"># Génère un rapport HTML dans htmlcov/</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="processus-de-contribution">
+<h2>Processus de contribution<a class="headerlink" href="#processus-de-contribution" title="Lien vers cette rubrique"></a></h2>
+<section id="faire-vos-modifications">
+<h3>1. Faire vos modifications<a class="headerlink" href="#faire-vos-modifications" title="Lien vers cette rubrique"></a></h3>
+<p>Travaillez sur votre branche et committez régulièrement :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>add<span class="w"> </span>.
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: ajout de la nouvelle fonctionnalité&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="verifier-la-qualite">
+<h3>2. Vérifier la qualité<a class="headerlink" href="#verifier-la-qualite" title="Lien vers cette rubrique"></a></h3>
+<p>Avant de pousser, vérifiez que tout passe :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Formatage</span>
+ruff<span class="w"> </span>format<span class="w"> </span>.
+ruff<span class="w"> </span>check<span class="w"> </span>.
+
+<span class="c1"># Type checking</span>
+pyright
+
+<span class="c1"># Tests</span>
+pytest
+
+<span class="c1"># Coverage</span>
+coverage<span class="w"> </span>run<span class="w"> </span>-m<span class="w"> </span>pytest
+coverage<span class="w"> </span>report
+</pre></div>
+</div>
+</section>
+<section id="pousser-votre-branche">
+<h3>3. Pousser votre branche<a class="headerlink" href="#pousser-votre-branche" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/ma-nouvelle-fonctionnalite
+</pre></div>
+</div>
+</section>
+<section id="creer-une-pull-request">
+<h3>4. Créer une Pull Request<a class="headerlink" href="#creer-une-pull-request" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Allez sur GitHub et créez une Pull Request</p></li>
+<li><p>Décrivez clairement vos changements</p></li>
+<li><p>Référencez les issues concernées</p></li>
+<li><p>Ajoutez des captures d’écran si pertinent</p></li>
+</ul>
+</section>
+<section id="review-et-feedback">
+<h3>5. Review et feedback<a class="headerlink" href="#review-et-feedback" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Un mainteneur reviewera votre PR</p></li>
+<li><p>Répondez aux commentaires et faites les ajustements nécessaires</p></li>
+<li><p>Une fois approuvée, votre PR sera mergée</p></li>
+</ul>
+</section>
+</section>
+<section id="convention-de-commits">
+<h2>Convention de commits<a class="headerlink" href="#convention-de-commits" title="Lien vers cette rubrique"></a></h2>
+<p>Nous suivons la convention <a class="reference external" href="https://www.conventionalcommits.org/">Conventional Commits</a> :</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&lt;type&gt;(&lt;scope&gt;): &lt;description&gt;
+
+[corps optionnel]
+
+[footer optionnel]
+</pre></div>
+</div>
+<section id="types">
+<h3>Types<a class="headerlink" href="#types" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">feat</span></code>: Nouvelle fonctionnalité</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fix</span></code>: Correction de bug</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs</span></code>: Documentation uniquement</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style</span></code>: Formatage (pas de changement de code)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">refactor</span></code>: Refactoring du code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test</span></code>: Ajout ou modification de tests</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chore</span></code>: Tâches de maintenance</p></li>
+</ul>
+</section>
+<section id="exemples">
+<h3>Exemples<a class="headerlink" href="#exemples" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(api): ajout endpoint GET /recipes/{id}&quot;</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;fix(frontend): correction affichage des tags&quot;</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs: ajout guide de contribution&quot;</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;test(backend): ajout tests pour data_cleaning&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="structure-des-pull-requests">
+<h2>Structure des Pull Requests<a class="headerlink" href="#structure-des-pull-requests" title="Lien vers cette rubrique"></a></h2>
+<section id="titre">
+<h3>Titre<a class="headerlink" href="#titre" title="Lien vers cette rubrique"></a></h3>
+<p>Utilisez la même convention que les commits :</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>feat(api): Ajout endpoint pour filtrer les recettes
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h3>Description<a class="headerlink" href="#description" title="Lien vers cette rubrique"></a></h3>
+<p>Incluez :</p>
+<ol class="arabic simple">
+<li><p><strong>Contexte</strong> : Pourquoi ce changement est nécessaire</p></li>
+<li><p><strong>Changements</strong> : Ce qui a été modifié</p></li>
+<li><p><strong>Tests</strong> : Comment tester les changements</p></li>
+<li><p><strong>Screenshots</strong> : Si changements visuels (frontend)</p></li>
+<li><p><strong>Breaking changes</strong> : Si applicable</p></li>
+</ol>
+<p>Exemple :</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">## Contexte</span>
+Les utilisateurs ont besoin de filtrer les recettes par tags.
+
+<span class="gu">## Changements</span>
+<span class="k">-</span><span class="w"> </span>Ajout d&#39;un paramètre <span class="sb">`tags`</span> à l&#39;endpoint <span class="sb">`/recipes`</span>
+<span class="k">-</span><span class="w"> </span>Ajout de la logique de filtrage dans <span class="sb">`application`</span> layer
+<span class="k">-</span><span class="w"> </span>Ajout des tests unitaires et d&#39;intégration
+
+<span class="gu">## Tests</span>
+<span class="sb">```bash</span>
+pytest<span class="w"> </span>tests/test_recipes_filtering.py
+<span class="sb">```</span>
+
+<span class="gu">## Breaking changes</span>
+Aucun
+</pre></div>
+</div>
+</section>
+<section id="checklist">
+<h3>Checklist<a class="headerlink" href="#checklist" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="k">- [ ]</span> Tests ajoutés et passent
+<span class="k">- [ ]</span> Documentation mise à jour
+<span class="k">- [ ]</span> Code formaté avec Ruff
+<span class="k">- [ ]</span> Type checking passe (Pyright)
+<span class="k">- [ ]</span> Aucun conflit avec main
+<span class="k">- [ ]</span> Commits suivent la convention
+</pre></div>
+</div>
+</section>
+</section>
+<section id="revue-de-code">
+<h2>Revue de code<a class="headerlink" href="#revue-de-code" title="Lien vers cette rubrique"></a></h2>
+<section id="que-regarder">
+<h3>Que regarder<a class="headerlink" href="#que-regarder" title="Lien vers cette rubrique"></a></h3>
+<p>Lors de la revue d’une PR, vérifiez :</p>
+<ul class="simple">
+<li><p>✅ <strong>Fonctionnalité</strong> : Le code fait ce qu’il est censé faire</p></li>
+<li><p>✅ <strong>Tests</strong> : Les tests couvrent les cas importants</p></li>
+<li><p>✅ <strong>Qualité</strong> : Le code est lisible et maintenable</p></li>
+<li><p>✅ <strong>Performance</strong> : Pas de problèmes de performance évidents</p></li>
+<li><p>✅ <strong>Sécurité</strong> : Pas de vulnérabilités</p></li>
+<li><p>✅ <strong>Documentation</strong> : Docstrings et commentaires appropriés</p></li>
+</ul>
+</section>
+<section id="feedback-constructif">
+<h3>Feedback constructif<a class="headerlink" href="#feedback-constructif" title="Lien vers cette rubrique"></a></h3>
+<p>Donnez un feedback :</p>
+<ul class="simple">
+<li><p>Constructif et respectueux</p></li>
+<li><p>Avec des suggestions concrètes</p></li>
+<li><p>En expliquant le « pourquoi »</p></li>
+</ul>
+</section>
+</section>
+<section id="bonnes-pratiques">
+<h2>Bonnes pratiques<a class="headerlink" href="#bonnes-pratiques" title="Lien vers cette rubrique"></a></h2>
+<section id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Respectez l’architecture en couches</p></li>
+<li><p>Ne créez pas de dépendances circulaires</p></li>
+<li><p>Gardez les layers indépendants</p></li>
+</ul>
+</section>
+<section id="code">
+<h3>Code<a class="headerlink" href="#code" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Fonctions courtes et focalisées (&lt; 20 lignes idéalement)</p></li>
+<li><p>Noms explicites pour variables et fonctions</p></li>
+<li><p>Évitez la duplication de code (DRY)</p></li>
+<li><p>Commentez le « pourquoi », pas le « quoi »</p></li>
+</ul>
+</section>
+<section id="id1">
+<h3>Tests<a class="headerlink" href="#id1" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Tests unitaires pour la logique métier</p></li>
+<li><p>Tests d’intégration pour les endpoints</p></li>
+<li><p>Tests de bout en bout pour les scénarios critiques</p></li>
+<li><p>Mockez les dépendances externes</p></li>
+</ul>
+</section>
+<section id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Docstrings pour toutes les fonctions publiques</p></li>
+<li><p>README à jour</p></li>
+<li><p>Documentation Sphinx pour l’architecture</p></li>
+<li><p>Exemples de code</p></li>
+</ul>
+</section>
+<section id="git">
+<h3>Git<a class="headerlink" href="#git" title="Lien vers cette rubrique"></a></h3>
+<ul class="simple">
+<li><p>Commits atomiques et cohérents</p></li>
+<li><p>Messages de commit clairs</p></li>
+<li><p>Branches à courte durée de vie</p></li>
+<li><p>Rebase avant de merger (si besoin)</p></li>
+</ul>
+</section>
+</section>
+<section id="questions">
+<h2>Questions ?<a class="headerlink" href="#questions" title="Lien vers cette rubrique"></a></h2>
+<p>Si vous avez des questions :</p>
+<ol class="arabic simple">
+<li><p>Consultez la documentation</p></li>
+<li><p>Cherchez dans les issues existantes</p></li>
+<li><p>Créez une nouvelle issue avec le label <code class="docutils literal notranslate"><span class="pre">question</span></code></p></li>
+<li><p>Contactez l’équipe sur [votre canal de communication]</p></li>
+</ol>
+<p>Merci pour votre contribution ! 🎉</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2025, Équipe Mange Ta Main.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

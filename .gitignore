@@ -4,6 +4,11 @@
 .DS_Store
 frontend/.DS_Store
 .spyproject
+
 # Couverture tests
 **/.coverage
 .coverage
+
+# Documentation Sphinx
+# docs/build/  # Temporairement commenté pour commiter la doc pré-générée
+docs/source/_build/

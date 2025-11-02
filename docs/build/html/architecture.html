@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture &mdash; Documentation Mange Ta Main 0.1.0</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=897fae25"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=e6b791cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Recherche" href="search.html" />
+    <link rel="next" title="Backend Documentation" href="backend/index.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Mange Ta Main
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table des matières:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#vue-d-ensemble">Vue d’ensemble</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#structure-du-projet">Structure du projet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture-en-couches-backend">Architecture en couches (Backend)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#layer-api">1. Layer API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#layer-application">2. Layer Application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#layer-domain">3. Layer Domain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#layer-infrastructure">4. Layer Infrastructure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#injection-de-dependances">Injection de dépendances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture-frontend">Architecture Frontend</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pages">Pages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#components">Components</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#flux-de-donnees">Flux de données</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#communication-backend-frontend">Communication Backend ↔ Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#avantages-de-cette-architecture">Avantages de cette architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backend/index.html">Backend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frontend/index.html">Frontend Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Guide de contribution</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mange Ta Main</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> Afficher la source de la page</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Lien vers cette rubrique"></a></h1>
+<section id="vue-d-ensemble">
+<h2>Vue d’ensemble<a class="headerlink" href="#vue-d-ensemble" title="Lien vers cette rubrique"></a></h2>
+<p>Le projet <strong>Mange Ta Main</strong> suit les principes de la <strong>Clean Architecture</strong> (Architecture Hexagonale),
+ce qui permet une séparation claire des responsabilités et une meilleure testabilité.</p>
+</section>
+<section id="structure-du-projet">
+<h2>Structure du projet<a class="headerlink" href="#structure-du-projet" title="Lien vers cette rubrique"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>mange-ta-main/
+├── backend/                 # API Backend FastAPI
+│   ├── service/
+│   │   ├── layers/
+│   │   │   ├── api/         # Layer API (routes HTTP)
+│   │   │   ├── application/ # Layer Application (logique métier)
+│   │   │   ├── domain/      # Layer Domain (modèles)
+│   │   │   └── infrastructure/ # Layer Infrastructure (données)
+│   │   ├── main.py          # Point d&#39;entrée FastAPI
+│   │   └── container.py     # Configuration DI
+│   ├── tests/               # Tests backend
+│   └── pyproject.toml
+│
+├── frontend/                # Application Streamlit
+│   ├── service/
+│   │   ├── pages/           # Pages Streamlit
+│   │   ├── components/      # Composants réutilisables
+│   │   ├── src/             # Utilitaires
+│   │   └── app.py           # Point d&#39;entrée Streamlit
+│   ├── tests/               # Tests frontend
+│   └── pyproject.toml
+│
+├── docs/                    # Documentation Sphinx
+│   ├── source/
+│   └── build/
+│
+└── compose.yaml             # Docker Compose
+</pre></div>
+</div>
+</section>
+<section id="architecture-en-couches-backend">
+<h2>Architecture en couches (Backend)<a class="headerlink" href="#architecture-en-couches-backend" title="Lien vers cette rubrique"></a></h2>
+<p>Le backend suit une architecture en 4 couches :</p>
+<section id="layer-api">
+<h3>1. Layer API<a class="headerlink" href="#layer-api" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Responsabilité</strong> : Gestion des requêtes HTTP et des routes</p>
+<ul class="simple">
+<li><p>Définit les endpoints FastAPI</p></li>
+<li><p>Valide les requêtes entrantes</p></li>
+<li><p>Formate les réponses HTTP</p></li>
+<li><p>Gère les erreurs HTTP</p></li>
+</ul>
+<p><strong>Fichiers</strong> : <code class="docutils literal notranslate"><span class="pre">backend/service/layers/api/</span></code></p>
+</section>
+<section id="layer-application">
+<h3>2. Layer Application<a class="headerlink" href="#layer-application" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Responsabilité</strong> : Logique métier et orchestration</p>
+<ul class="simple">
+<li><p>Implémente les cas d’usage</p></li>
+<li><p>Orchestre les appels aux différents services</p></li>
+<li><p>Applique les règles métier</p></li>
+<li><p>Traitement et nettoyage des données</p></li>
+</ul>
+<p><strong>Fichiers</strong> : <code class="docutils literal notranslate"><span class="pre">backend/service/layers/application/</span></code></p>
+</section>
+<section id="layer-domain">
+<h3>3. Layer Domain<a class="headerlink" href="#layer-domain" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Responsabilité</strong> : Modèles et entités métier</p>
+<ul class="simple">
+<li><p>Définit les modèles de données</p></li>
+<li><p>Contient la logique métier pure</p></li>
+<li><p>Indépendant de toute technologie</p></li>
+</ul>
+<p><strong>Fichiers</strong> : <code class="docutils literal notranslate"><span class="pre">backend/service/layers/domain/</span></code></p>
+</section>
+<section id="layer-infrastructure">
+<h3>4. Layer Infrastructure<a class="headerlink" href="#layer-infrastructure" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Responsabilité</strong> : Accès aux données et services externes</p>
+<ul class="simple">
+<li><p>Lecture/écriture de fichiers (CSV, etc.)</p></li>
+<li><p>Accès aux bases de données</p></li>
+<li><p>Appels à des APIs externes</p></li>
+<li><p>Gestion du cache</p></li>
+</ul>
+<p><strong>Fichiers</strong> : <code class="docutils literal notranslate"><span class="pre">backend/service/layers/infrastructure/</span></code></p>
+</section>
+</section>
+<section id="injection-de-dependances">
+<h2>Injection de dépendances<a class="headerlink" href="#injection-de-dependances" title="Lien vers cette rubrique"></a></h2>
+<p>Le projet utilise <strong>dependency-injector</strong> pour gérer les dépendances.</p>
+<p>Configuration dans <code class="docutils literal notranslate"><span class="pre">container.py</span></code> :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dependency_injector</span><span class="w"> </span><span class="kn">import</span> <span class="n">containers</span><span class="p">,</span> <span class="n">providers</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Container</span><span class="p">(</span><span class="n">containers</span><span class="o">.</span><span class="n">DeclarativeContainer</span><span class="p">):</span>
+    <span class="c1"># Configuration</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">providers</span><span class="o">.</span><span class="n">Configuration</span><span class="p">()</span>
+
+    <span class="c1"># Infrastructure</span>
+    <span class="n">csv_adapter</span> <span class="o">=</span> <span class="n">providers</span><span class="o">.</span><span class="n">Singleton</span><span class="p">(</span><span class="n">CSVAdapter</span><span class="p">)</span>
+
+    <span class="c1"># Application</span>
+    <span class="n">data_cleaning</span> <span class="o">=</span> <span class="n">providers</span><span class="o">.</span><span class="n">Factory</span><span class="p">(</span><span class="n">DataCleaning</span><span class="p">)</span>
+
+    <span class="c1"># API</span>
+    <span class="n">api_service</span> <span class="o">=</span> <span class="n">providers</span><span class="o">.</span><span class="n">Factory</span><span class="p">(</span>
+        <span class="n">APIService</span><span class="p">,</span>
+        <span class="n">data_cleaning</span><span class="o">=</span><span class="n">data_cleaning</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="architecture-frontend">
+<h2>Architecture Frontend<a class="headerlink" href="#architecture-frontend" title="Lien vers cette rubrique"></a></h2>
+<p>Le frontend Streamlit est organisé en :</p>
+<section id="pages">
+<h3>Pages<a class="headerlink" href="#pages" title="Lien vers cette rubrique"></a></h3>
+<p>Différentes pages de l’application :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tab01_data.py</span></code> : Visualisation des données brutes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab02_analyse.py</span></code> : Analyses statistiques</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab03_conclusions.py</span></code> : Conclusions et insights</p></li>
+</ul>
+<p><strong>Fichiers</strong> : <code class="docutils literal notranslate"><span class="pre">frontend/service/pages/</span></code></p>
+</section>
+<section id="components">
+<h3>Components<a class="headerlink" href="#components" title="Lien vers cette rubrique"></a></h3>
+<p>Composants réutilisables :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sidebar.py</span></code> : Barre latérale de navigation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab01_top_contributors.py</span></code> : Top contributeurs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab02_duration_recipe.py</span></code> : Analyse des durées</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab03_reviews.py</span></code> : Analyse des reviews</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab04_rating.py</span></code> : Analyse des ratings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab05_personnas.py</span></code> : Analyse des personas</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab06_top10_analyse.py</span></code> : Top 10 analyses</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tab07_tags.py</span></code> : Analyse des tags</p></li>
+</ul>
+<p><strong>Fichiers</strong> : <code class="docutils literal notranslate"><span class="pre">frontend/service/components/</span></code></p>
+</section>
+</section>
+<section id="flux-de-donnees">
+<h2>Flux de données<a class="headerlink" href="#flux-de-donnees" title="Lien vers cette rubrique"></a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>1. Utilisateur fait une requête HTTP
+   ↓
+2. Layer API reçoit la requête (FastAPI)
+   ↓
+3. Layer Application traite la logique métier
+   ↓
+4. Layer Domain fournit les modèles
+   ↓
+5. Layer Infrastructure accède aux données
+   ↓
+6. Réponse remonte les layers
+   ↓
+7. Frontend Streamlit affiche les résultats
+</pre></div>
+</div>
+</section>
+<section id="communication-backend-frontend">
+<h2>Communication Backend ↔ Frontend<a class="headerlink" href="#communication-backend-frontend" title="Lien vers cette rubrique"></a></h2>
+<p>Le frontend communique avec le backend via des requêtes HTTP REST :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Frontend fait une requête</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;http://backend:8000/api/recipes&quot;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+<span class="c1"># Backend répond avec des données JSON</span>
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/api/recipes&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_recipes</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;recipes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">...</span><span class="p">]}</span>
+</pre></div>
+</div>
+</section>
+<section id="avantages-de-cette-architecture">
+<h2>Avantages de cette architecture<a class="headerlink" href="#avantages-de-cette-architecture" title="Lien vers cette rubrique"></a></h2>
+<p>✅ <strong>Séparation des préoccupations</strong> : Chaque layer a une responsabilité claire</p>
+<p>✅ <strong>Testabilité</strong> : Facile de tester chaque layer indépendamment</p>
+<p>✅ <strong>Maintenabilité</strong> : Code organisé et facile à comprendre</p>
+<p>✅ <strong>Évolutivité</strong> : Facile d’ajouter de nouvelles fonctionnalités</p>
+<p>✅ <strong>Indépendance</strong> : Les layers ne dépendent pas des détails d’implémentation</p>
+<p>✅ <strong>Réutilisabilité</strong> : Les composants peuvent être réutilisés</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="backend/index.html" class="btn btn-neutral float-right" title="Backend Documentation" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2025, Équipe Mange Ta Main.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
