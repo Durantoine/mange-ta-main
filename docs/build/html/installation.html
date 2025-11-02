@@ -48,26 +48,64 @@
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#prerequis">Prérequis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installation-locale">Installation locale</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation-avec-docker-recommande">Installation avec Docker (Recommandé)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#cloner-le-repository">1. Cloner le repository</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#installation-du-backend">2. Installation du backend</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#installation-du-frontend">3. Installation du frontend</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#installer-les-dependances-de-documentation">4. Installer les dépendances de documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#demarrer-tous-les-services">2. Démarrer tous les services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#arreter-les-services">3. Arrêter les services</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nettoyer-tout">4. Nettoyer tout</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#lancement-de-l-application">Lancement de l’application</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#commandes-backend">Commandes Backend</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#build-et-demarrage">Build et démarrage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qualite-du-code">Qualité du code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#commandes-frontend">Commandes Frontend</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Build et démarrage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Qualité du code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ports-des-services">Ports des services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#developpement-dans-docker">Développement dans Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-locale-sans-docker">Installation locale (Sans Docker)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#backend">Backend</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#frontend">Frontend</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#avec-docker-compose">Avec Docker Compose</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#variables-d-environnement">Variables d’environnement</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">Backend</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Frontend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#verification-de-l-installation">Vérification de l’installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Backend</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Frontend</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#verification-de-l-installation">Vérification de l’installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#generation-de-la-documentation">Génération de la documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploiement-kubernetes">Déploiement Kubernetes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generation-de-la-documentation">Génération de la documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installer-les-dependances-docs">1. Installer les dépendances docs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generer-la-documentation">2. Générer la documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ouvrir-la-documentation">3. Ouvrir la documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#docker-n-est-pas-demarre">Docker n’est pas démarré</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ports-deja-utilises">Ports déjà utilisés</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#problemes-de-permissions">Problèmes de permissions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hot-reload-ne-fonctionne-pas">Hot reload ne fonctionne pas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#les-tests-echouent">Les tests échouent</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#exemples-d-utilisation">Exemples d’utilisation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#demarrage-complet-en-dev">Démarrage complet en dev</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#developpement-backend-uniquement">Développement backend uniquement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#developpement-frontend-uniquement">Développement frontend uniquement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lancer-les-tests-et-verifier-la-qualite">Lancer les tests et vérifier la qualité</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nettoyer-et-redemarrer">Nettoyer et redémarrer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#ressources">Ressources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#notes-importantes">Notes importantes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#see-also">See Also</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
@@ -107,15 +145,21 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Lien vers cette rubrique"></a></h1>
 <section id="prerequis">
 <h2>Prérequis<a class="headerlink" href="#prerequis" title="Lien vers cette rubrique"></a></h2>
+<p><strong>Obligatoire</strong> :</p>
 <ul class="simple">
-<li><p>Python 3.11 ou supérieur</p></li>
-<li><p>pip ou uv (gestionnaire de paquets)</p></li>
-<li><p>Docker (optionnel, pour le déploiement)</p></li>
+<li><p><strong>Docker 20+</strong> et <strong>Docker Compose 2+</strong></p></li>
 <li><p>Git</p></li>
 </ul>
+<p><strong>Optionnel</strong> (pour développement local sans Docker) :</p>
+<ul class="simple">
+<li><p>Python 3.11+</p></li>
+<li><p>pip ou uv (gestionnaire de paquets)</p></li>
+</ul>
+<p>⚠️ <strong>Important</strong> : Assurez-vous que Docker est en cours d’exécution avant d’exécuter les commandes.</p>
 </section>
-<section id="installation-locale">
-<h2>Installation locale<a class="headerlink" href="#installation-locale" title="Lien vers cette rubrique"></a></h2>
+<section id="installation-avec-docker-recommande">
+<h2>Installation avec Docker (Recommandé)<a class="headerlink" href="#installation-avec-docker-recommande" title="Lien vers cette rubrique"></a></h2>
+<p>Cette méthode utilise Docker et le développement se fait <strong>directement dans les conteneurs</strong> avec hot reload.</p>
 <section id="cloner-le-repository">
 <h3>1. Cloner le repository<a class="headerlink" href="#cloner-le-repository" title="Lien vers cette rubrique"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
@@ -123,124 +167,472 @@
 </pre></div>
 </div>
 </section>
-<section id="installation-du-backend">
-<h3>2. Installation du backend<a class="headerlink" href="#installation-du-backend" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev<span class="w">  </span><span class="c1"># Pour les dépendances de développement</span>
+<section id="demarrer-tous-les-services">
+<h3>2. Démarrer tous les services<a class="headerlink" href="#demarrer-tous-les-services" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Mode développement</strong> (avec hot reload) :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>service-dev-up
 </pre></div>
 </div>
-<p>Ou avec uv :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
-uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+<p><strong>Mode production</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>service-prod-up
+</pre></div>
+</div>
+<p>Les services seront accessibles sur :</p>
+<ul class="simple">
+<li><p><strong>Backend</strong> : <a class="reference external" href="http://localhost:8000">http://localhost:8000</a></p></li>
+<li><p><strong>Frontend</strong> : <a class="reference external" href="http://localhost:8501">http://localhost:8501</a></p></li>
+<li><p><strong>API Docs (Swagger)</strong> : <a class="reference external" href="http://localhost:8000/docs">http://localhost:8000/docs</a></p></li>
+</ul>
+</section>
+<section id="arreter-les-services">
+<h3>3. Arrêter les services<a class="headerlink" href="#arreter-les-services" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>service-stop
 </pre></div>
 </div>
 </section>
-<section id="installation-du-frontend">
-<h3>3. Installation du frontend<a class="headerlink" href="#installation-du-frontend" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
-</pre></div>
-</div>
-<p>Ou avec uv :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
-uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
-uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+<section id="nettoyer-tout">
+<h3>4. Nettoyer tout<a class="headerlink" href="#nettoyer-tout" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>service-clean
 </pre></div>
 </div>
 </section>
-<section id="installer-les-dependances-de-documentation">
-<h3>4. Installer les dépendances de documentation<a class="headerlink" href="#installer-les-dependances-de-documentation" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Dans backend/</span>
-pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>docs
+</section>
+<section id="commandes-backend">
+<h2>Commandes Backend<a class="headerlink" href="#commandes-backend" title="Lien vers cette rubrique"></a></h2>
+<p>Toutes les commandes depuis le dossier <code class="docutils literal notranslate"><span class="pre">backend/</span></code> :</p>
+<section id="build-et-demarrage">
+<h3>Build et démarrage<a class="headerlink" href="#build-et-demarrage" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
 
-<span class="c1"># Dans frontend/</span>
-pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>docs
+<span class="c1"># Build image dev</span>
+make<span class="w"> </span>build-dev
+
+<span class="c1"># Démarrer en mode dev (avec hot reload)</span>
+make<span class="w"> </span>dev-up
+
+<span class="c1"># Build image prod</span>
+make<span class="w"> </span>build-prod
+
+<span class="c1"># Démarrer en mode prod</span>
+make<span class="w"> </span>prod-up
+
+<span class="c1"># Arrêter</span>
+make<span class="w"> </span>stop
 </pre></div>
 </div>
 </section>
-</section>
-<section id="lancement-de-l-application">
-<h2>Lancement de l’application<a class="headerlink" href="#lancement-de-l-application" title="Lien vers cette rubrique"></a></h2>
-<section id="backend">
-<h3>Backend<a class="headerlink" href="#backend" title="Lien vers cette rubrique"></a></h3>
+<section id="qualite-du-code">
+<h3>Qualité du code<a class="headerlink" href="#qualite-du-code" title="Lien vers cette rubrique"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
-fastapi<span class="w"> </span>dev<span class="w"> </span>service/main.py
+
+<span class="c1"># Linting avec Ruff</span>
+make<span class="w"> </span>lint
+
+<span class="c1"># Auto-fix avec Ruff</span>
+make<span class="w"> </span>lint-fix
+
+<span class="c1"># Formatage avec Black et isort</span>
+make<span class="w"> </span>format
+
+<span class="c1"># Type checking avec Pyright</span>
+make<span class="w"> </span>check-types
+
+<span class="c1"># Tout en une fois</span>
+make<span class="w"> </span>lint-all
 </pre></div>
 </div>
-<p>Le backend sera accessible sur <a class="reference external" href="http://localhost:8000">http://localhost:8000</a></p>
 </section>
-<section id="frontend">
-<h3>Frontend<a class="headerlink" href="#frontend" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
-streamlit<span class="w"> </span>run<span class="w"> </span>service/app.py
-</pre></div>
-</div>
-<p>Le frontend sera accessible sur <a class="reference external" href="http://localhost:8501">http://localhost:8501</a></p>
-</section>
-<section id="avec-docker-compose">
-<h3>Avec Docker Compose<a class="headerlink" href="#avec-docker-compose" title="Lien vers cette rubrique"></a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>up
+<section id="tests">
+<h3>Tests<a class="headerlink" href="#tests" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+
+<span class="c1"># Lancer les tests avec coverage</span>
+make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="variables-d-environnement">
-<h2>Variables d’environnement<a class="headerlink" href="#variables-d-environnement" title="Lien vers cette rubrique"></a></h2>
+<section id="commandes-frontend">
+<h2>Commandes Frontend<a class="headerlink" href="#commandes-frontend" title="Lien vers cette rubrique"></a></h2>
+<p>Toutes les commandes depuis le dossier <code class="docutils literal notranslate"><span class="pre">frontend/</span></code> :</p>
 <section id="id1">
-<h3>Backend<a class="headerlink" href="#id1" title="Lien vers cette rubrique"></a></h3>
-<p>Créer un fichier <code class="docutils literal notranslate"><span class="pre">.env</span></code> dans le dossier <code class="docutils literal notranslate"><span class="pre">backend/</span></code> :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Configuration de l&#39;API</span>
-<span class="nv">API_HOST</span><span class="o">=</span><span class="m">0</span>.0.0.0
-<span class="nv">API_PORT</span><span class="o">=</span><span class="m">8000</span>
+<h3>Build et démarrage<a class="headerlink" href="#id1" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
 
-<span class="c1"># Chemins des données</span>
-<span class="nv">DATA_PATH</span><span class="o">=</span>/path/to/data
+<span class="c1"># Build image dev</span>
+make<span class="w"> </span>build-dev
+
+<span class="c1"># Démarrer en mode dev (avec hot reload)</span>
+make<span class="w"> </span>dev-up
+
+<span class="c1"># Build image prod</span>
+make<span class="w"> </span>build-prod
+
+<span class="c1"># Démarrer en mode prod</span>
+make<span class="w"> </span>prod-up
+
+<span class="c1"># Arrêter</span>
+make<span class="w"> </span>stop
 </pre></div>
 </div>
 </section>
 <section id="id2">
-<h3>Frontend<a class="headerlink" href="#id2" title="Lien vers cette rubrique"></a></h3>
-<p>Créer un fichier <code class="docutils literal notranslate"><span class="pre">.env</span></code> dans le dossier <code class="docutils literal notranslate"><span class="pre">frontend/</span></code> :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># URL du backend</span>
-<span class="nv">BACKEND_URL</span><span class="o">=</span>http://localhost:8000
+<h3>Qualité du code<a class="headerlink" href="#id2" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+
+<span class="c1"># Linting avec Ruff</span>
+make<span class="w"> </span>lint
+
+<span class="c1"># Auto-fix avec Ruff</span>
+make<span class="w"> </span>lint-fix
+
+<span class="c1"># Formatage avec Black et isort</span>
+make<span class="w"> </span>format
+
+<span class="c1"># Type checking avec Pyright</span>
+make<span class="w"> </span>check-types
+
+<span class="c1"># Tout en une fois</span>
+make<span class="w"> </span>lint-all
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>Tests<a class="headerlink" href="#id3" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+
+<span class="c1"># Lancer les tests avec coverage</span>
+make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="ports-des-services">
+<h2>Ports des services<a class="headerlink" href="#ports-des-services" title="Lien vers cette rubrique"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 20.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Service</p></th>
+<th class="head"><p>Port</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Backend (FastAPI)</p></td>
+<td><p>8000</p></td>
+<td><p>API REST</p></td>
+</tr>
+<tr class="row-odd"><td><p>Frontend (Streamlit)</p></td>
+<td><p>8501</p></td>
+<td><p>Interface utilisateur</p></td>
+</tr>
+<tr class="row-even"><td><p>Swagger UI</p></td>
+<td><p>8000/docs</p></td>
+<td><p>Documentation interactive API</p></td>
+</tr>
+<tr class="row-odd"><td><p>ReDoc</p></td>
+<td><p>8000/redoc</p></td>
+<td><p>Documentation alternative API</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Lien vers cette rubrique"></a></h2>
+<p>Le frontend se connecte automatiquement au backend via :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">BACKEND_URL</span><span class="o">=</span>http://mange_ta_main:8000
+</pre></div>
+</div>
+<p>(Configuré automatiquement en mode développement Docker)</p>
+</section>
+<section id="developpement-dans-docker">
+<h2>Développement dans Docker<a class="headerlink" href="#developpement-dans-docker" title="Lien vers cette rubrique"></a></h2>
+<p><strong>Hot Reload</strong> :</p>
+<p>Le développement se fait <strong>directement dans les conteneurs Docker</strong>. Les volumes montés permettent la synchronisation en temps réel :</p>
+<ul class="simple">
+<li><p>Modifiez un fichier Python sur votre machine</p></li>
+<li><p>Les changements sont <strong>immédiatement reflétés</strong> dans le conteneur</p></li>
+<li><p><strong>Pas besoin de rebuild</strong> l’image pour les modifications de code</p></li>
+</ul>
+<p><strong>Backend</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+make<span class="w"> </span>dev-up
+<span class="c1"># Éditez service/main.py</span>
+<span class="c1"># FastAPI recharge automatiquement ✨</span>
+</pre></div>
+</div>
+<p><strong>Frontend</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+make<span class="w"> </span>dev-up
+<span class="c1"># Éditez service/app.py</span>
+<span class="c1"># Streamlit recharge automatiquement ✨</span>
+</pre></div>
+</div>
+</section>
+<section id="installation-locale-sans-docker">
+<h2>Installation locale (Sans Docker)<a class="headerlink" href="#installation-locale-sans-docker" title="Lien vers cette rubrique"></a></h2>
+<p>⚠️ <strong>Déconseillé</strong> : Cette méthode nécessite de gérer manuellement les dépendances.</p>
+<section id="backend">
+<h3>Backend<a class="headerlink" href="#backend" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+
+<span class="c1"># Lancer</span>
+fastapi<span class="w"> </span>dev<span class="w"> </span>service/main.py
+</pre></div>
+</div>
+</section>
+<section id="frontend">
+<h3>Frontend<a class="headerlink" href="#frontend" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>dev
+
+<span class="c1"># Lancer</span>
+streamlit<span class="w"> </span>run<span class="w"> </span>service/app.py
 </pre></div>
 </div>
 </section>
 </section>
 <section id="verification-de-l-installation">
 <h2>Vérification de l’installation<a class="headerlink" href="#verification-de-l-installation" title="Lien vers cette rubrique"></a></h2>
-<p>Pour vérifier que tout fonctionne correctement :</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Lancer les tests du backend</span>
-<span class="nb">cd</span><span class="w"> </span>backend
-pytest
-
-<span class="c1"># Lancer les tests du frontend</span>
-<span class="nb">cd</span><span class="w"> </span>frontend
-pytest
+<section id="id4">
+<h3>Backend<a class="headerlink" href="#id4" title="Lien vers cette rubrique"></a></h3>
+<ol class="arabic">
+<li><p>Vérifier que le backend répond :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>http://localhost:8000/mange_ta_main/health
 </pre></div>
 </div>
+<p>Réponse attendue :</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;healthy&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p>Vérifier l’API Swagger : <a class="reference external" href="http://localhost:8000/docs">http://localhost:8000/docs</a></p></li>
+<li><p>Lancer les tests :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="id5">
+<h3>Frontend<a class="headerlink" href="#id5" title="Lien vers cette rubrique"></a></h3>
+<ol class="arabic">
+<li><p>Ouvrir <a class="reference external" href="http://localhost:8501">http://localhost:8501</a> dans votre navigateur</p></li>
+<li><p>Vérifier que les données se chargent</p></li>
+<li><p>Lancer les tests :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>frontend
+make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="deploiement-kubernetes">
+<h2>Déploiement Kubernetes<a class="headerlink" href="#deploiement-kubernetes" title="Lien vers cette rubrique"></a></h2>
+<p>Le projet inclut des configurations Kubernetes :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Déployer le backend</span>
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>deploy-back.yaml
+
+<span class="c1"># Déployer le frontend</span>
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>deploy-front.yaml
+
+<span class="c1"># Configurer l&#39;ingress</span>
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>ingress.yaml
+</pre></div>
+</div>
+<p>Voir les fichiers :</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">deploy-back.yaml</span></code> - Déploiement backend avec configuration</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">deploy-front.yaml</span></code> - Déploiement frontend</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ingress.yaml</span></code> - Configuration ingress</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backend-config.yaml</span></code> - ConfigMap backend</p></li>
+</ul>
 </section>
 <section id="generation-de-la-documentation">
 <h2>Génération de la documentation<a class="headerlink" href="#generation-de-la-documentation" title="Lien vers cette rubrique"></a></h2>
+<p>Pour générer la documentation Sphinx :</p>
+<section id="installer-les-dependances-docs">
+<h3>1. Installer les dépendances docs<a class="headerlink" href="#installer-les-dependances-docs" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>docs
+
+<span class="c1"># Frontend</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+pip<span class="w"> </span>install<span class="w"> </span>--group<span class="w"> </span>docs
+</pre></div>
+</div>
+</section>
+<section id="generer-la-documentation">
+<h3>2. Générer la documentation<a class="headerlink" href="#generer-la-documentation" title="Lien vers cette rubrique"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>docs
 make<span class="w"> </span>html
 </pre></div>
 </div>
-<p>La documentation sera générée dans <code class="docutils literal notranslate"><span class="pre">docs/build/html/</span></code>.</p>
-<p>Pour voir la documentation :</p>
+</section>
+<section id="ouvrir-la-documentation">
+<h3>3. Ouvrir la documentation<a class="headerlink" href="#ouvrir-la-documentation" title="Lien vers cette rubrique"></a></h3>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># macOS</span>
-open<span class="w"> </span>docs/build/html/index.html
+open<span class="w"> </span>build/html/index.html
 
 <span class="c1"># Linux</span>
-xdg-open<span class="w"> </span>docs/build/html/index.html
+xdg-open<span class="w"> </span>build/html/index.html
 
 <span class="c1"># Windows</span>
-start<span class="w"> </span>docs/build/html/index.html
+start<span class="w"> </span>build<span class="se">\h</span>tml<span class="se">\i</span>ndex.html
 </pre></div>
 </div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Lien vers cette rubrique"></a></h2>
+<section id="docker-n-est-pas-demarre">
+<h3>Docker n’est pas démarré<a class="headerlink" href="#docker-n-est-pas-demarre" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Error: Cannot connect to Docker daemon
+</pre></div>
+</div>
+<p><strong>Solution</strong> : Démarrez Docker Desktop</p>
+</section>
+<section id="ports-deja-utilises">
+<h3>Ports déjà utilisés<a class="headerlink" href="#ports-deja-utilises" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Error: Port 8000 is already in use
+</pre></div>
+</div>
+<p><strong>Solution</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Arrêter tous les conteneurs</span>
+make<span class="w"> </span>service-stop
+
+<span class="c1"># Ou identifier et tuer le processus</span>
+lsof<span class="w"> </span>-ti:8000<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-9
+</pre></div>
+</div>
+</section>
+<section id="problemes-de-permissions">
+<h3>Problèmes de permissions<a class="headerlink" href="#problemes-de-permissions" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Error: Permission denied
+</pre></div>
+</div>
+<p><strong>Solution</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ajouter votre utilisateur au groupe docker (Linux)</span>
+sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>docker<span class="w"> </span><span class="nv">$USER</span>
+
+<span class="c1"># Se déconnecter/reconnecter pour appliquer</span>
+</pre></div>
+</div>
+</section>
+<section id="hot-reload-ne-fonctionne-pas">
+<h3>Hot reload ne fonctionne pas<a class="headerlink" href="#hot-reload-ne-fonctionne-pas" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Solution</strong> : Vérifiez que vous utilisez <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">dev-up</span></code> et non <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">prod-up</span></code></p>
+</section>
+<section id="les-tests-echouent">
+<h3>Les tests échouent<a class="headerlink" href="#les-tests-echouent" title="Lien vers cette rubrique"></a></h3>
+<p><strong>Solution</strong> :</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reconstruire les images</span>
+make<span class="w"> </span>service-clean
+make<span class="w"> </span>service-dev-up
+
+<span class="c1"># Relancer les tests</span>
+<span class="nb">cd</span><span class="w"> </span>backend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+<span class="nb">cd</span><span class="w"> </span>frontend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="exemples-d-utilisation">
+<h2>Exemples d’utilisation<a class="headerlink" href="#exemples-d-utilisation" title="Lien vers cette rubrique"></a></h2>
+<section id="demarrage-complet-en-dev">
+<h3>Démarrage complet en dev<a class="headerlink" href="#demarrage-complet-en-dev" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Depuis la racine du projet</span>
+make<span class="w"> </span>service-dev-up
+
+<span class="c1"># Ouvrir dans le navigateur</span>
+<span class="c1"># Backend: http://localhost:8000/docs</span>
+<span class="c1"># Frontend: http://localhost:8501</span>
+</pre></div>
+</div>
+</section>
+<section id="developpement-backend-uniquement">
+<h3>Développement backend uniquement<a class="headerlink" href="#developpement-backend-uniquement" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>backend
+make<span class="w"> </span>dev-up
+
+<span class="c1"># Dans un autre terminal</span>
+curl<span class="w"> </span>http://localhost:8000/mange_ta_main/health
+</pre></div>
+</div>
+</section>
+<section id="developpement-frontend-uniquement">
+<h3>Développement frontend uniquement<a class="headerlink" href="#developpement-frontend-uniquement" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># D&#39;abord démarrer le backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+make<span class="w"> </span>dev-up
+
+<span class="c1"># Dans un autre terminal</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+make<span class="w"> </span>dev-up
+</pre></div>
+</div>
+</section>
+<section id="lancer-les-tests-et-verifier-la-qualite">
+<h3>Lancer les tests et vérifier la qualité<a class="headerlink" href="#lancer-les-tests-et-verifier-la-qualite" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Backend</span>
+<span class="nb">cd</span><span class="w"> </span>backend
+make<span class="w"> </span>lint-all
+make<span class="w"> </span><span class="nb">test</span>
+
+<span class="c1"># Frontend</span>
+<span class="nb">cd</span><span class="w"> </span>frontend
+make<span class="w"> </span>lint-all
+make<span class="w"> </span><span class="nb">test</span>
+</pre></div>
+</div>
+</section>
+<section id="nettoyer-et-redemarrer">
+<h3>Nettoyer et redémarrer<a class="headerlink" href="#nettoyer-et-redemarrer" title="Lien vers cette rubrique"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>service-clean
+make<span class="w"> </span>service-dev-up
+</pre></div>
+</div>
+</section>
+</section>
+<section id="ressources">
+<h2>Ressources<a class="headerlink" href="#ressources" title="Lien vers cette rubrique"></a></h2>
+<ul class="simple">
+<li><p><strong>Docker</strong> : <a class="reference external" href="https://docs.docker.com/get-started/">https://docs.docker.com/get-started/</a></p></li>
+<li><p><strong>Docker Compose</strong> : <a class="reference external" href="https://docs.docker.com/compose/">https://docs.docker.com/compose/</a></p></li>
+<li><p><strong>FastAPI</strong> : <a class="reference external" href="https://fastapi.tiangolo.com/">https://fastapi.tiangolo.com/</a></p></li>
+<li><p><strong>Streamlit</strong> : <a class="reference external" href="https://docs.streamlit.io/">https://docs.streamlit.io/</a></p></li>
+<li><p><strong>Makefile</strong> : <a class="reference external" href="https://www.gnu.org/software/make/manual/">https://www.gnu.org/software/make/manual/</a></p></li>
+</ul>
+</section>
+<section id="notes-importantes">
+<h2>Notes importantes<a class="headerlink" href="#notes-importantes" title="Lien vers cette rubrique"></a></h2>
+<ul class="simple">
+<li><p>Le développement se fait <strong>dans Docker</strong> avec hot reload</p></li>
+<li><p>Les volumes sont montés pour synchronisation temps réel</p></li>
+<li><p><strong>Pas besoin de rebuild</strong> pour les modifications de code en dev</p></li>
+<li><p>Les images prod sont immutables et optimisées</p></li>
+<li><p>Chaque service (backend/frontend) a son propre Makefile</p></li>
+<li><p>Le Makefile global orchestre tous les services</p></li>
+<li><p>La couverture de tests minimale est de 80%</p></li>
+</ul>
+</section>
+<section id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Lien vers cette rubrique"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="architecture.html"><span class="doc">Architecture</span></a> - Architecture du projet</p></li>
+<li><p><a class="reference internal" href="api.html"><span class="doc">API Reference Complète</span></a> - Documentation API</p></li>
+<li><p><a class="reference internal" href="contributing.html"><span class="doc">Guide de contribution</span></a> - Guide de contribution</p></li>
+</ul>
 </section>
 </section>
 
